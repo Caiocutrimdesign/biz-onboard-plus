@@ -128,8 +128,7 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="h-14 border-surface-dark-foreground/20 px-8 text-lg text-surface-dark-foreground hover:bg-surface-dark-foreground/10"
+                  className="h-14 px-8 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/30"
                 >
                   Conhecer Planos
                 </Button>
