@@ -273,8 +273,8 @@ function LeadModal({
     phone: lead?.phone || '',
     company: lead?.company || '',
     value: lead?.value || 0,
-    priority: lead?.priority || 'media',
-    notes: '',
+    priority: lead?.priority || 'media' as Lead['priority'],
+    newNote: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {

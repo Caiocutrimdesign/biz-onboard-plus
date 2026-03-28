@@ -249,7 +249,7 @@ function LeadDetailModal({
   open: boolean; 
   onClose: () => void; 
   lead: Lead | null;
-  pipeline: { stages: { id: string; name: string; color: string }[] };
+  pipeline: { stages: { id: string; name: string; color: string; probability?: number }[] };
   users: { id: string; name: string }[];
 }) {
   if (!lead) return null;
