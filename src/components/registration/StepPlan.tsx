@@ -62,7 +62,7 @@ export function StepPlan({ onNext, onBack }: Props) {
               }`}
             >
               {plan.value === 'completo' && (
-                <span className="bg-gradient-brand absolute -top-3 right-4 rounded-full px-3 py-1 text-xs font-bold text-primary-foreground">
+                <span className="bg-gradient-to-r from-gray-300 to-gray-400 absolute -top-3 right-4 rounded-full px-3 py-1 text-xs font-bold text-black shadow-md">
                   POPULAR
                 </span>
               )}
