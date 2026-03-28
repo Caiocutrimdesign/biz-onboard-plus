@@ -47,17 +47,32 @@ export default function AdminDashboard() {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRegistration | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  const [allCustomers, setAllCustomers] = useState<CustomerRegistration[]>(MOCK_CUSTOMERS);
+
   useEffect(() => {
     if (sessionStorage.getItem('admin_auth') !== 'true') {
       navigate('/admin/login');
     }
+    loadCustomers();
   }, [navigate]);
 
+  const loadCustomers = () => {
+    try {
+      const localData = localStorage.getItem('rastremix_customers');
+      if (localData) {
+        const localCustomers = JSON.parse(localData);
+        setAllCustomers([...localCustomers, ...MOCK_CUSTOMERS]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar clientes:', error);
+    }
+  };
+
   const stats = {
-    total: MOCK_CUSTOMERS.length,
+    total: allCustomers.length,
     revenue: 12450.80,
     activeVehicles: 154,
-    pendingRegs: MOCK_CUSTOMERS.filter(c => c.status === 'novo_cadastro').length
+    pendingRegs: allCustomers.filter(c => c.status === 'novo_cadastro').length
   };
 
   const handleLogout = () => {

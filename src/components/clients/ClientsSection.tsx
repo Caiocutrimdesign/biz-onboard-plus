@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Filter, Eye, Plus, Car, Smartphone, Mail, MapPin,
@@ -471,22 +471,43 @@ export default function ClientsSection() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRegistration | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [allCustomers, setAllCustomers] = useState<CustomerRegistration[]>(MOCK_CUSTOMERS);
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  const loadCustomers = async () => {
+    try {
+      let localCustomers: CustomerRegistration[] = [];
+      
+      const localData = localStorage.getItem('rastremix_customers');
+      if (localData) {
+        localCustomers = JSON.parse(localData);
+      }
+      
+      setAllCustomers([...localCustomers, ...MOCK_CUSTOMERS]);
+    } catch (error) {
+      console.error('Erro ao carregar clientes:', error);
+      setAllCustomers(MOCK_CUSTOMERS);
+    }
+  };
 
   const filteredCustomers = useMemo(() => {
-    return MOCK_CUSTOMERS.filter((c) => {
+    return allCustomers.filter((c) => {
       const matchSearch = !search || [c.full_name, c.phone, c.plate, c.cpf_cnpj, c.email]
         .some((f) => f?.toLowerCase().includes(search.toLowerCase()));
       const matchStatus = statusFilter === 'all' || c.status === statusFilter;
       return matchSearch && matchStatus;
     });
-  }, [search, statusFilter]);
+  }, [search, statusFilter, allCustomers]);
 
   const stats = useMemo(() => ({
-    total: MOCK_CUSTOMERS.length,
-    active: MOCK_CUSTOMERS.filter(c => c.status === 'cliente_ativado').length,
-    pending: MOCK_CUSTOMERS.filter(c => c.status === 'novo_cadastro').length,
-    inProgress: MOCK_CUSTOMERS.filter(c => c.status === 'em_atendimento').length,
-  }), []);
+    total: allCustomers.length,
+    active: allCustomers.filter(c => c.status === 'cliente_ativado').length,
+    pending: allCustomers.filter(c => c.status === 'novo_cadastro').length,
+    inProgress: allCustomers.filter(c => c.status === 'em_atendimento').length,
+  }), [allCustomers]);
 
   return (
     <div className="space-y-8">
