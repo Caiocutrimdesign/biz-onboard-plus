@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerStatus } from '@/types/customer';
 
 const MOCK_CUSTOMERS: CustomerRegistration[] = [
@@ -115,13 +115,15 @@ const Avatar3D = ({ name, status }: { name: string; status: CustomerStatus }) =>
     'from-indigo-400 to-blue-500',
   ];
   const colorIndex = name.length % colors.length;
-  const statusColors: Record<CustomerStatus, string> = {
+  const statusColors: Record<string, string> = {
     novo_cadastro: 'bg-warning',
     em_atendimento: 'bg-blue-500',
-    documento_pendente: 'bg-orange-500',
     aguardando_pagamento: 'bg-purple-500',
+    pagamento_confirmado: 'bg-emerald-500',
+    aguardando_instalacao: 'bg-indigo-500',
     cliente_ativado: 'bg-green-500',
-    cliente_bloqueado: 'bg-red-500',
+    pendente: 'bg-yellow-500',
+    cancelado: 'bg-red-500',
   };
 
   return (

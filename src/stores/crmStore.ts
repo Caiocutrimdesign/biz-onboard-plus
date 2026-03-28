@@ -229,7 +229,7 @@ const mockLeads: Lead[] = [
     city: 'São Paulo',
     state: 'SP',
     status: 'novo',
-    source: 'linkedin',
+    source: 'outro',
     priority: 'alta',
     tags: ['Quente', 'VIP'],
     value: 150000,
