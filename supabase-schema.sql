@@ -1,0 +1,121 @@
+-- ============================================
+-- CRM TABLES FOR BIZ CRM PLUS
+-- ============================================
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS crm_users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
+  phone TEXT,
+  avatar TEXT,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS leads (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  email TEXT,
+  phone TEXT NOT NULL,
+  company TEXT,
+  document TEXT,
+  address TEXT,
+  city TEXT,
+  state TEXT,
+  status TEXT DEFAULT 'novo' CHECK (status IN ('novo', 'contatado', 'qualificado', 'proposta', 'negociacao', 'ganho', 'perdido')),
+  source TEXT DEFAULT 'website' CHECK (source IN ('website', 'facebook', 'instagram', 'google_ads', 'indicacao', 'telefone', 'feira', 'outro')),
+  priority TEXT DEFAULT 'media' CHECK (priority IN ('baixa', 'media', 'alta', 'urgente')),
+  value DECIMAL(12, 2) DEFAULT 0,
+  tags TEXT[] DEFAULT '{}',
+  notes TEXT DEFAULT '',
+  owner_id UUID REFERENCES crm_users(id),
+  pipeline_id TEXT DEFAULT 'default',
+  stage_id TEXT DEFAULT 'stage-1',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_contact_at TIMESTAMP WITH TIME ZONE,
+  next_contact_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS customers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  full_name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  cpf_cnpj TEXT,
+  email TEXT,
+  cep TEXT,
+  street TEXT,
+  number TEXT,
+  neighborhood TEXT,
+  city TEXT,
+  state TEXT,
+  vehicle_type TEXT,
+  plate TEXT,
+  brand TEXT,
+  model TEXT,
+  year TEXT,
+  color TEXT,
+  renavam TEXT,
+  chassis TEXT,
+  plan TEXT,
+  payment_method TEXT,
+  status TEXT DEFAULT 'novo_cadastro',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS pipelines (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  is_default BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS pipeline_stages (
+  id TEXT PRIMARY KEY,
+  pipeline_id TEXT REFERENCES pipelines(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  color TEXT DEFAULT '#3B82F6',
+  order_index INTEGER DEFAULT 0,
+  probability INTEGER DEFAULT 0,
+  is_final BOOLEAN DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS tags (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT UNIQUE NOT NULL,
+  color TEXT DEFAULT '#3B82F6',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+INSERT INTO pipelines (id, name, description, is_default)
+VALUES ('default', 'Pipeline de Vendas', 'Pipeline padrão', true)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO pipeline_stages (id, pipeline_id, name, color, order_index, probability, is_final) VALUES
+('stage-1', 'default', 'Novo Lead', '#3B82F6', 0, 10, false),
+('stage-2', 'default', 'Contatado', '#8B5CF6', 1, 20, false),
+('stage-3', 'default', 'Qualificado', '#06B6D4', 2, 40, false),
+('stage-4', 'default', 'Proposta', '#F59E0B', 3, 60, false),
+('stage-5', 'default', 'Negociação', '#F97316', 4, 80, false),
+('stage-6', 'default', 'Ganho', '#22C55E', 5, 100, true),
+('stage-7', 'default', 'Perdido', '#EF4444', 6, 0, true)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO tags (name, color) VALUES
+('Quente', '#EF4444'),
+('Frio', '#3B82F6'),
+('VIP', '#F59E0B'),
+('Em negócio', '#22C55E'),
+('Aguardando', '#8B5CF6')
+ON CONFLICT (name) DO NOTHING;
+
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE crm_users ENABLE ROW LEVEL SECURITY;

@@ -2,12 +2,12 @@ import { motion } from 'framer-motion';
 import { 
   Users, TrendingUp, DollarSign, Target, ArrowUpRight, 
   ArrowDownRight, Clock, CheckCircle2, Phone, Mail, MessageSquare,
-  Calendar, Sparkles
+  Calendar, Sparkles, Car
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useCRMStore } from '@/stores/crmStore';
-import { STATUS_LABELS, SOURCE_LABELS } from '@/types/crm';
+import { useAnalytics, useLeads, useCustomers } from '@/hooks/useCRM';
+import { STATUS_LABELS, SOURCE_LABELS } from '@/lib/supabase';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -50,19 +50,19 @@ const StatCard = ({ icon: Icon, label, value, trend, trendValue, color }: {
 );
 
 export default function CRMDashboard() {
-  const { leads, analytics, appointments } = useCRMStore();
+  const { analytics, loading } = useAnalytics();
+  const { leads } = useLeads();
+  const { customers } = useCustomers();
 
-  const recentLeads = [...leads].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  ).slice(0, 5);
+  const recentLeads = leads.slice(0, 5);
 
-  const upcomingAppointments = appointments
-    .filter(a => new Date(a.startDate) > new Date())
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-    .slice(0, 3);
-
-  const revenueGrowth = analytics ? 
-    Math.round(((analytics.revenueThisMonth - analytics.revenueLastMonth) / analytics.revenueLastMonth) * 100) : 0;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   const container = {
     hidden: { opacity: 0 },

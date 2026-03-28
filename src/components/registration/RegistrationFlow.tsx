@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,18 +12,20 @@ import { StepPayment } from './StepPayment';
 import { StepNotes } from './StepNotes';
 import { StepSuccess } from './StepSuccess';
 import { useRegistrationStore } from '@/store/registrationStore';
+import { supabase } from '@/lib/supabase';
 import logo from '@/assets/logo-rastremix.png';
 
 const TOTAL_STEPS = 8;
-const IDLE_TIMEOUT = 120000; // 2 minutes
+const IDLE_TIMEOUT = 120000;
 
 interface Props {
   onClose: () => void;
 }
 
 export function RegistrationFlow({ onClose }: Props) {
-  const { currentStep, setStep, reset } = useRegistrationStore();
+  const { currentStep, setStep, reset, data } = useRegistrationStore();
   const idleTimer = useRef<ReturnType<typeof setTimeout>>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetIdle = useCallback(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
@@ -46,9 +48,67 @@ export function RegistrationFlow({ onClose }: Props) {
   const next = () => setStep(Math.min(currentStep + 1, TOTAL_STEPS - 1));
   const back = () => setStep(Math.max(currentStep - 1, 0));
 
-  const handleSubmit = () => {
-    // In future: save to database here
-    next();
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      const customerData = {
+        full_name: data.full_name,
+        phone: data.phone,
+        cpf_cnpj: data.cpf_cnpj,
+        email: data.email,
+        cep: data.cep,
+        street: data.street,
+        number: data.number,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        vehicle_type: data.vehicle_type,
+        plate: data.plate,
+        brand: data.brand,
+        model: data.model,
+        year: data.year,
+        color: data.color,
+        plan: data.plan,
+        payment_method: data.payment_method,
+        status: 'novo_cadastro',
+      };
+
+      const { error: customerError } = await supabase
+        .from('customers')
+        .insert(customerData);
+
+      if (customerError) throw customerError;
+
+      const leadData = {
+        name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+        company: null,
+        document: data.cpf_cnpj,
+        address: data.street ? `${data.street}, ${data.number}` : null,
+        city: data.city,
+        state: data.state,
+        status: 'novo',
+        source: 'website',
+        priority: 'media',
+        value: 0,
+        tags: ['Novo Cadastro'],
+        notes: `Veículo: ${data.brand} ${data.model} (${data.plate})\nPlano: ${data.plan}\nForma de pagamento: ${data.payment_method}`,
+        owner_id: null,
+        pipeline_id: 'default',
+        stage_id: 'stage-1',
+      };
+
+      await supabase.from('leads').insert(leadData);
+
+      next();
+    } catch (error) {
+      console.error('Erro ao salvar cadastro:', error);
+      alert('Erro ao salvar o cadastro. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNewRegistration = () => {
@@ -88,7 +148,7 @@ export function RegistrationFlow({ onClose }: Props) {
           {currentStep === 3 && <StepVehicle key="vehicle" onNext={next} onBack={back} />}
           {currentStep === 4 && <StepPlan key="plan" onNext={next} onBack={back} />}
           {currentStep === 5 && <StepPayment key="payment" onNext={next} onBack={back} />}
-          {currentStep === 6 && <StepNotes key="notes" onNext={handleSubmit} onBack={back} />}
+          {currentStep === 6 && <StepNotes key="notes" onNext={handleSubmit} onBack={back} isSubmitting={isSubmitting} />}
           {currentStep === 7 && <StepSuccess key="success" onNewRegistration={handleNewRegistration} onGoHome={handleGoHome} />}
         </AnimatePresence>
       </div>
