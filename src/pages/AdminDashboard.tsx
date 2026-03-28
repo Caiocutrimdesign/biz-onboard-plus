@@ -39,6 +39,7 @@ const MOCK_CUSTOMERS: CustomerRegistration[] = [
 
 type Module = 'dashboard' | 'clientes' | 'financeiro' | 'rastreamento' | 'config';
 
+// CRM Plus - Atualizado em 28/03/2026
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
