@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Lead, Pipeline, Deal, User, Tag, Automation, EmailCampaign, Appointment, Analytics, DEFAULT_PIPELINE } from '@/types/crm';
+import type { Lead, Pipeline, Deal, User, Tag, Automation, EmailCampaign, Appointment, Analytics } from '@/types/crm';
 
 interface CRMStore {
   leads: Lead[];

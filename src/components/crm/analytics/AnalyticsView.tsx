@@ -111,20 +111,20 @@ export default function AnalyticsView() {
               <div key={status} className="flex items-center gap-4">
                 <div className="flex-1">
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">{STATUS_LABELS[status as keyof typeof STATUS_LABELS]}</span>
+                    <span className="text-gray-600">{STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status}</span>
                     <span className="font-medium">{count}</span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                     <motion.div
                       className={`h-full ${getStatusColor(status)}`}
                       initial={{ width: 0 }}
-                      animate={{ width: `${(count / leads.length) * 100}%` }}
+                      animate={{ width: `${leads.length > 0 ? (count / leads.length) * 100 : 0}%` }}
                       transition={{ duration: 0.8 }}
                     />
                   </div>
                 </div>
                 <span className="text-sm text-gray-400 w-12 text-right">
-                  {((count / leads.length) * 100).toFixed(0)}%
+                  {leads.length > 0 ? ((count / leads.length) * 100).toFixed(0) : 0}%
                 </span>
               </div>
             ))}
@@ -138,14 +138,14 @@ export default function AnalyticsView() {
               <div key={source} className="flex items-center gap-4">
                 <div className="flex-1">
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">{SOURCE_LABELS[source as keyof typeof SOURCE_LABELS]}</span>
+                    <span className="text-gray-600">{SOURCE_LABELS[source as keyof typeof SOURCE_LABELS] || source}</span>
                     <span className="font-medium">{count}</span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-gradient-to-r from-red-500 to-red-400"
                       initial={{ width: 0 }}
-                      animate={{ width: `${(count / leads.length) * 100}%` }}
+                      animate={{ width: `${leads.length > 0 ? (count / leads.length) * 100 : 0}%` }}
                       transition={{ duration: 0.8 }}
                     />
                   </div>
@@ -159,9 +159,10 @@ export default function AnalyticsView() {
       <Card className="p-6">
         <h3 className="font-semibold text-gray-900 mb-6">Funil de Vendas</h3>
         <div className="flex items-end gap-4 h-64">
-          {pipeline.stages.filter(s => !s.isFinal).map((stage, index) => {
-            const count = leads.filter(l => l.stageId === stage.id).length;
-            const maxCount = Math.max(...pipeline.stages.filter(s => !s.isFinal).map(s => leads.filter(l => l.stageId === s.id).length), 1);
+          {pipeline?.stages?.filter((s: any) => !s.isFinal).map((stage: any, index: number) => {
+            const count = leads.filter((l: any) => l.stageId === stage.id).length;
+            const stageCounts = pipeline.stages.filter((s: any) => !s.isFinal).map((s: any) => leads.filter((l: any) => l.stageId === s.id).length);
+            const maxCount = stageCounts.length > 0 ? Math.max(...stageCounts, 1) : 1;
             const height = (count / maxCount) * 100;
 
             return (
@@ -187,7 +188,7 @@ export default function AnalyticsView() {
         <Card className="p-6">
           <h3 className="font-semibold text-gray-900 mb-6">Leads nos Últimos 7 Dias</h3>
           <div className="h-48 flex items-end gap-2">
-            {analytics?.dailyLeads.map((day, index) => (
+            {(analytics?.dailyLeads || []).map((day: any, index: number) => (
               <motion.div
                 key={day.date}
                 className="flex-1 bg-blue-100 rounded-t-lg flex items-end justify-center"
@@ -200,7 +201,7 @@ export default function AnalyticsView() {
             ))}
           </div>
           <div className="flex gap-2 mt-2 text-xs text-gray-400">
-            {analytics?.dailyLeads.map((day) => (
+            {(analytics?.dailyLeads || []).map((day: any) => (
               <span key={day.date} className="flex-1 text-center">
                 {new Date(day.date).toLocaleDateString('pt-BR', { weekday: 'short' })}
               </span>
