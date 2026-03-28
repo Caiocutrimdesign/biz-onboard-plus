@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Users, Target, Zap, Mail, Calendar, 
   BarChart3, GitBranch, Settings, Bell, Menu, X,
-  ChevronRight, LogOut, Search
+  ChevronRight, LogOut, Search, Plus, ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,22 +24,13 @@ const modules = [
   { id: 'settings', label: 'Configurações', icon: Settings, color: 'text-gray-500' },
 ];
 
-interface CRMLayoutProps {
-  children: React.ReactNode;
-  activeModule: CRMLodule;
-  setActiveModule: (module: CRMLodule) => void;
-}
-
-export default function CRMLayout({ children, activeModule, setActiveModule }: CRMLayoutProps) {
+export default function CRMLayout({ children }: { children: React.ReactNode }) {
+  const [activeModule, setActiveModule] = useState<CRMLodule>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentUser, leads } = useCRMStore();
 
-  useEffect(() => {
-    console.log('CRM Module changed to:', activeModule);
-  }, [activeModule]);
-
-  const pendingLeads = leads.length;
+  const pendingLeads = leads.filter(l => l.status === 'novo' || l.status === 'contatado').length;
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -130,11 +121,11 @@ export default function CRMLayout({ children, activeModule, setActiveModule }: C
             
             <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium">{currentUser?.name || 'Usuário'}</p>
-                <p className="text-xs text-gray-500">Administrador</p>
+                <p className="text-sm font-medium">{currentUser?.name}</p>
+                <p className="text-xs text-gray-500">{currentUser?.role === 'admin' ? 'Administrador' : 'Usuário'}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold">
-                {currentUser?.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'AD'}
+                {currentUser?.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </div>
             </div>
           </div>
