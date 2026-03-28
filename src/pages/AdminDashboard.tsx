@@ -330,7 +330,7 @@ export default function AdminDashboard() {
             <div className="flex h-full items-center justify-center text-center p-12 bg-muted/10 rounded-3xl border-2 border-dashed border-border animate-in fade-in duration-500">
               <div className="max-w-md">
                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6">
-                   {navItems.find(n => n.id === activeModule)?.icon({ className: 'h-10 w-10' })}
+                   {(() => { const Icon = navItems.find(n => n.id === activeModule)?.icon; return Icon ? <Icon className="h-10 w-10" /> : null; })()}
                  </div>
                  <h2 className="text-2xl font-bold mb-2 uppercase tracking-tighter">Módulo {navItems.find(n => n.id === activeModule)?.label}</h2>
                  <p className="text-muted-foreground">Este módulo está sendo sincronizado com o sistema principal da Rastremix. Em breve estará disponível para gestão completa.</p>
