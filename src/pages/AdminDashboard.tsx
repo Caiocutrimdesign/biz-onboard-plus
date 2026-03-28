@@ -128,6 +128,12 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Button 
+              onClick={() => navigate('/crm')}
+              className="bg-gradient-brand hover:opacity-90"
+            >
+              CRM Completo
+            </Button>
             <div className="relative rounded-full bg-muted p-2 text-muted-foreground hover:text-foreground cursor-pointer">
               <Bell className="h-5 w-5" />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary border-2 border-card" />
