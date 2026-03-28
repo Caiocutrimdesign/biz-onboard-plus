@@ -361,8 +361,8 @@ function LeadModal({
             <div className="col-span-2">
               <label className="text-sm font-medium text-gray-700 mb-1 block">Notas</label>
               <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                value={formData.newNote}
+                onChange={(e) => setFormData({ ...formData, newNote: e.target.value })}
                 placeholder="Observações sobre o lead..."
                 rows={3}
                 className="w-full px-3 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary resize-none"
