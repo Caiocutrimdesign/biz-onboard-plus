@@ -80,9 +80,17 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Logo */}
-      <div className="absolute left-8 top-8 z-20">
+      {/* Header with Logo and Restricted Access */}
+      <div className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between p-8">
         <img src={logo} alt="Rastremix" className="h-12 w-auto" />
+        <Button
+          variant="ghost"
+          onClick={() => window.location.href = '/admin/login'}
+          className="group flex h-11 items-center gap-2 rounded-full border border-surface-dark-foreground/10 bg-surface-dark-foreground/5 px-6 text-sm font-medium text-surface-dark-foreground backdrop-blur-md transition-all hover:bg-surface-dark-foreground/10 hover:shadow-lg"
+        >
+          <Shield className="h-4 w-4 text-primary transition-transform group-hover:scale-110" />
+          Acesso Restrito
+        </Button>
       </div>
 
       {/* Content */}
