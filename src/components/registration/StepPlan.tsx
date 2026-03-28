@@ -43,8 +43,8 @@ export function StepPlan({ onNext, onBack }: Props) {
   return (
     <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="mx-auto w-full max-w-2xl space-y-6 px-4">
       <div className="text-center">
-        <h2 className="font-display text-2xl font-bold">Escolha seu Plano</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Selecione o plano ideal para sua necessidade</p>
+        <h2 className="font-display text-2xl font-bold text-black">Escolha seu Plano</h2>
+        <p className="mt-1 text-sm text-black/70">Selecione o plano ideal para sua necessidade</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -67,11 +67,11 @@ export function StepPlan({ onNext, onBack }: Props) {
                 </span>
               )}
               <plan.icon className={`mb-3 h-8 w-8 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
-              <h3 className="font-display text-lg font-bold">{plan.title}</h3>
+              <h3 className="font-display text-lg font-bold text-black">{plan.title}</h3>
               <p className="mt-1 text-xl font-bold text-primary">{plan.price}</p>
               <ul className="mt-4 space-y-2">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <li key={f} className="flex items-center gap-2 text-sm text-black">
                     <Check className="h-4 w-4 text-primary" />
                     {f}
                   </li>
