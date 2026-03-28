@@ -41,7 +41,7 @@ export default function CRMPage() {
   };
 
   return (
-    <CRMLayout>
+    <CRMLayout activeModule={activeModule} setActiveModule={setActiveModule}>
       {renderModule()}
     </CRMLayout>
   );
