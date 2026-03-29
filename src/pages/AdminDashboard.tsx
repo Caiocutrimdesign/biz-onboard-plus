@@ -12,27 +12,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import logo from '@/assets/logo-rastremix.png';
 import ClientsSection from '@/components/clients/ClientsSection';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration } from '@/types/customer';
-
-const MOCK_CUSTOMERS: CustomerRegistration[] = [];
+import { useAuth } from '@/contexts/AuthContext';
 
 type Module = 'dashboard' | 'clientes' | 'financeiro' | 'rastreamento' | 'config';
 
-// CRM Plus - Atualizado em 28/03/2026
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRegistration | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  const [allCustomers, setAllCustomers] = useState<CustomerRegistration[]>(MOCK_CUSTOMERS);
+  const [allCustomers, setAllCustomers] = useState<CustomerRegistration[]>([]);
 
   useEffect(() => {
-    if (sessionStorage.getItem('admin_auth') !== 'true') {
-      navigate('/admin/login');
-    }
     loadCustomers();
-  }, [navigate]);
+  }, []);
 
   const loadCustomers = () => {
     try {
@@ -53,8 +49,8 @@ export default function AdminDashboard() {
     pendingRegs: allCustomers.filter(c => c.status === 'novo_cadastro').length
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_auth');
+  const handleLogout = async () => {
+    await logout();
     navigate('/admin/login');
   };
 

@@ -15,11 +15,11 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
 
-  const from = (location.state as any)?.from || '/admin';
   const supabaseConfigured = isSupabaseConfigured();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,33 +27,23 @@ export default function AdminLogin() {
     setError('');
     setIsLoading(true);
 
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       setError('Por favor, preencha todos os campos');
       setIsLoading(false);
-      return;
-    }
-
-    if (!supabaseConfigured) {
-      if (email === 'admin@rastremix.com' && password === 'Rastremix2024!') {
-        toast.success('Acesso concedido');
-        navigate('/admin');
-      } else {
-        setError('Credenciais inválidas');
-        toast.error('Credenciais inválidas');
-      }
-      setIsLoading(false);
+      toast.error('Por favor, preencha todos os campos');
       return;
     }
 
     try {
-      const result = await login({ email, password });
+      const result = await login({ email: email.trim(), password });
       
       if (result.success) {
         toast.success(`Bem-vindo, ${result.user?.name}!`);
+        const from = (location.state as any)?.from || '/admin';
         navigate(from, { replace: true });
       } else {
-        setError(result.error || 'Erro ao fazer login');
-        toast.error(result.error || 'Erro ao fazer login');
+        setError(result.error || 'Credenciais inválidas');
+        toast.error(result.error || 'Credenciais inválidas');
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login');
@@ -106,7 +96,7 @@ export default function AdminLogin() {
               <div>
                 <p className="text-sm font-medium text-amber-500">Modo Demo</p>
                 <p className="text-xs text-amber-500/70 mt-1">
-                  Use: admin@rastremix.com / Rastremix2024!
+                  Use: <strong>admin@rastremix.com</strong> / <strong>Rastremix2024!</strong>
                 </p>
               </div>
             </div>
@@ -137,6 +127,7 @@ export default function AdminLogin() {
               className="h-14 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 text-base text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
               autoFocus
               autoComplete="email"
+              disabled={isLoading}
             />
           </div>
 
@@ -149,6 +140,7 @@ export default function AdminLogin() {
               placeholder="Sua senha"
               className="h-14 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 pr-12 text-base text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
               autoComplete="current-password"
+              disabled={isLoading}
             />
             <button
               type="button"
@@ -156,16 +148,6 @@ export default function AdminLogin() {
               className="absolute right-4 top-1/2 -translate-y-1/2 text-surface-dark-foreground/30 hover:text-surface-dark-foreground/60 transition-colors"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-
-          <div className="flex items-center justify-end">
-            <button
-              type="button"
-              className="text-xs font-medium text-primary hover:underline"
-              onClick={() => navigate('/forgot-password')}
-            >
-              Esqueceu a senha?
             </button>
           </div>
           
