@@ -252,12 +252,16 @@ export default function TECPage() {
 }
 
 // ============ HOME VIEW ============
+type FilterTab = 'todos' | 'pendente' | 'em_andamento' | 'concluido';
+
 function HomeView({ services, loading, onNewClient, userName }: {
   services: Service[];
   loading: boolean;
   onNewClient: () => void;
   userName: string;
 }) {
+  const [filterTab, setFilterTab] = useState<FilterTab>('todos');
+
   const stats = {
     today: services.filter(s => 
       new Date(s.created_at).toDateString() === new Date().toDateString()
@@ -265,7 +269,20 @@ function HomeView({ services, loading, onNewClient, userName }: {
     pending: services.filter(s => s.status === 'pendente').length,
     inProgress: services.filter(s => s.status === 'em_andamento').length,
     completed: services.filter(s => s.status === 'concluido').length,
+    all: services.length,
   };
+
+  const filteredServices = services.filter(service => {
+    if (filterTab === 'todos') return true;
+    return service.status === filterTab;
+  });
+
+  const filterTabs: { id: FilterTab; label: string; count: number; color: string; activeBg: string }[] = [
+    { id: 'todos', label: 'Todos', count: stats.all, color: 'text-gray-500', activeBg: 'bg-gray-500' },
+    { id: 'pendente', label: 'Pendentes', count: stats.pending, color: 'text-yellow-600', activeBg: 'bg-yellow-500' },
+    { id: 'em_andamento', label: 'Em Andamento', count: stats.inProgress, color: 'text-blue-600', activeBg: 'bg-blue-500' },
+    { id: 'concluido', label: 'Finalizadas', count: stats.completed, color: 'text-green-600', activeBg: 'bg-green-500' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -335,12 +352,51 @@ function HomeView({ services, loading, onNewClient, userName }: {
         </Card>
       </div>
 
-      {/* Recent Services */}
+      {/* Filter Tabs */}
+      <div className="bg-white rounded-xl border p-2">
+        <div className="flex gap-2 overflow-x-auto">
+          {filterTabs.map((tab) => {
+            const isActive = filterTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setFilterTab(tab.id)}
+                className={`
+                  flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all whitespace-nowrap
+                  ${isActive 
+                    ? `${tab.activeBg} text-white shadow-md` 
+                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                  }
+                `}
+              >
+                {isActive && <Check className="w-4 h-4" />}
+                <span>{tab.label}</span>
+                <span className={`
+                  px-2 py-0.5 rounded-full text-xs font-bold
+                  ${isActive ? 'bg-white/20' : 'bg-muted'}
+                `}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Services List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Ultimos Servicos
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              <span>
+                {filterTab === 'todos' && 'Todos os Servicos'}
+                {filterTab === 'pendente' && 'Servicos Pendentes'}
+                {filterTab === 'em_andamento' && 'Servicos em Andamento'}
+                {filterTab === 'concluido' && 'Servicos Finalizados'}
+              </span>
+            </div>
+            <Badge variant="outline">{filteredServices.length} servico(s)</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -348,45 +404,112 @@ function HomeView({ services, loading, onNewClient, userName }: {
             <div className="text-center py-8">
               <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
             </div>
-          ) : services.length === 0 ? (
+          ) : filteredServices.length === 0 ? (
             <div className="text-center py-8">
               <Wrench className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-              <p className="text-muted-foreground">Nenhum servico ainda</p>
-              <Button onClick={onNewClient} className="mt-4 bg-orange-500">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Servico
-              </Button>
+              <p className="text-muted-foreground">
+                {filterTab === 'todos' 
+                  ? 'Nenhum servico ainda'
+                  : filterTab === 'pendente' 
+                    ? 'Nenhum servico pendente'
+                    : filterTab === 'em_andamento'
+                      ? 'Nenhum servico em andamento'
+                      : 'Nenhum servico finalizado'
+                }
+              </p>
+              {filterTab === 'todos' && (
+                <Button onClick={onNewClient} className="mt-4 bg-orange-500">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Servico
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
-              {services.slice(0, 10).map((service) => (
-                <div key={service.id} className="p-4 rounded-xl border hover:bg-muted/30">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <Car className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{service.client_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {service.vehicle} - {service.plate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <StatusBadge status={service.status} />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(service.created_at).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              {filteredServices.map((service) => (
+                <ServiceCard key={service.id} service={service} />
               ))}
             </div>
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// ============ SERVICE CARD ============
+function ServiceCard({ service }: { service: Service }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-4 rounded-xl border hover:bg-muted/30 transition-colors cursor-pointer"
+      onClick={() => setExpanded(!expanded)}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`
+            w-12 h-12 rounded-xl flex items-center justify-center
+            ${service.status === 'pendente' ? 'bg-yellow-100' : 
+              service.status === 'em_andamento' ? 'bg-blue-100' : 'bg-green-100'}
+          `}>
+            <Car className={`w-6 h-6 ${
+              service.status === 'pendente' ? 'text-yellow-600' : 
+              service.status === 'em_andamento' ? 'text-blue-600' : 'text-green-600'
+            }`} />
+          </div>
+          <div>
+            <p className="font-semibold">{service.client_name}</p>
+            <p className="text-sm text-muted-foreground">
+              {service.vehicle} - {service.plate}
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <StatusBadge status={service.status} />
+          <p className="text-xs text-muted-foreground mt-1">
+            {new Date(service.created_at).toLocaleDateString('pt-BR')}
+          </p>
+        </div>
+      </div>
+
+      {/* Expanded Details */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 pt-4 border-t space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Telefone:</span>
+                <span className="font-medium">{service.client_phone}</span>
+              </div>
+              {service.client_address && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Endereco:</span>
+                  <span className="font-medium text-right max-w-[200px] truncate">{service.client_address}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tipo:</span>
+                <span className="font-medium capitalize">{service.type}</span>
+              </div>
+              {service.technician_name && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tecnico:</span>
+                  <span className="font-medium">{service.technician_name}</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -959,7 +1082,8 @@ function FinalizeView({ service, onSave, onBack }: {
   onBack: () => void;
 }) {
   const [photos, setPhotos] = useState<Array<{ url: string; type: PhotoType; file?: File }>>([]);
-  const [photoType, setPhotoType] = useState<PhotoType>('antes');
+  const [currentPhotoStep, setCurrentPhotoStep] = useState<1 | 2 | 3>(1);
+  const [showSignatures, setShowSignatures] = useState(false);
   const [signatureFuncionario, setSignatureFuncionario] = useState<string>('');
   const [signatureCliente, setSignatureCliente] = useState<string>('');
   const [observations, setObservations] = useState('');
@@ -971,7 +1095,19 @@ function FinalizeView({ service, onSave, onBack }: {
   const [isDrawingFunc, setIsDrawingFunc] = useState(false);
   const [isDrawingClient, setIsDrawingClient] = useState(false);
 
-  const isValid = photos.length > 0 && signatureFuncionario && signatureCliente;
+  // Count photos per step
+  const photosAntes = photos.filter(p => p.type === 'antes');
+  const photosDurante = photos.filter(p => p.type === 'durante');
+  const photosDepois = photos.filter(p => p.type === 'depois');
+
+  // Check if step is complete
+  const step1Complete = photosAntes.length >= 1;
+  const step2Complete = photosDurante.length >= 1;
+  const step3Complete = photosDepois.length >= 1;
+
+  // Validation
+  const signaturesComplete = signatureFuncionario && signatureCliente;
+  const canFinalize = step3Complete && signaturesComplete;
 
   // Initialize canvases
   useEffect(() => {
@@ -1060,7 +1196,8 @@ function FinalizeView({ service, onSave, onBack }: {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPhotos([...photos, { url: reader.result as string, type: photoType, file }]);
+      const typeMap: Record<1 | 2 | 3, PhotoType> = { 1: 'antes', 2: 'durante', 3: 'depois' };
+      setPhotos([...photos, { url: reader.result as string, type: typeMap[currentPhotoStep], file }]);
     };
     reader.readAsDataURL(file);
     
@@ -1090,7 +1227,20 @@ function FinalizeView({ service, onSave, onBack }: {
     setter(dataUrl);
   };
 
+  const goToStep2 = () => {
+    if (step1Complete) setCurrentPhotoStep(2);
+  };
+
+  const goToStep3 = () => {
+    if (step2Complete) setCurrentPhotoStep(3);
+  };
+
+  const goToSignatures = () => {
+    if (step3Complete) setShowSignatures(true);
+  };
+
   const handleSave = async () => {
+    if (!canFinalize) return;
     setSaving(true);
     
     const finalPhotos = photos.map((p) => ({
@@ -1108,6 +1258,10 @@ function FinalizeView({ service, onSave, onBack }: {
     setSaving(false);
   };
 
+  const currentStepLabel = currentPhotoStep === 1 ? 'Antes' : currentPhotoStep === 2 ? 'Durante' : 'Depois';
+  const currentStepColor = currentPhotoStep === 1 ? 'red' : currentPhotoStep === 2 ? 'yellow' : 'green';
+  const currentStepBg = currentPhotoStep === 1 ? 'bg-red-500' : currentPhotoStep === 2 ? 'bg-yellow-500' : 'bg-green-500';
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1119,219 +1273,415 @@ function FinalizeView({ service, onSave, onBack }: {
           <div>
             <h1 className="text-xl font-bold">Finalizar Servico</h1>
             <p className="text-sm text-muted-foreground">
-              Fotos, assinaturas e observacoes
+              {!showSignatures ? `Etapa ${currentPhotoStep} de 3: Fotos ${currentStepLabel}` : 'Assinaturas'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Photos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Camera className="w-5 h-5" />
-              Fotos do Servico
-            </span>
-            <Badge>{photos.length} foto(s)</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Photo Type Selector */}
-          <div className="flex gap-2">
-            {(['antes', 'durante', 'depois'] as PhotoType[]).map((type) => (
-              <button
-                key={type}
-                onClick={() => setPhotoType(type)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                  photoType === type
-                    ? type === 'antes' ? 'bg-red-500 text-white' :
-                      type === 'durante' ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
-                    : 'bg-muted'
-                }`}
-              >
-                {type === 'antes' ? 'Antes' : type === 'durante' ? 'Durante' : 'Depois'}
-              </button>
-            ))}
+      {/* Step Progress Indicator */}
+      {!showSignatures && (
+        <div className="bg-white rounded-xl border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-muted-foreground">Progresso das Fotos</span>
+            <span className="text-sm font-bold">{photos.length} foto(s)</span>
           </div>
-
-          {/* Camera Button */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handlePhotoCapture}
-            className="hidden"
-          />
           
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-muted-foreground/30 rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
-          >
-            <Camera className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">Toque para tirar foto</p>
-          </div>
+          <div className="flex items-center gap-2">
+            {/* Step 1 - Antes */}
+            <button
+              onClick={() => setCurrentPhotoStep(1)}
+              disabled={!step1Complete && currentPhotoStep !== 1}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all flex-1 ${
+                step1Complete 
+                  ? 'bg-green-100 text-green-800 border-2 border-green-500 cursor-pointer' 
+                  : currentPhotoStep === 1 
+                    ? `${currentStepBg} text-white` 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {step1Complete ? (
+                <Check className="w-5 h-5" />
+              ) : (
+                <span className="w-5 h-5 flex items-center justify-center font-bold">1</span>
+              )}
+              <div className="text-left">
+                <p className="font-bold text-sm">Antes</p>
+                <p className="text-xs opacity-70">{photosAntes.length} foto(s)</p>
+              </div>
+            </button>
 
-          {/* Photo Grid */}
-          {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-2">
-              {photos.map((photo, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={photo.url}
-                    alt={`Foto ${index + 1}`}
-                    className="w-full h-20 object-cover rounded-lg border"
-                  />
-                  <button
-                    onClick={() => removePhoto(index)}
-                    className="absolute top-1 right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                  <span className={`absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded ${
-                    photo.type === 'antes' ? 'bg-red-500 text-white' :
-                    photo.type === 'durante' ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
-                  }`}>
-                    {photo.type}
-                  </span>
-                </div>
-              ))}
+            <div className={`w-8 h-0.5 ${step1Complete ? 'bg-green-500' : 'bg-gray-300'}`} />
+
+            {/* Step 2 - Durante */}
+            <button
+              onClick={() => step1Complete && setCurrentPhotoStep(2)}
+              disabled={!step1Complete}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all flex-1 ${
+                step2Complete 
+                  ? 'bg-green-100 text-green-800 border-2 border-green-500 cursor-pointer' 
+                  : currentPhotoStep === 2 
+                    ? `${currentStepBg} text-white` 
+                    : !step1Complete 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-yellow-50 text-yellow-600 border-2 border-yellow-400 cursor-pointer'
+              }`}
+            >
+              {step2Complete ? (
+                <Check className="w-5 h-5" />
+              ) : (
+                <span className="w-5 h-5 flex items-center justify-center font-bold">2</span>
+              )}
+              <div className="text-left">
+                <p className="font-bold text-sm">Durante</p>
+                <p className="text-xs opacity-70">{photosDurante.length} foto(s)</p>
+              </div>
+            </button>
+
+            <div className={`w-8 h-0.5 ${step2Complete ? 'bg-green-500' : 'bg-gray-300'}`} />
+
+            {/* Step 3 - Depois */}
+            <button
+              onClick={() => step2Complete && setCurrentPhotoStep(3)}
+              disabled={!step2Complete}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all flex-1 ${
+                step3Complete 
+                  ? 'bg-green-100 text-green-800 border-2 border-green-500 cursor-pointer' 
+                  : currentPhotoStep === 3 
+                    ? `${currentStepBg} text-white` 
+                    : !step2Complete 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-green-50 text-green-600 border-2 border-green-400 cursor-pointer'
+              }`}
+            >
+              {step3Complete ? (
+                <Check className="w-5 h-5" />
+              ) : (
+                <span className="w-5 h-5 flex items-center justify-center font-bold">3</span>
+              )}
+              <div className="text-left">
+                <p className="font-bold text-sm">Depois</p>
+                <p className="text-xs opacity-70">{photosDepois.length} foto(s)</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Capture Section */}
+      {!showSignatures && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Camera className={`w-5 h-5 ${
+                  currentPhotoStep === 1 ? 'text-red-500' : 
+                  currentPhotoStep === 2 ? 'text-yellow-500' : 'text-green-500'
+                }`} />
+                Fotos {currentStepLabel}
+              </span>
+              <Badge variant="outline" className={`
+                ${currentPhotoStep === 1 ? 'text-red-600 border-red-300' : 
+                  currentPhotoStep === 2 ? 'text-yellow-600 border-yellow-300' : 'text-green-600 border-green-300'}
+              `}>
+                {currentPhotoStep === 1 ? photosAntes.length : currentPhotoStep === 2 ? photosDurante.length : photosDepois.length} foto(s)
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Step Instructions */}
+            <div className={`p-4 rounded-xl ${
+              currentPhotoStep === 1 ? 'bg-red-50 border border-red-200' : 
+              currentPhotoStep === 2 ? 'bg-yellow-50 border border-yellow-200' : 'bg-green-50 border border-green-200'
+            }`}>
+              <p className={`font-medium ${
+                currentPhotoStep === 1 ? 'text-red-700' : 
+                currentPhotoStep === 2 ? 'text-yellow-700' : 'text-green-700'
+              }`}>
+                {currentPhotoStep === 1 && 'Tire fotos do veiculo ANTES de iniciar o servico'}
+                {currentPhotoStep === 2 && 'Tire fotos DURANTE a realizacao do servico'}
+                {currentPhotoStep === 3 && 'Tire fotos DEPOIS de concluir o servico'}
+              </p>
+            </div>
+
+            {/* Camera Button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handlePhotoCapture}
+              className="hidden"
+            />
+            
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full py-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${
+                currentPhotoStep === 1 ? 'border-red-300 hover:border-red-500 hover:bg-red-50' : 
+                currentPhotoStep === 2 ? 'border-yellow-300 hover:border-yellow-500 hover:bg-yellow-50' : 'border-green-300 hover:border-green-500 hover:bg-green-50'
+              }`}
+            >
+              <Camera className={`w-16 h-16 mb-3 ${
+                currentPhotoStep === 1 ? 'text-red-400' : 
+                currentPhotoStep === 2 ? 'text-yellow-400' : 'text-green-400'
+              }`} />
+              <p className={`font-medium ${
+                currentPhotoStep === 1 ? 'text-red-600' : 
+                currentPhotoStep === 2 ? 'text-yellow-600' : 'text-green-600'
+              }`}>
+                Toque para tirar foto
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {currentPhotoStep === 1 ? 'Posicao do veiculo, pecas, etc' : 
+                 currentPhotoStep === 2 ? 'Momento da instalacao' : 
+                 'Resultado final do servico'}
+              </p>
+            </button>
+
+            {/* Current Step Photos */}
+            {photos.filter(p => 
+              (currentPhotoStep === 1 && p.type === 'antes') ||
+              (currentPhotoStep === 2 && p.type === 'durante') ||
+              (currentPhotoStep === 3 && p.type === 'depois')
+            ).length > 0 && (
+              <div className="grid grid-cols-3 gap-2">
+                {photos.filter(p => 
+                  (currentPhotoStep === 1 && p.type === 'antes') ||
+                  (currentPhotoStep === 2 && p.type === 'durante') ||
+                  (currentPhotoStep === 3 && p.type === 'depois')
+                ).map((photo, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={photo.url}
+                      alt={`${photo.type} ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg border-2"
+                    />
+                    <button
+                      onClick={() => removePhoto(photos.indexOf(photo))}
+                      className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-3 pt-4">
+              {currentPhotoStep === 1 && !step1Complete && (
+                <p className="text-center text-sm text-muted-foreground w-full">
+                  Tire pelo menos 1 foto para continuar
+                </p>
+              )}
+              
+              {currentPhotoStep === 1 && step1Complete && (
+                <Button 
+                  onClick={goToStep2} 
+                  className="w-full h-12 text-base bg-yellow-500 hover:bg-yellow-600"
+                >
+                  <span className="mr-2">Continuar para Durante</span>
+                  <ChevronLeft className="w-5 h-5 rotate-180" />
+                </Button>
+              )}
+              
+              {currentPhotoStep === 2 && !step2Complete && (
+                <p className="text-center text-sm text-muted-foreground w-full">
+                  Tire pelo menos 1 foto para continuar
+                </p>
+              )}
+              
+              {currentPhotoStep === 2 && step2Complete && (
+                <Button 
+                  onClick={goToStep3} 
+                  className="w-full h-12 text-base bg-green-500 hover:bg-green-600"
+                >
+                  <span className="mr-2">Continuar para Depois</span>
+                  <ChevronLeft className="w-5 h-5 rotate-180" />
+                </Button>
+              )}
+              
+              {currentPhotoStep === 3 && !step3Complete && (
+                <p className="text-center text-sm text-muted-foreground w-full">
+                  Tire pelo menos 1 foto para continuar
+                </p>
+              )}
+              
+              {currentPhotoStep === 3 && step3Complete && (
+                <Button 
+                  onClick={goToSignatures} 
+                  className="w-full h-12 text-base bg-primary hover:bg-primary/90"
+                >
+                  <span className="mr-2">Ir para Assinaturas</span>
+                  <ChevronLeft className="w-5 h-5 rotate-180" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Signatures Section */}
+      {showSignatures && (
+        <div className="space-y-6">
+          {/* Back to Photos Button */}
+          <Button variant="outline" onClick={() => setShowSignatures(false)} className="w-full">
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Voltar para Fotos
+          </Button>
+
+          {/* Photo Summary */}
+          <Card className="bg-muted/30">
+            <CardContent className="p-4">
+              <p className="text-sm font-medium mb-2">Fotos Capturadas</p>
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Check className="w-4 h-4 text-green-500" />
+                  Antes: {photosAntes.length}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Check className="w-4 h-4 text-green-500" />
+                  Durante: {photosDurante.length}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Check className="w-4 h-4 text-green-500" />
+                  Depois: {photosDepois.length}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Signature Funcionario */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Pen className="w-5 h-5 text-orange-500" />
+                  Assinatura do Funcionario
+                </span>
+                {signatureFuncionario && <Badge className="bg-green-100 text-green-800 border-green-300">Assinatura Salva</Badge>}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative border-2 border-dashed rounded-xl overflow-hidden bg-white">
+                <canvas
+                  ref={funcCanvasRef}
+                  width={500}
+                  height={150}
+                  className="w-full touch-none cursor-crosshair"
+                  onMouseDown={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
+                  onMouseMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
+                  onMouseUp={() => stopDrawing(setIsDrawingFunc)}
+                  onMouseLeave={() => stopDrawing(setIsDrawingFunc)}
+                  onTouchStart={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
+                  onTouchMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
+                  onTouchEnd={() => stopDrawing(setIsDrawingFunc)}
+                />
+                {!signatureFuncionario && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <p className="text-muted-foreground/50 text-sm">Desenhe sua assinatura aqui</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Button size="sm" variant="outline" onClick={() => clearSignature(funcCanvasRef, setSignatureFuncionario)}>
+                  <X className="w-4 h-4 mr-1" />
+                  Limpar
+                </Button>
+                <Button size="sm" className="bg-orange-500" onClick={() => saveSignature(funcCanvasRef, setSignatureFuncionario)}>
+                  <Save className="w-4 h-4 mr-1" />
+                  Salvar Assinatura
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Signature Cliente */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Pen className="w-5 h-5 text-green-500" />
+                  Assinatura do Cliente
+                </span>
+                {signatureCliente && <Badge className="bg-green-100 text-green-800 border-green-300">Assinatura Salva</Badge>}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative border-2 border-dashed rounded-xl overflow-hidden bg-white">
+                <canvas
+                  ref={clientCanvasRef}
+                  width={500}
+                  height={150}
+                  className="w-full touch-none cursor-crosshair"
+                  onMouseDown={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
+                  onMouseMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
+                  onMouseUp={() => stopDrawing(setIsDrawingClient)}
+                  onMouseLeave={() => stopDrawing(setIsDrawingClient)}
+                  onTouchStart={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
+                  onTouchMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
+                  onTouchEnd={() => stopDrawing(setIsDrawingClient)}
+                />
+                {!signatureCliente && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <p className="text-muted-foreground/50 text-sm">Cliente: assine aqui para confirmar o servico</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Button size="sm" variant="outline" onClick={() => clearSignature(clientCanvasRef, setSignatureCliente)}>
+                  <X className="w-4 h-4 mr-1" />
+                  Limpar
+                </Button>
+                <Button size="sm" className="bg-green-600" onClick={() => saveSignature(clientCanvasRef, setSignatureCliente)}>
+                  <Save className="w-4 h-4 mr-1" />
+                  Salvar Assinatura do Cliente
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Observations */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Observacoes Finais</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <textarea
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                placeholder="Observacoes sobre o servico realizado..."
+                className="w-full p-3 rounded-xl border bg-transparent min-h-[100px] resize-none"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Final Action */}
+          <Button 
+            onClick={handleSave}
+            disabled={!canFinalize || saving}
+            className="w-full h-14 text-lg bg-green-600"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-5 h-5 mr-2" />
+                Concluir e Salvar Servico
+              </>
+            )}
+          </Button>
+
+          {/* Validation Info */}
+          {!canFinalize && (
+            <div className="text-center text-sm text-muted-foreground space-y-1">
+              {!signatureFuncionario && <p>Salve a assinatura do funcionario</p>}
+              {!signatureCliente && <p>Salve a assinatura do cliente</p>}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Signature Funcionario */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Pen className="w-5 h-5" />
-              Assinatura do Funcionario
-            </span>
-            {signatureFuncionario && <Badge variant="outline" className="text-green-600 border-green-500">Assinatura Salva</Badge>}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative border-2 border-dashed rounded-xl overflow-hidden bg-white">
-            <canvas
-              ref={funcCanvasRef}
-              width={500}
-              height={150}
-              className="w-full touch-none cursor-crosshair"
-              onMouseDown={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
-              onMouseMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
-              onMouseUp={() => stopDrawing(setIsDrawingFunc)}
-              onMouseLeave={() => stopDrawing(setIsDrawingFunc)}
-              onTouchStart={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
-              onTouchMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
-              onTouchEnd={() => stopDrawing(setIsDrawingFunc)}
-            />
-            {!signatureFuncionario && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <p className="text-muted-foreground/50 text-sm">Desenhe sua assinatura aqui</p>
-              </div>
-            )}
-          </div>
-          <div className="flex gap-2 mt-2">
-            <Button size="sm" variant="outline" onClick={() => clearSignature(funcCanvasRef, setSignatureFuncionario)}>
-              <X className="w-4 h-4 mr-1" />
-              Limpar
-            </Button>
-            <Button size="sm" className="bg-orange-500" onClick={() => saveSignature(funcCanvasRef, setSignatureFuncionario)}>
-              <Save className="w-4 h-4 mr-1" />
-              Salvar Assinatura
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Signature Cliente */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Pen className="w-5 h-5" />
-              Assinatura do Cliente
-            </span>
-            {signatureCliente && <Badge variant="outline" className="text-green-600 border-green-500">Assinatura Salva</Badge>}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative border-2 border-dashed rounded-xl overflow-hidden bg-white">
-            <canvas
-              ref={clientCanvasRef}
-              width={500}
-              height={150}
-              className="w-full touch-none cursor-crosshair"
-              onMouseDown={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
-              onMouseMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
-              onMouseUp={() => stopDrawing(setIsDrawingClient)}
-              onMouseLeave={() => stopDrawing(setIsDrawingClient)}
-              onTouchStart={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
-              onTouchMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
-              onTouchEnd={() => stopDrawing(setIsDrawingClient)}
-            />
-            {!signatureCliente && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <p className="text-muted-foreground/50 text-sm">Cliente: assine aqui para confirmar o servico</p>
-              </div>
-            )}
-          </div>
-          <div className="flex gap-2 mt-2">
-            <Button size="sm" variant="outline" onClick={() => clearSignature(clientCanvasRef, setSignatureCliente)}>
-              <X className="w-4 h-4 mr-1" />
-              Limpar
-            </Button>
-            <Button size="sm" className="bg-green-600" onClick={() => saveSignature(clientCanvasRef, setSignatureCliente)}>
-              <Save className="w-4 h-4 mr-1" />
-              Salvar Assinatura do Cliente
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Observations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Observacoes Finais</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <textarea
-            value={observations}
-            onChange={(e) => setObservations(e.target.value)}
-            placeholder="Observacoes sobre o servico realizado..."
-            className="w-full p-3 rounded-xl border bg-transparent min-h-[100px] resize-none"
-          />
-        </CardContent>
-      </Card>
-
-      {/* Final Action */}
-      <Button 
-        onClick={handleSave}
-        disabled={!isValid || saving}
-        className="w-full h-14 text-lg bg-green-600"
-      >
-        {saving ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Salvando...
-          </>
-        ) : (
-          <>
-            <CheckCircle className="w-5 h-5 mr-2" />
-            Concluir e Salvar Servico
-          </>
-        )}
-      </Button>
-
-      {/* Validation Info */}
-      {!isValid && (
-        <div className="text-center text-sm text-muted-foreground">
-          {!photos.length && <p>Adicione pelo menos 1 foto</p>}
-          {!signatureFuncionario && <p>Salve a assinatura do funcionario</p>}
-          {!signatureCliente && <p>Salve a assinatura do cliente</p>}
         </div>
       )}
     </div>
