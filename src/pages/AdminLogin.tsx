@@ -32,7 +32,8 @@ export default function AdminLogin() {
     }
 
     try {
-      const result = await login({ email: email.trim(), password });
+      const emailLower = email.toLowerCase().trim();
+      const result = await login({ email: emailLower, password });
       
       if (result.success) {
         toast.success(`Bem-vindo, ${result.user?.name}!`);
@@ -43,8 +44,8 @@ export default function AdminLogin() {
           navigate('/dashboard', { replace: true });
         }
       } else {
-        setError(result.error || 'Credenciais inválidas');
-        toast.error(result.error || 'Credenciais inválidas');
+        setError(result.error || 'Credenciais invalidas');
+        toast.error(result.error || 'Credenciais invalidas');
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login');
@@ -58,10 +59,11 @@ export default function AdminLogin() {
     setLoginMode(mode);
     if (mode === 'admin') {
       setEmail('admin@rastremix.com');
+      setPassword('Rastremix2024!');
     } else {
       setEmail('tecnico@rastremix.com');
+      setPassword('Rastremix2024!');
     }
-    setPassword('Rastremix2024!');
   };
 
   return (

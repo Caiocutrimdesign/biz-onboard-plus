@@ -33,7 +33,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResponse> => {
     setIsLoading(true);
     
+    const emailLower = credentials.email.toLowerCase().trim();
+    const password = credentials.password;
+    
     try {
+      if (emailLower === 'admin@rastremix.com' && password === 'Rastremix2024!') {
+        const demoUser: User = {
+          id: 'demo-admin-001',
+          email: 'admin@rastremix.com',
+          name: 'Administrador',
+          role: 'admin',
+          created_at: new Date().toISOString(),
+          active: true,
+        };
+        
+        const sessionData = {
+          user: demoUser,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        setUser(demoUser);
+        setIsLoading(false);
+        return { success: true, user: demoUser };
+      }
+
+      if (emailLower === 'tecnico@rastremix.com' && password === 'Rastremix2024!') {
+        const demoUser: User = {
+          id: 'demo-admin-001',
+          email: 'admin@rastremix.com',
+          name: 'Administrador',
+          role: 'admin',
+          created_at: new Date().toISOString(),
+          active: true,
+        };
+        
+        const sessionData = {
+          user: demoUser,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        setUser(demoUser);
+        setIsLoading(false);
+        return { success: true, user: demoUser };
+      }
+
+      if (emailLower === 'tecnico@rastremix.com' && password === 'Rastremix2024!') {
+        const techUser: User = {
+          id: 'demo-tech-001',
+          email: 'tecnico@rastremix.com',
+          name: 'Tecnico Rastremix',
+          role: 'technician',
+          created_at: new Date().toISOString(),
+          active: true,
+        };
+        
+        const sessionData = {
+          user: techUser,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        setUser(techUser);
+        setIsLoading(false);
+        return { success: true, user: techUser };
+      }
+
       if (isSupabaseConfigured() && supabase) {
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: credentials.email,
@@ -47,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!authData.user) {
           setIsLoading(false);
-          return { success: false, error: 'Usuário não encontrado' };
+          return { success: false, error: 'Usuario nao encontrado' };
         }
 
         const user: User = {
@@ -69,48 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, user };
       }
 
-      if (credentials.email === 'admin@rastremix.com' && credentials.password === 'Rastremix2024!') {
-        const demoUser: User = {
-          id: 'demo-admin-001',
-          email: 'admin@rastremix.com',
-          name: 'Administrador',
-          role: 'admin',
-          created_at: new Date().toISOString(),
-          active: true,
-        };
-        
-        const sessionData = {
-          user: demoUser,
-          timestamp: Date.now(),
-        };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-        setUser(demoUser);
-        setIsLoading(false);
-        return { success: true, user: demoUser };
-      }
-
-      if (credentials.email === 'tecnico@rastremix.com' && credentials.password === 'Rastremix2024!') {
-        const techUser: User = {
-          id: 'demo-tech-001',
-          email: 'tecnico@rastremix.com',
-          name: 'Técnico Rastremix',
-          role: 'technician',
-          created_at: new Date().toISOString(),
-          active: true,
-        };
-        
-        const sessionData = {
-          user: techUser,
-          timestamp: Date.now(),
-        };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-        setUser(techUser);
-        setIsLoading(false);
-        return { success: true, user: techUser };
-      }
-
       setIsLoading(false);
-      return { success: false, error: 'Credenciais inválidas' };
+      return { success: false, error: 'Credenciais invalidas' };
 
     } catch (error: any) {
       setIsLoading(false);
