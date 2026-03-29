@@ -242,10 +242,10 @@ export default function ClientsSection() {
 
   const stats = useMemo(() => ({
     total: allCustomers.length,
-    active: allCustomers.filter(c => c.status === 'active' || c.status === 'cliente_ativado' || c.status === 'ativo').length,
-    inactive: allCustomers.filter(c => c.status === 'inactive' || c.status === 'inativo').length,
-    disabled: allCustomers.filter(c => c.status === 'disabled' || c.status === 'desativado').length,
-    pending: allCustomers.filter(c => c.status === 'novo_cadastro' || c.status === 'novo' || c.status === 'pendente').length,
+    active: allCustomers.filter(c => c.status === 'active' || c.status === 'cliente_ativado' || (c.status as string) === 'ativo').length,
+    inactive: allCustomers.filter(c => c.status === 'inactive' || (c.status as string) === 'inativo').length,
+    disabled: allCustomers.filter(c => c.status === 'disabled' || (c.status as string) === 'desativado').length,
+    pending: allCustomers.filter(c => c.status === 'novo_cadastro' || (c.status as string) === 'novo' || c.status === 'pendente').length,
   }), [allCustomers]);
 
   return (
