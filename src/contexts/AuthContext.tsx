@@ -125,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const tecnico = findTecnicoByEmail(emailLower);
       console.log('Login attempt for:', emailLower, 'Found technician:', tecnico);
       if (tecnico) {
+        console.log('Stored password:', tecnico.password, 'Entered password:', password, 'Match:', tecnico.password === password);
         if (tecnico.password !== password) {
           setIsLoading(false);
           return { success: false, error: 'Senha incorreta' };
