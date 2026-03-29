@@ -215,7 +215,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     migrateTecnicosToUsers();
     
     try {
+      console.log('Auth attempt:', { email: emailLower, passwordLength: password.length, passwordValue: password });
+      
       if (emailLower === 'admin@rastremix.com' && password === 'Rastremix2024!') {
+        console.log('Demo admin login success');
         const demoUser: User = {
           id: 'admin-001',
           email: 'admin@rastremix.com',
@@ -236,9 +239,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const dbUser = findUserByEmail(emailLower);
+      console.log('DB User lookup:', { email: emailLower, found: !!dbUser, user: dbUser?.email });
       if (dbUser) {
         const storedHash = dbUser.password_hash || '';
         const isValidPassword = verifyPasswordHash(password, storedHash);
+        console.log('Password check:', { storedHash, isValidPassword, passwordLength: password.length });
         
         if (!isValidPassword) {
           setIsLoading(false);
@@ -270,10 +275,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const tecnico = findTecnicoByEmail(emailLower);
       if (tecnico) {
+        console.log('Technician found:', tecnico.email, { storedPwdLength: tecnico.password?.length, enteredPwdLength: password.length });
         const storedPwd = (tecnico.password || '').trim();
         const enteredPwd = password.trim();
         
         if (storedPwd !== enteredPwd) {
+          console.log('Password mismatch:', { storedPwd, enteredPwd, equal: storedPwd === enteredPwd });
           setIsLoading(false);
           return { success: false, error: 'Senha incorreta' };
         }
@@ -354,8 +361,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, user };
       }
 
+      console.log('No user found in any system, login failed');
       setIsLoading(false);
-      return { success: false, error: 'Credenciais invalidas' };
+      return { success: false, error: 'Credenciais inválidas. Verifique seu e-mail e senha.' };
 
     } catch (error: any) {
       setIsLoading(false);

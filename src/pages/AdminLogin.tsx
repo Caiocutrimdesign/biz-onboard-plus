@@ -24,16 +24,21 @@ export default function AdminLogin() {
     setError('');
     setIsLoading(true);
 
-    if (!email.trim() || !password.trim()) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       setError('Por favor, preencha todos os campos');
       setIsLoading(false);
       toast.error('Por favor, preencha todos os campos');
       return;
     }
 
+    console.log('Login attempt:', { email: trimmedEmail, passwordLength: trimmedPassword.length });
+
     try {
-      const emailLower = email.toLowerCase().trim();
-      const result = await login({ email: emailLower, password });
+      const emailLower = trimmedEmail.toLowerCase();
+      const result = await login({ email: emailLower, password: trimmedPassword });
       
       if (result.success) {
         toast.success(`Bem-vindo, ${result.user?.name}!`);
@@ -57,13 +62,15 @@ export default function AdminLogin() {
 
   const fillDemo = (mode: 'admin' | 'tec') => {
     setLoginMode(mode);
+    const demoPassword = 'Rastremix2024!';
     if (mode === 'admin') {
       setEmail('admin@rastremix.com');
-      setPassword('Rastremix2024!');
+      setPassword(demoPassword);
     } else {
       setEmail('tecnico@rastremix.com');
-      setPassword('Rastremix2024!');
+      setPassword(demoPassword);
     }
+    console.log('Demo filled:', { mode, email: mode === 'admin' ? 'admin@rastremix.com' : 'tecnico@rastremix.com', passwordLength: demoPassword.length });
   };
 
   return (
@@ -176,6 +183,10 @@ export default function AdminLogin() {
               className="h-14 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 text-base text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
               autoFocus
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="email"
               disabled={isLoading}
             />
           </div>
@@ -189,6 +200,10 @@ export default function AdminLogin() {
               placeholder="Sua senha"
               className="h-14 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 pr-12 text-base text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
               autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="text"
               disabled={isLoading}
             />
             <button
