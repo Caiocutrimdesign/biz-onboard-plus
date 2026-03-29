@@ -68,7 +68,7 @@ class DesignationAgentSystem {
   async getAvailableTechnicians(): Promise<Technician[]> {
     try {
       const technicians = await tecService.getAllTechnicians();
-      return technicians.filter(t => t.active !== false);
+      return technicians.filter(t => t.status !== 'inactive');
     } catch (e) {
       console.error('Erro ao carregar técnicos:', e);
       return [];
@@ -79,7 +79,7 @@ class DesignationAgentSystem {
     const customers = await customerService.getAllCustomers();
     return customers.filter(c => 
       (!c.technician_id || c.technician_id === '') &&
-      (c.status === 'novo_cadastro' || c.status === 'pendente' || c.status === 'novo')
+      (c.status === 'novo_cadastro' || c.status === 'pendente')
     );
   }
 

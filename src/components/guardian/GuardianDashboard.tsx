@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, CheckCircle, RefreshCw, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { guardianAgent, useGuardian, type ErrorInfo } from '@/lib/guardianAgent';
+import { guardianAgent, useGuardian } from '@/lib/guardianAgent';
 
 export default function GuardianDashboard() {
   const { errors, errorCount, clearErrors } = useGuardian();
@@ -96,7 +96,7 @@ export default function GuardianDashboard() {
   );
 }
 
-function ErrorItem({ error }: { error: ErrorInfo }) {
+function ErrorItem({ error }: { error: { message: string; stack?: string; timestamp: number; componentStack?: string } }) {
   const [expanded, setExpanded] = useState(false);
 
   return (

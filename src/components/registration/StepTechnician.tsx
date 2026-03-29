@@ -22,7 +22,7 @@ export function StepTechnician({ onNext, onBack }: Props) {
     setLoading(true);
     try {
       const techs = await tecService.getAllTechnicians();
-      setTechnicians(techs.filter(t => t.active !== false));
+      setTechnicians(techs.filter(t => t.status !== 'inactive'));
     } catch (e) {
       console.error('Erro ao carregar técnicos:', e);
     }

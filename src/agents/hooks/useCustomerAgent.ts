@@ -146,7 +146,7 @@ export function useCustomerAgent(config: CustomerAgentConfig = DEFAULT_CONFIG) {
 
       setMessages(prev => [...prev, assistantMessage]);
     }
-  }, [content, conversationId, isTyping, config.autoRespond, generateResponse]);
+  }, [conversationId, isTyping, config.autoRespond, generateResponse]);
 
   const clearConversation = useCallback(() => {
     setMessages([{

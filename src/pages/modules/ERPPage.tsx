@@ -10,8 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import SuperLayout from '@/components/layout/SuperLayout';
 
+interface ERPData {
+  tec: any[];
+  customers: any[];
+}
+
 export default function ERPPage() {
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<ERPData>({ tec: [], customers: [] });
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -51,7 +56,6 @@ export default function ERPPage() {
   return (
     <SuperLayout>
       <div className="p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -62,7 +66,6 @@ export default function ERPPage() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="border-l-4 border-l-green-500">
             <CardContent className="pt-6">
@@ -118,7 +121,6 @@ export default function ERPPage() {
           </Card>
         </div>
 
-        {/* Filters */}
         <div className="flex gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -145,7 +147,6 @@ export default function ERPPage() {
           </div>
         </div>
 
-        {/* Services List */}
         <Card>
           <CardHeader>
             <CardTitle>Atividades Recentes</CardTitle>

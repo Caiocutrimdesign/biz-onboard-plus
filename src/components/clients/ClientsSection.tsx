@@ -242,10 +242,10 @@ export default function ClientsSection() {
 
   const stats = useMemo(() => ({
     total: allCustomers.length,
-    active: allCustomers.filter(c => c.status === 'active' || c.status === 'cliente_ativado' || c.status === 'ativo').length,
-    inactive: allCustomers.filter(c => c.status === 'inactive' || c.status === 'inativo').length,
-    disabled: allCustomers.filter(c => c.status === 'disabled' || c.status === 'desativado').length,
-    pending: allCustomers.filter(c => c.status === 'novo_cadastro' || c.status === 'novo' || c.status === 'pendente').length,
+    active: allCustomers.filter(c => c.status === 'active' || c.status === 'cliente_ativado' || (c.status as string) === 'ativo').length,
+    inactive: allCustomers.filter(c => c.status === 'inactive' || (c.status as string) === 'inativo').length,
+    disabled: allCustomers.filter(c => c.status === 'disabled' || (c.status as string) === 'desativado').length,
+    pending: allCustomers.filter(c => c.status === 'novo_cadastro' || (c.status as string) === 'novo' || c.status === 'pendente').length,
   }), [allCustomers]);
 
   return (
@@ -469,7 +469,7 @@ export default function ClientsSection() {
                   <Button
                     onClick={() => handleActivate(selectedCustomer.id, selectedCustomer.status)}
                     disabled={loadingStatus === selectedCustomer.id}
-                    className={`${selectedCustomer.status === 'active' || selectedCustomer.status === 'ativo' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                    className={`${selectedCustomer.status === 'active' || (selectedCustomer.status as string) === 'ativo' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
                   >
                     {loadingStatus === selectedCustomer.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -484,7 +484,7 @@ export default function ClientsSection() {
                     onClick={() => handleInactivate(selectedCustomer.id, selectedCustomer.status)}
                     disabled={loadingStatus === selectedCustomer.id}
                     variant="outline"
-                    className={`${selectedCustomer.status === 'inactive' || selectedCustomer.status === 'inativo' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
+                    className={`${selectedCustomer.status === 'inactive' || (selectedCustomer.status as string) === 'inativo' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
                   >
                     {loadingStatus === selectedCustomer.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

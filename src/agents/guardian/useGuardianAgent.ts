@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 
 interface GuardianConfig {
   maxRetries: number;
@@ -153,7 +153,7 @@ export function useGuardianAgent(config: GuardianConfig = DEFAULT_CONFIG) {
     }
   }, [logError]);
 
-  const safeLocalStorage = useCallback({
+  const safeLocalStorage = useMemo(() => ({
     get: <T,>(key: string, defaultValue: T): T => {
       try {
         const stored = localStorage.getItem(key);
@@ -189,7 +189,7 @@ export function useGuardianAgent(config: GuardianConfig = DEFAULT_CONFIG) {
         return false;
       }
     },
-  }, [logError]);
+  }), [logError]);
 
   const safeFetch = useCallback(async (
     url: string,

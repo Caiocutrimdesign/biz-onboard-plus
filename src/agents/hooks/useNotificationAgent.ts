@@ -152,6 +152,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
       recipient: lead.email || lead.phone,
       subject: template.subject?.replace('{name}', lead.name.split(' ')[0]),
       message,
+      status: 'pending',
     };
 
     return sendNotification(notification);
@@ -173,6 +174,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
         recipient: lead.email || lead.phone,
         subject: '⚠️ Lead em Risco',
         message: `Lead ${lead.name} não é contactado há ${Math.floor(config.checkInterval / 60000)} dias. Status: ${lead.status}`,
+        status: 'pending',
       };
 
       sendNotification(notification);
@@ -205,6 +207,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
         recipient: apt.leadName || 'unknown',
         subject: `Lembrete: ${apt.title}`,
         message: `Você tem um compromisso amanhã: ${apt.title} às ${new Date(apt.startDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+        status: 'pending',
       };
 
       sendNotification(notification);
@@ -230,6 +233,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
         recipient: lead.phone,
         subject: template.subject?.replace('{name}', lead.name.split(' ')[0]),
         message: template.message.replace('{name}', lead.name.split(' ')[0]),
+        status: 'pending',
       };
 
       sendNotification(notification);

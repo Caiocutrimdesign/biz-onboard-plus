@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, CheckCircle2, AlertCircle, Clock, Settings, 
   Zap, Bell, ChevronRight, ExternalLink, Copy, Check,
-  ArrowRightLeft, CloudOff, CloudOn, Loader2
+  ArrowRightLeft, CloudOff, Cloud, Loader2
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,7 @@ export default function WeSalesSyncPanel() {
   };
 
   const tabs = [
-    { id: 'status' as const, label: 'Status', icon: CloudOn },
+    { id: 'status' as const, label: 'Status', icon: Cloud },
     { id: 'logs' as const, label: 'Logs', icon: Clock },
     { id: 'settings' as const, label: 'Config', icon: Settings },
   ];
@@ -120,7 +120,7 @@ export default function WeSalesSyncPanel() {
                     status.color === 'blue' ? 'bg-blue-100' : 'bg-gray-100'
                   }`}>
                     {status.color === 'green' ? (
-                      <CloudOn className="h-6 w-6 text-green-600" />
+                      <Cloud className="h-6 w-6 text-green-600" />
                     ) : status.color === 'red' ? (
                       <AlertCircle className="h-6 w-6 text-red-600" />
                     ) : status.color === 'blue' ? (
