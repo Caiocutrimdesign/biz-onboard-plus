@@ -53,7 +53,7 @@ export default function WeSalesSyncPanel() {
   };
 
   const tabs = [
-    { id: 'status' as const, label: 'Status', icon: CloudOn },
+    { id: 'status' as const, label: 'Status', icon: Cloud },
     { id: 'logs' as const, label: 'Logs', icon: Clock },
     { id: 'settings' as const, label: 'Config', icon: Settings },
   ];
