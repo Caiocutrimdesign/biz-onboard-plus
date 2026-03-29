@@ -95,8 +95,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 function InfoPanel({ slide, onClose }: { slide: any; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-gray-900 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
-        <div className="sticky top-0 bg-gray-900 p-6 border-b border-white/10 flex items-center justify-between">
+      <div className="bg-gray-900 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-primary">
+        <div className="sticky top-0 bg-gray-900 p-6 border-b border-primary flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white">Mais Informações</h2>
             <p className="text-white/60">{slide.title} - {slide.subtitle}</p>
@@ -148,7 +148,7 @@ function InfoPanel({ slide, onClose }: { slide: any; onClose: () => void }) {
                 <Phone className="w-4 h-4 mr-2" />
                 Liga pra Cá
               </Button>
-              <Button variant="outline" className="flex-1 border-white/20 text-white hover:bg-white/10">
+              <Button variant="outline" className="flex-1 border-primary text-white hover:bg-primary/20">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Manda ZAP
               </Button>
@@ -194,7 +194,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
         <div className="flex items-center gap-3">
           <Button
             onClick={() => navigate('/planos')}
-            className="h-11 rounded-full border border-white/30 bg-white/10 px-6 text-sm font-medium text-white backdrop-blur-md hover:bg-white/20 transition-all"
+            className="h-11 rounded-full border border-primary bg-white/10 px-6 text-sm font-medium text-white backdrop-blur-md hover:bg-white/20 transition-all"
           >
             Planos
           </Button>
@@ -216,7 +216,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
               {/* Feature Badges */}
               <div className="flex flex-wrap gap-3">
                 {slide.features.map((f: string, i: number) => (
-                  <span key={i} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white border border-white/20">
+                  <span key={i} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white border border-primary">
                     <Check className="w-4 h-4 text-green-400" />
                     {f}
                   </span>
@@ -249,10 +249,10 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                   onClick={() => setShowInfo(true)}
                   size="lg"
                   variant="outline"
-                  className="h-14 px-8 text-lg border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 backdrop-blur-md transition-all"
+                  className="h-14 px-8 text-lg border-2 border-primary text-white font-semibold rounded-xl hover:bg-primary/20 backdrop-blur-md transition-all"
                 >
                   <Eye className="mr-2 w-5 h-5" />
-                  Saber Mais
+                  saiba mais
                 </Button>
               </div>
 
@@ -273,7 +273,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
             <div className="hidden lg:block relative">
               <div className="relative">
                 {/* Main Card */}
-                <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-6 shadow-2xl">
+                <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-primary p-6 shadow-2xl">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
@@ -315,7 +315,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                 </div>
 
                 {/* Floating Cards */}
-                <div className="absolute -left-8 top-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 animate-bounce" style={{ animationDuration: '3s' }}>
+                <div className="absolute -left-8 top-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-primary animate-bounce" style={{ animationDuration: '3s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
                       <Check className="w-5 h-5 text-green-400" />
@@ -327,7 +327,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                   </div>
                 </div>
 
-                <div className="absolute -right-4 bottom-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>
+                <div className="absolute -right-4 bottom-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-primary animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
                       <Zap className="w-5 h-5 text-blue-400" />
@@ -346,7 +346,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
 
       {/* Bottom Navigation */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-full px-6 py-3 border border-white/20">
+        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-full px-6 py-3 border border-primary">
           {slides.map((s, i) => (
             <button
               key={s.id}
@@ -361,7 +361,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
 
       {/* Slide Counter */}
       <div className="absolute bottom-8 right-8 z-20">
-        <div className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 border border-white/20">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 border border-primary">
           <span className="text-white font-bold">{current + 1}</span>
           <span className="text-white/50 mx-1">/</span>
           <span className="text-white/50">{slides.length}</span>
