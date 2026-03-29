@@ -68,7 +68,7 @@ class DesignationAgentSystem {
   async getAvailableTechnicians(): Promise<Technician[]> {
     try {
       const technicians = await tecService.getAllTechnicians();
-      return technicians.filter(t => t.active !== false);
+      return technicians.filter(t => t.status !== 'inactive');
     } catch (e) {
       console.error('Erro ao carregar técnicos:', e);
       return [];
