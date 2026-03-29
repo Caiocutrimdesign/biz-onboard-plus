@@ -1,124 +1,168 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Shield, MapPin, Zap, BarChart3, Users, Car, Bell, Check, ArrowRight } from 'lucide-react';
+import { 
+  Shield, MapPin, Zap, BarChart3, Users, Car, Bell, Check, 
+  ArrowRight, X, ChevronRight, Phone, Video, MessageCircle,
+  Lock, Eye, Globe, Clock, AlertTriangle, CheckCircle2
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo3D } from '@/components/ui/Logo3D';
 
 const slides = [
   {
     id: 'welcome',
-    title: 'Proteção Veicular',
-    subtitle: 'Inteligente e Confiável',
-    description: 'Sistema completo de rastreamento e proteção para seu veículo 24 horas por dia.',
+    title: 'Proteção Total',
+    subtitle: 'Para Seu Veículo',
+    description: 'Sistema completo de rastreamento e proteção veicular. Sua tranquilidade é nossa prioridade 24 horas por dia.',
     gradient: 'from-orange-600 via-red-600 to-pink-600',
-    features: ['24/7 Monitoring', 'Real-time Alerts', 'Instant Blocking'],
+    features: ['Monitoramento 24h', 'Alertas em Tempo Real', 'Bloqueio Imediato'],
+    faqs: [
+      { q: 'O que é proteção veicular?', a: 'É um serviço de monitoramento e rastreamento que protege seu veículo 24 horas por dia. Em caso de roubo ou furto, nossa equipe especializadas aciona as autoridades e bloqueia o veículo remotamente.' },
+      { q: 'Quanto tempo demora a instalação?', a: 'A instalação é rápida e profissional. Em média, leva de 1 a 2 horas. Nossa equipe técnica vai até você no local de sua preferência.' },
+      { q: 'O equipamento funciona em todo o Brasil?', a: 'Sim! Nossa cobertura é 100% nacional. Você pode rastrear seu veículo em qualquer lugar do Brasil onde haja sinal de celular.' },
+      { q: 'Posso rastrear pelo celular?', a: 'Sim! Você recebe um aplicativo gratuito para iOS e Android. Nele você acompanha a localização do seu veículo em tempo real, recebe alertas e pode até bloquear o motor à distância.' },
+    ],
+    benefits: ['Cobertura em todo o Brasil', 'App para iOS e Android', 'Equipe SOC 24h', 'Instalação profissional'],
   },
   {
     id: 'tracking',
-    title: 'Rastreamento',
-    subtitle: 'em Tempo Real',
-    description: 'Acompanhe a localização do seu veículo em qualquer lugar do Brasil.',
+    title: 'Acompanhe',
+    subtitle: 'Onde Estiver',
+    description: 'Veja a localização do seu veículo em tempo real, de qualquer lugar do Brasil.',
     gradient: 'from-blue-600 via-cyan-600 to-teal-600',
-    features: ['GPS Precision', 'Nationwide Coverage', 'Live Updates'],
+    features: ['GPS de Alta Precisão', 'Cobertura em Todo BR', 'Atualizações ao Vivo'],
+    faqs: [
+      { q: 'Como funciona o rastreamento?', a: 'O equipamento GPS instalado no veículo envia sinais de localização via rede celular. Você acompanha tudo pelo aplicativo ou painel web em tempo real.' },
+      { q: 'A localização é atualizada em tempo real?', a: 'Sim! As coordenadas são atualizadas constantemente. Você vê o veículo se mover no mapa em tempo real, com precisão de metros.' },
+      { q: 'Posso ver o histórico de rotas?', a: 'Sim! Você tem acesso ao histórico completo de todas as viagens do veículo, com data, hora, velocidade e rotas percorridas. Dados mantidos por até 90 dias.' },
+      { q: 'O rastreamento funciona em local fechado?', a: 'Sim! O equipamento possui antenas de alta sensibilidade que captam sinais mesmo em estacionamentos subterrâneos e garagens fechadas.' },
+    ],
+    benefits: ['Localização em tempo real', 'Histórico de 90 dias', 'Precisão de metros', 'Funciona em local fechado'],
   },
   {
     id: 'security',
-    title: 'Segurança',
-    subtitle: 'Bloqueio Instantâneo',
-    description: 'Bloqueie o motor do seu veículo à distância em caso de emergência.',
+    title: 'Bloqueio',
+    subtitle: 'Na Hora Certa',
+    description: 'Em caso de emergência, bloqueie o motor do seu veículo à distância em segundos.',
     gradient: 'from-purple-600 via-violet-600 to-indigo-600',
-    features: ['Remote Block', 'Emergency Alert', 'SOC 24h'],
+    features: ['Bloqueio Remoto', 'Alerta de Emergência', 'Central 24h'],
+    faqs: [
+      { q: 'Como funciona o bloqueio remoto?', a: 'Em caso de roubo ou furto, você aciona o bloqueio pelo app ou liga para nossa central 24h. O motor do veículo é cortado em até 30 segundos, immobilizando o carro em local seguro.' },
+      { q: 'O bloqueio danifica o veículo?', a: 'Não! O bloqueio é feito eletronicamente, sem nenhuma intervenção mecânica. Não há risco de danos ao motor ou outros sistemas do veículo.' },
+      { q: 'E se o veículo estiver em movimento?', a: 'O sistema corta o combustível ou injeção eletrônica de forma segura. O veículo reduz a velocidade gradualmente até parar, evitando acidentes.' },
+      { q: 'O que é o SOC 24h?', a: 'É nosso Centro de Operações de Segurança, com equipe especializada 24 horas por dia, 7 dias por semana. Em caso de emergência, você tem suporte imediato.' },
+    ],
+    benefits: ['Bloqueio em até 30 segundos', 'SOC 24h especializado', 'Sem danos ao veículo', 'Corte seguro do motor'],
   },
   {
     id: 'analytics',
-    title: 'Dashboard',
-    subtitle: 'Inteligente',
-    description: 'Visualize todos os dados do seu negócio em um único lugar.',
+    title: 'Relatórios',
+    subtitle: 'Detalhados',
+    description: 'Acesse todos os dados do seu veículo: rotas, velocidades, alertas e muito mais.',
     gradient: 'from-emerald-600 via-green-600 to-lime-600',
-    features: ['Real-time Data', 'Smart Reports', 'Growth Insights'],
+    features: ['Dados em Tempo Real', 'Relatórios Inteligentes', 'Análises Completas'],
+    faqs: [
+      { q: 'Que tipo de relatórios posso gerar?', a: 'Você pode gerar relatórios detalhados de uso do veículo, rotas percorridas, velocidades, tempos de uso, consumo e muito mais. Tudo exportável em PDF e Excel.' },
+      { q: 'Posso adicionar outros usuários?', a: 'Sim! Você pode cadastrar até 5 usuários por veículo, cada um com diferentes níveis de acesso: rastreamento, bloqueio ou apenas visualização.' },
+      { q: 'O sistema gera alertas automáticos?', a: 'Sim! Você recebe alertas por push, SMS ou e-mail quando: veículo sair de uma área definida, ultrapassar velocidade limite, ou qualquer movimento não autorizado.' },
+      { q: 'Posso configurar cercas geográficas?', a: 'Sim! Você define zonas de segurança no mapa. Se o veículo sair dessas áreas, você é alertado imediatamente pelo aplicativo.' },
+    ],
+    benefits: ['Relatórios em PDF', 'Até 5 usuários por veículo', 'Alertas automáticos', 'Cercas geográficas'],
   },
 ];
 
-function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const [hasAnimated, setHasAnimated] = useState(false);
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          let start = 0;
-          const end = value;
-          const incrementTime = duration / end;
-          const timer = setInterval(() => {
-            start += Math.ceil(end / 50);
-            if (start >= end) {
-              setCount(end);
-              clearInterval(timer);
-            } else {
-              setCount(start);
-            }
-          }, incrementTime);
-          return () => clearInterval(timer);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value, duration, hasAnimated]);
-
-  return <span ref={ref}>{count.toLocaleString()}</span>;
-}
-
-function FloatingCard({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      className="absolute"
-    >
-      {children}
-    </motion.div>
+    <div className="border-b border-white/10 last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full py-4 flex items-center justify-between text-left"
+      >
+        <span className="font-medium text-white pr-4">{q}</span>
+        <ChevronRight className={`w-5 h-5 text-white/50 flex-shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} />
+      </button>
+      {open && (
+        <div className="pb-4">
+          <p className="text-white/70 text-sm leading-relaxed">{a}</p>
+        </div>
+      )}
+    </div>
   );
 }
 
-import { motion } from 'framer-motion';
-
-function StatsCard({ icon: Icon, value, label, delay }: { icon: any; value: string; label: string; delay: number }) {
+function InfoPanel({ slide, onClose }: { slide: any; onClose: () => void }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay, duration: 0.5 }}
-      className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20"
-    >
-      <Icon className="w-6 h-6 text-white/70 mb-2" />
-      <p className="text-2xl font-bold text-white">{value}</p>
-      <p className="text-sm text-white/60">{label}</p>
-    </motion.div>
-  );
-}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="bg-gray-900 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
+        <div className="sticky top-0 bg-gray-900 p-6 border-b border-white/10 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Mais Informações</h2>
+            <p className="text-white/60">{slide.title} - {slide.subtitle}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
 
-function FeatureBadge({ text }: { text: string }) {
-  return (
-    <motion.span
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white border border-white/20"
-    >
-      <Check className="w-4 h-4 text-green-400" />
-      {text}
-    </motion.span>
+        <div className="p-6 space-y-8">
+          {/* Benefits */}
+          <div>
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              Principais Vantagens
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {slide.benefits.map((b: string, i: number) => (
+                <div key={i} className="flex items-center gap-3 bg-white/5 rounded-xl p-3">
+                  <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <span className="text-white/90 text-sm">{b}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div>
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-blue-400" />
+              Perguntas Frequentes
+            </h3>
+            <div className="bg-white/5 rounded-2xl p-4">
+              {slide.faqs.map((faq: any, i: number) => (
+                <FaqItem key={i} q={faq.q} a={faq.a} />
+              ))}
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="bg-gradient-to-r from-primary/20 to-orange-500/20 rounded-2xl p-6 border border-primary/30">
+            <h3 className="text-lg font-bold text-white mb-3">Fala com a Gente</h3>
+            <p className="text-white/70 text-sm mb-4">Tira as tuas dúvidas com nosso time que é nota 10.</p>
+            <div className="flex gap-3">
+              <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white">
+                <Phone className="w-4 h-4 mr-2" />
+                Liga pra Cá
+              </Button>
+              <Button variant="outline" className="flex-1 border-white/20 text-white hover:bg-white/10">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Manda ZAP
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
 export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: () => void }) {
   const [current, setCurrent] = useState(0);
+  const [showInfo, setShowInfo] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -132,40 +176,16 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gray-950">
-      {/* Animated Background Gradient */}
+      {/* Background */}
       <div className="absolute inset-0">
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} transition-all duration-1000`}
-          style={{ opacity: 0.9 }}
-        />
-        {/* Animated Grid Pattern */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px',
-          }}
-        />
-        {/* Floating Glow Orbs */}
-        <motion.div
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 -left-20 w-96 h-96 bg-white/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            x: [0, -100, 0],
-            y: [0, 80, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl"
-        />
+        <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} transition-all duration-1000`} style={{ opacity: 0.95 }} />
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px',
+        }} />
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-white/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl animate-pulse" />
       </div>
 
       {/* Header */}
@@ -194,50 +214,29 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
             {/* Left Content */}
             <div className="space-y-8">
               {/* Feature Badges */}
-              <motion.div
-                key={`badges-${current}`}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap gap-3"
-              >
-                {slide.features.map((f, i) => (
-                  <FeatureBadge key={i} text={f} />
+              <div className="flex flex-wrap gap-3">
+                {slide.features.map((f: string, i: number) => (
+                  <span key={i} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white border border-white/20">
+                    <Check className="w-4 h-4 text-green-400" />
+                    {f}
+                  </span>
                 ))}
-              </motion.div>
+              </div>
 
               {/* Title */}
-              <motion.div
-                key={`title-${current}`}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <h1 className="font-display text-5xl md:text-7xl font-black text-white leading-tight">
-                  {slide.title}
-                  <br />
-                  <span className="text-white/80">{slide.subtitle}</span>
-                </h1>
-              </motion.div>
+              <h1 className="font-display text-5xl md:text-7xl font-black text-white leading-tight">
+                {slide.title}
+                <br />
+                <span className="text-white/80">{slide.subtitle}</span>
+              </h1>
 
               {/* Description */}
-              <motion.p
-                key={`desc-${current}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-xl text-white/70 max-w-lg"
-              >
+              <p className="text-xl text-white/70 max-w-lg">
                 {slide.description}
-              </motion.p>
+              </p>
 
               {/* CTA Buttons */}
-              <motion.div
-                key={`cta-${current}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="flex flex-wrap gap-4"
-              >
+              <div className="flex flex-wrap gap-4">
                 <Button
                   onClick={onStartRegistration}
                   size="lg"
@@ -247,131 +246,100 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
                 <Button
-                  onClick={() => navigate('/admin/login')}
+                  onClick={() => setShowInfo(true)}
                   size="lg"
                   variant="outline"
                   className="h-14 px-8 text-lg border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 backdrop-blur-md transition-all"
                 >
-                  Ver Demo
+                  <Eye className="mr-2 w-5 h-5" />
+                  Saber Mais
                 </Button>
-              </motion.div>
+              </div>
 
-              {/* Stats */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="flex gap-6 pt-4"
-              >
-                <StatsCard icon={Users} value="10K+" label="Clientes" delay={0.7} />
-                <StatsCard icon={Car} value="15K+" label="Veículos" delay={0.8} />
-                <StatsCard icon={Shield} value="99.9%" label="Uptime" delay={0.9} />
-              </motion.div>
+              {/* Trust Badges */}
+              <div className="flex items-center gap-6 pt-4">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-white/60" />
+                  <span className="text-white/60 text-sm">Feito no Maranhão</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-white/60" />
+                  <span className="text-white/60 text-sm">Conexão Zica</span>
+                </div>
+              </div>
             </div>
 
-            {/* Right Visual - Animated Dashboard Preview */}
-            <motion.div
-              key={`visual-${current}`}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="hidden lg:block relative"
-            >
+            {/* Right Visual */}
+            <div className="hidden lg:block relative">
               <div className="relative">
                 {/* Main Card */}
                 <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-6 shadow-2xl">
-                  {/* Dashboard Header */}
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-                      <span className="text-white/70 text-sm">Live Tracking</span>
+                      <span className="text-white/70 text-sm">Sistema Ativo</span>
                     </div>
-                    <span className="text-white/50 text-sm">Updated now</span>
+                    <Clock className="w-5 h-5 text-white/50" />
                   </div>
 
-                  {/* Map Placeholder */}
                   <div className="bg-white/5 rounded-2xl h-48 mb-4 flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0">
-                      {[...Array(20)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          className="absolute w-1 h-1 bg-green-400 rounded-full"
-                          style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                          }}
-                          animate={{
-                            opacity: [0.3, 1, 0.3],
-                            scale: [1, 1.5, 1],
-                          }}
-                          transition={{
-                            duration: 2 + Math.random() * 2,
-                            repeat: Infinity,
-                            delay: Math.random() * 2,
-                          }}
-                        />
+                    <MapPin className="w-16 h-16 text-white/20" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="absolute w-2 h-2 bg-green-400 rounded-full animate-ping" style={{
+                          left: `${20 + Math.random() * 60}%`,
+                          top: `${20 + Math.random() * 60}%`,
+                          animationDelay: `${i * 0.3}s`,
+                        }} />
                       ))}
                     </div>
-                    <div className="text-center z-10">
-                      <MapPin className="w-12 h-12 text-white/30 mx-auto mb-2" />
-                      <p className="text-white/50 text-sm">Vehicle Tracking Active</p>
-                    </div>
                   </div>
 
-                  {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white/5 rounded-xl p-3 text-center">
-                      <Car className="w-5 h-5 text-blue-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">24</p>
-                      <p className="text-white/50 text-xs">Online</p>
+                      <Eye className="w-5 h-5 text-green-400 mx-auto mb-1" />
+                      <p className="text-white font-bold">Tá de Olho</p>
+                      <p className="text-white/50 text-xs">24 horas</p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-3 text-center">
                       <Shield className="w-5 h-5 text-green-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">100%</p>
-                      <p className="text-white/50 text-xs">Secure</p>
+                      <p className="text-white font-bold">Tá Seguro</p>
+                      <p className="text-white/50 text-xs">100% tranquilo</p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-3 text-center">
-                      <Bell className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">3</p>
-                      <p className="text-white/50 text-xs">Alerts</p>
+                      <Check className="w-5 h-5 text-green-400 mx-auto mb-1" />
+                      <p className="text-white font-bold">Tudo Tranquilo</p>
+                      <p className="text-white/50 text-xs">Sem alertas</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Floating Cards */}
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute -left-8 top-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20"
-                >
+                <div className="absolute -left-8 top-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 animate-bounce" style={{ animationDuration: '3s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
                       <Check className="w-5 h-5 text-green-400" />
                     </div>
                     <div>
-                      <p className="text-white font-medium text-sm">Vehicle Protected</p>
-                      <p className="text-white/50 text-xs">ABC-1234</p>
+                      <p className="text-white font-medium text-sm">Veículo Arretado</p>
+                      <p className="text-white/50 text-xs">BRA-1234</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  animate={{ y: [0, 10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute -right-4 bottom-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20"
-                >
+                <div className="absolute -right-4 bottom-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
                       <Zap className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-white font-medium text-sm">Quick Block</p>
-                      <p className="text-white/50 text-xs">One tap</p>
+                      <p className="text-white font-medium text-sm">Bloqueia na Hora</p>
+                      <p className="text-white/50 text-xs">1 toque só</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -391,7 +359,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
         </div>
       </div>
 
-      {/* Slide Indicator */}
+      {/* Slide Counter */}
       <div className="absolute bottom-8 right-8 z-20">
         <div className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 border border-white/20">
           <span className="text-white font-bold">{current + 1}</span>
@@ -399,6 +367,9 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
           <span className="text-white/50">{slides.length}</span>
         </div>
       </div>
+
+      {/* Info Panel */}
+      {showInfo && <InfoPanel slide={slide} onClose={() => setShowInfo(false)} />}
     </div>
   );
 }
