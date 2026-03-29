@@ -5,6 +5,9 @@ export type CustomerStatus =
   | 'pagamento_confirmado'
   | 'aguardando_instalacao'
   | 'cliente_ativado'
+  | 'active'
+  | 'inactive'
+  | 'disabled'
   | 'pendente'
   | 'cancelado';
 
@@ -15,6 +18,9 @@ export const STATUS_LABELS: Record<CustomerStatus, string> = {
   pagamento_confirmado: 'Pagamento Confirmado',
   aguardando_instalacao: 'Aguardando Instalação',
   cliente_ativado: 'Cliente Ativado',
+  active: 'Ativo',
+  inactive: 'Inativo',
+  disabled: 'Desativado',
   pendente: 'Pendente',
   cancelado: 'Cancelado',
 };
@@ -26,6 +32,9 @@ export const STATUS_COLORS: Record<CustomerStatus, string> = {
   pagamento_confirmado: 'bg-emerald-100 text-emerald-800',
   aguardando_instalacao: 'bg-purple-100 text-purple-800',
   cliente_ativado: 'bg-green-100 text-green-800',
+  active: 'bg-green-100 text-green-800',
+  inactive: 'bg-gray-100 text-gray-800',
+  disabled: 'bg-red-100 text-red-800',
   pendente: 'bg-yellow-100 text-yellow-800',
   cancelado: 'bg-red-100 text-red-800',
 };

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Eye, Plus, Car, Smartphone, Mail, MapPin,
   Users, Clock, CheckCircle2, AlertCircle, User, CreditCard,
-  Calendar, X, Save, Trash2, Send, RefreshCw
+  Calendar, X, Save, Trash2, Send, RefreshCw, MessageCircle,
+  Play, Power, Pause
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,31 @@ import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerS
 const STORAGE_KEY = 'rastremix_customers';
 const WESALES_KEY = 'wesales_api_key';
 
+function generateWhatsAppMessage(customer: CustomerRegistration): string {
+  const statusLabel = STATUS_LABELS[customer.status] || customer.status;
+  
+  const message = `Olá ${customer.full_name.toUpperCase()} 👋
+
+Segue seu cadastro:
+
+📄 Nome: ${customer.full_name.toUpperCase()}
+📱 Telefone: ${customer.phone.replace(/\D/g, '')}
+🚗 Veículo: ${customer.brand.toUpperCase()} ${customer.model.toUpperCase()}
+🔢 Placa: ${customer.plate.toUpperCase()}
+📦 Plano: ${(customer.plan || 'Não informado').toUpperCase()}
+✅ Status: ${statusLabel.toUpperCase()}
+
+Qualquer dúvida estamos à disposição!`;
+
+  return encodeURIComponent(message);
+}
+
+function getWhatsAppLink(customer: CustomerRegistration): string {
+  const phone = customer.phone.replace(/\D/g, '');
+  const message = generateWhatsAppMessage(customer);
+  return `https://wa.me/55${phone}?text=${message}`;
+}
+
 export default function ClientsSection() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -23,6 +49,7 @@ export default function ClientsSection() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<CustomerRegistration>>({});
+  const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     loadCustomers();
@@ -42,37 +69,57 @@ export default function ClientsSection() {
     setAllCustomers(customers);
   };
 
-  const filteredCustomers = useMemo(() => {
-    return allCustomers.filter((c) => {
-      const matchSearch = !search || 
-        [c.full_name, c.phone, c.plate, c.cpf_cnpj, c.email]
-          .some((f) => f?.toLowerCase().includes(search.toLowerCase()));
-      const matchStatus = statusFilter === 'all' || c.status === statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }, [allCustomers, search, statusFilter]);
+  const logStatusChange = (customerId: string, previousStatus: string, newStatus: string, user?: string) => {
+    const log = {
+      timestamp: new Date().toISOString(),
+      customerId,
+      previousStatus,
+      newStatus,
+      user: user || 'System',
+    };
+    console.log('📝 Status Change:', log);
+    const logs = JSON.parse(localStorage.getItem('status_change_logs') || '[]');
+    logs.unshift(log);
+    localStorage.setItem('status_change_logs', JSON.stringify(logs.slice(0, 100)));
+  };
 
-  const stats = useMemo(() => ({
-    total: allCustomers.length,
-    active: allCustomers.filter(c => c.status === 'cliente_ativado').length,
-    pending: allCustomers.filter(c => c.status === 'novo_cadastro').length,
-    inProgress: allCustomers.filter(c => c.status === 'em_atendimento').length,
-  }), [allCustomers]);
+  const updateCustomerStatus = (id: string, newStatus: CustomerStatus, previousStatus: string) => {
+    setLoadingStatus(id);
+    setTimeout(() => {
+      logStatusChange(id, previousStatus, newStatus);
+      const updated = allCustomers.map(c => 
+        c.id === id ? { ...c, status: newStatus } : c
+      );
+      saveCustomers(updated);
+      if (selectedCustomer?.id === id) {
+        setSelectedCustomer({ ...selectedCustomer, status: newStatus });
+      }
+      setLoadingStatus(null);
+    }, 300);
+  };
 
-  const handleActivate = (id: string) => {
-    const updated = allCustomers.map(c => 
-      c.id === id ? { ...c, status: 'cliente_ativado' as CustomerStatus } : c
-    );
-    saveCustomers(updated);
-    setIsViewOpen(false);
+  const handleActivate = (id: string, previousStatus: string) => {
+    updateCustomerStatus(id, 'active', previousStatus);
+  };
+
+  const handleInactivate = (id: string, previousStatus: string) => {
+    updateCustomerStatus(id, 'inactive', previousStatus);
+  };
+
+  const handleDisable = (id: string, previousStatus: string) => {
+    updateCustomerStatus(id, 'disabled', previousStatus);
   };
 
   const handleReject = (id: string) => {
-    const updated = allCustomers.map(c => 
-      c.id === id ? { ...c, status: 'cancelado' as CustomerStatus } : c
-    );
-    saveCustomers(updated);
-    setIsViewOpen(false);
+    const customer = allCustomers.find(c => c.id === id);
+    if (customer && confirm('Tem certeza que deseja cancelar este cliente?')) {
+      logStatusChange(id, customer.status, 'cancelado');
+      const updated = allCustomers.map(c => 
+        c.id === id ? { ...c, status: 'cancelado' as CustomerStatus } : c
+      );
+      saveCustomers(updated);
+      setIsViewOpen(false);
+    }
   };
 
   const handleEdit = (customer: CustomerRegistration) => {
@@ -83,6 +130,10 @@ export default function ClientsSection() {
 
   const handleSaveEdit = () => {
     if (!editForm.id) return;
+    const customer = allCustomers.find(c => c.id === editForm.id);
+    if (customer && customer.status !== editForm.status) {
+      logStatusChange(editForm.id!, customer.status, editForm.status || customer.status);
+    }
     const updated = allCustomers.map(c => 
       c.id === editForm.id ? { ...c, ...editForm } as CustomerRegistration : c
     );
@@ -104,9 +155,33 @@ export default function ClientsSection() {
     if (confirm('Tem certeza que deseja excluir este cliente?')) {
       const updated = allCustomers.filter(c => c.id !== id);
       saveCustomers(updated);
-      setIsViewOpen(false);
+      setIsEditOpen(false);
     }
   };
+
+  const handleSendWhatsApp = (customer: CustomerRegistration) => {
+    const link = getWhatsAppLink(customer);
+    console.log('📱 Opening WhatsApp with message:', customer.full_name);
+    window.open(link, '_blank');
+  };
+
+  const filteredCustomers = useMemo(() => {
+    return allCustomers.filter((c) => {
+      const matchSearch = !search || 
+        [c.full_name, c.phone, c.plate, c.cpf_cnpj, c.email]
+          .some((f) => f?.toLowerCase().includes(search.toLowerCase()));
+      const matchStatus = statusFilter === 'all' || c.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [allCustomers, search, statusFilter]);
+
+  const stats = useMemo(() => ({
+    total: allCustomers.length,
+    active: allCustomers.filter(c => c.status === 'active' || c.status === 'cliente_ativado').length,
+    inactive: allCustomers.filter(c => c.status === 'inactive').length,
+    disabled: allCustomers.filter(c => c.status === 'disabled').length,
+    pending: allCustomers.filter(c => c.status === 'novo_cadastro').length,
+  }), [allCustomers]);
 
   return (
     <div className="space-y-6 p-6">
@@ -114,13 +189,15 @@ export default function ClientsSection() {
         <h1 className="text-2xl font-bold">Clientes</h1>
         <p className="text-white/70">Gerencie todos os clientes cadastrados</p>
         
-        <div className="flex gap-4 mt-4">
+        <div className="flex gap-4 mt-4 flex-wrap">
           {[
-            { label: 'Total', value: stats.total },
-            { label: 'Ativos', value: stats.active },
-            { label: 'Pendentes', value: stats.pending },
+            { label: 'Total', value: stats.total, color: 'bg-white/20' },
+            { label: 'Ativos', value: stats.active, color: 'bg-green-500/30' },
+            { label: 'Inativos', value: stats.inactive, color: 'bg-gray-500/30' },
+            { label: 'Desativados', value: stats.disabled, color: 'bg-red-500/30' },
+            { label: 'Pendentes', value: stats.pending, color: 'bg-yellow-500/30' },
           ].map((s) => (
-            <div key={s.label} className="bg-white/10 px-4 py-2 rounded-xl">
+            <div key={s.label} className={`${s.color} px-4 py-2 rounded-xl`}>
               <p className="text-xl font-bold">{s.value}</p>
               <p className="text-xs text-white/60">{s.label}</p>
             </div>
@@ -128,8 +205,8 @@ export default function ClientsSection() {
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative flex-1">
+      <div className="flex gap-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome, telefone, placa..."
@@ -202,7 +279,10 @@ export default function ClientsSection() {
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detalhes do Cliente</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Detalhes do Cliente
+            </DialogTitle>
           </DialogHeader>
           {selectedCustomer && (
             <div className="space-y-4">
@@ -217,11 +297,11 @@ export default function ClientsSection() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="font-medium">{selectedCustomer.email}</p>
+                  <p className="font-medium">{selectedCustomer.email || 'Não informado'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
-                  <p className="font-medium">{selectedCustomer.cpf_cnpj}</p>
+                  <p className="font-medium">{selectedCustomer.cpf_cnpj || 'Não informado'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Veículo</p>
@@ -233,7 +313,7 @@ export default function ClientsSection() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Plano</p>
-                  <p className="font-medium capitalize">{selectedCustomer.plan}</p>
+                  <p className="font-medium capitalize">{selectedCustomer.plan || 'Não informado'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Status</p>
@@ -242,26 +322,91 @@ export default function ClientsSection() {
                   </Badge>
                 </div>
               </div>
+
+              {selectedCustomer.city && (
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Localização</p>
+                  <p className="text-sm">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    {selectedCustomer.city} - {selectedCustomer.state}
+                  </p>
+                </div>
+              )}
               
-              <div className="flex gap-2 pt-4 border-t">
+              <div className="flex flex-col gap-3 pt-4 border-t">
+                <p className="text-sm font-medium text-muted-foreground">Alterar Status:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    onClick={() => handleActivate(selectedCustomer.id, selectedCustomer.status)}
+                    disabled={loadingStatus === selectedCustomer.id}
+                    className={`${selectedCustomer.status === 'active' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                  >
+                    {loadingStatus === selectedCustomer.id ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Ativar
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => handleInactivate(selectedCustomer.id, selectedCustomer.status)}
+                    disabled={loadingStatus === selectedCustomer.id}
+                    variant="outline"
+                    className={`${selectedCustomer.status === 'inactive' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
+                  >
+                    {loadingStatus === selectedCustomer.id ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Pause className="w-4 h-4 mr-2" />
+                        Inativo
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => handleDisable(selectedCustomer.id, selectedCustomer.status)}
+                    disabled={loadingStatus === selectedCustomer.id}
+                    variant="destructive"
+                  >
+                    {loadingStatus === selectedCustomer.id ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Power className="w-4 h-4 mr-2" />
+                        Desativar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
                 <Button 
-                  onClick={() => handleActivate(selectedCustomer.id)}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={() => handleSendWhatsApp(selectedCustomer)}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
                 >
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Ativar
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Enviar Cadastro via WhatsApp
                 </Button>
+              </div>
+              
+              <div className="flex gap-2 pt-2 border-t">
                 <Button 
                   onClick={() => handleSyncToWeSales(selectedCustomer)}
                   variant="outline"
                   className="flex-1"
                 >
-                  <Send className="w-4 h-4 mr-2" /> Enviar WeSales
+                  <Send className="w-4 h-4 mr-2" />
+                  WeSales
                 </Button>
                 <Button 
                   onClick={() => handleEdit(selectedCustomer)}
                   variant="outline"
                 >
-                  <Eye className="w-4 h-4 mr-2" /> Editar
+                  <Eye className="w-4 h-4 mr-2" />
+                  Editar
                 </Button>
                 <Button 
                   onClick={() => handleReject(selectedCustomer.id)}
@@ -351,18 +496,30 @@ export default function ClientsSection() {
                 </div>
               </div>
               
+              <div>
+                <label className="text-xs text-muted-foreground">Observações</label>
+                <Input 
+                  value={editForm.notes || ''} 
+                  onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                  placeholder="Observações sobre o cliente..."
+                />
+              </div>
+              
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsEditOpen(false)}>
                   Cancelar
                 </Button>
                 <Button onClick={handleSaveEdit}>
-                  <Save className="w-4 h-4 mr-2" /> Salvar
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
                 </Button>
                 <Button variant="destructive" onClick={() => {
                   handleDelete(editForm.id!);
                   setIsEditOpen(false);
+                  setIsViewOpen(false);
                 }}>
-                  <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir
                 </Button>
               </DialogFooter>
             </div>
