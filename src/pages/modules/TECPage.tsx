@@ -133,13 +133,16 @@ export default function TECPage() {
         filteredServices = servicesData.filter((s: Service) => s.technician_id === userId);
       }
       
-      const registeredTecnicos = getTecnicos().map(t => ({
+      const tecnicosFromStorage = getTecnicos();
+      console.log('Técnicos do storage:', tecnicosFromStorage);
+      
+      const registeredTecnicos = tecnicosFromStorage.map(t => ({
         id: t.id,
         name: t.name,
         email: t.email,
         phone: t.phone || '',
         cpf: t.cpf || '',
-        status: (t.active ? 'active' : 'inactive') as 'active' | 'inactive',
+        status: 'active' as const,
         created_at: t.created_at || new Date().toISOString(),
       }));
       
