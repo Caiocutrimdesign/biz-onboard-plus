@@ -152,6 +152,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
       recipient: lead.email || lead.phone,
       subject: template.subject?.replace('{name}', lead.name.split(' ')[0]),
       message,
+      status: 'pending',
     };
 
     return sendNotification(notification);
