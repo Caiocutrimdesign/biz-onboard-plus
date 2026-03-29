@@ -37,8 +37,9 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = t
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const isInTEC = location.pathname.startsWith('/tec');
-  const menuItems = isInTEC ? tecMenuItems : (showFullMenu ? fullMenuItems : tecMenuItems);
+  const isInTEC = location.pathname.startsWith('/tec') || location.pathname.startsWith('/erp') || location.pathname.startsWith('/shell');
+  const isTechnician = (user?.role as string) === 'technician';
+  const menuItems = (isInTEC && isTechnician) ? tecMenuItems : (showFullMenu ? fullMenuItems : tecMenuItems);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
