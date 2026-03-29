@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface StepWelcomeProps {
@@ -14,9 +14,6 @@ export function StepWelcome({ onNext }: StepWelcomeProps) {
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col items-center justify-center px-6 text-center"
     >
-      <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10">
-        <Shield className="h-12 w-12 text-primary" />
-      </div>
       <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
         Vamos ativar sua proteção
       </h2>
