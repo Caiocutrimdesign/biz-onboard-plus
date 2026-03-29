@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Wrench, Building2, ShoppingCart,
   Settings, ChevronLeft, Menu, X,
-  LogOut, Bell, UserCog
+  LogOut, Bell, UserCog, Cake
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,9 +24,10 @@ const tecMenuItems = [
 const fullMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', color: 'text-blue-500' },
   { id: 'crm', label: 'CRM', icon: UserCog, path: '/crm', color: 'text-purple-500' },
+  { id: 'aniversariantes', label: 'Aniversariantes', icon: Cake, path: '/crm/aniversariantes', color: 'text-pink-500' },
   { id: 'tec', label: 'TEC', icon: Wrench, path: '/tec', color: 'text-orange-500' },
   { id: 'erp', label: 'ERP', icon: Building2, path: '/erp', color: 'text-green-500' },
-  { id: 'shell', label: 'SHELL', icon: ShoppingCart, path: '/shell', color: 'text-pink-500' },
+  { id: 'shell', label: 'SHELL', icon: ShoppingCart, path: '/shell', color: 'text-cyan-500' },
 ];
 
 export default function SuperLayout({ children, showCRM = true, showFullMenu = true }: SuperLayoutProps) {

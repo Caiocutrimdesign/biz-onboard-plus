@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import PlansPage from "./pages/crm/PlansPage";
 import LearningPage from "./pages/crm/LearningPage";
 import UsersPage from "./pages/crm/UsersPage";
+import BirthdaysPage from "./pages/crm/BirthdaysPage";
 
 import DashboardPage from "./pages/modules/DashboardPage";
 import TECPage from "./pages/modules/TECPage";
@@ -32,7 +33,6 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   return (
     <ErrorBoundary>
-  );
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
@@ -138,6 +138,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['admin']}>
             <CRMAgentsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/crm/aniversariantes"
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'user']}>
+            <BirthdaysPage />
           </ProtectedRoute>
         }
       />
