@@ -128,10 +128,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Password entered:', password);
       console.log('Technician found:', tecnico);
       if (tecnico) {
-        console.log('Stored password:', tecnico.password);
-        console.log('Passwords match:', tecnico.password === password);
+        const storedPwd = (tecnico.password || '').trim();
+        const enteredPwd = password.trim();
+        console.log('Stored password:', storedPwd);
+        console.log('Entered password (trimmed):', enteredPwd);
+        console.log('Passwords match:', storedPwd === enteredPwd);
         console.log('Technician active:', tecnico.active);
-        if (tecnico.password !== password) {
+        if (storedPwd !== enteredPwd) {
           setIsLoading(false);
           return { success: false, error: 'Senha incorreta' };
         }
