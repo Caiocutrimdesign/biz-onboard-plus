@@ -186,79 +186,97 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
         </div>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
-      {isMobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-            onClick={() => setIsMobileOpen(false)}
-          />
-          <aside className="absolute left-0 top-0 bottom-0 w-[280px] bg-white shadow-2xl animate-in slide-in-from-left duration-300">
-            <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 bg-gradient-to-r from-orange-500 to-red-600">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">R</span>
-                </div>
-                <span className="font-display font-bold text-white">
-                  {isInTEC ? 'Area TEC' : 'Rastremix'}
-                </span>
+      {/* Mobile Sidebar - Always rendered but controlled by state */}
+      <div 
+        className={`
+          fixed inset-0 z-50 lg:hidden
+          transition-opacity duration-300
+          ${isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
+        `}
+      >
+        {/* Overlay */}
+        <div 
+          className="absolute inset-0 bg-black/60"
+          onClick={() => setIsMobileOpen(false)}
+        />
+        
+        {/* Menu Panel */}
+        <aside className={`
+          absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl
+          transform transition-transform duration-300
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          {/* Header */}
+          <div className="flex h-16 items-center justify-between px-4 bg-gradient-to-r from-orange-500 to-red-600">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">R</span>
               </div>
-              <button
-                onClick={() => setIsMobileOpen(false)}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <X className="h-5 w-5 text-white" />
-              </button>
+              <span className="font-bold text-white text-lg">
+                {isInTEC ? 'Area TEC' : 'Rastremix'}
+              </span>
             </div>
-            <div className="p-4 border-b border-gray-100 bg-gray-50">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-lg">
-                  {user?.name?.charAt(0) || 'A'}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{user?.name || 'Usuario'}</p>
-                  <p className="text-sm text-muted-foreground truncate">{user?.email || 'usuario@rastremix.com'}</p>
-                </div>
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="p-2 hover:bg-white/20 rounded-lg"
+            >
+              <X className="h-6 w-6 text-white" />
+            </button>
+          </div>
+          
+          {/* User Info */}
+          <div className="p-4 bg-gray-50 border-b">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-lg">
+                {user?.name?.charAt(0) || 'A'}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">{user?.name || 'Usuario'}</p>
+                <p className="text-sm text-gray-500">{user?.email || 'usuario@rastremix.com'}</p>
               </div>
             </div>
-            <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100%-180px)]">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                return (
-                  <Link
-                    key={item.id}
-                    to={item.path}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={`
-                      flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all
-                      ${active 
-                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="absolute bottom-0 left-0 right-0 p-3 border-t bg-white shadow-lg">
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMobileOpen(false);
-                }}
-                className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:bg-red-50 transition-all"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Sair</span>
-              </button>
-            </div>
-          </aside>
-        </div>
-      )}
+          </div>
+          
+          {/* Menu Items */}
+          <nav className="p-3 space-y-1 overflow-y-auto">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => setIsMobileOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium
+                    ${active 
+                      ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                    }
+                  `}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+          
+          {/* Logout */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 border-t bg-white">
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsMobileOpen(false);
+              }}
+              className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Sair</span>
+            </button>
+          </div>
+        </aside>
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
