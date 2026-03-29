@@ -174,6 +174,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
         recipient: lead.email || lead.phone,
         subject: '⚠️ Lead em Risco',
         message: `Lead ${lead.name} não é contactado há ${Math.floor(config.checkInterval / 60000)} dias. Status: ${lead.status}`,
+        status: 'pending',
       };
 
       sendNotification(notification);
