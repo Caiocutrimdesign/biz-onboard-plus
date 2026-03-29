@@ -21,7 +21,7 @@ export function LogosCarousel() {
   }, []);
 
   return (
-    <div className="w-full py-2 bg-primary/10 border-b border-primary/20">
+    <div className="w-full py-2 bg-black/40 border-b border-primary/30 backdrop-blur-sm">
       <div className="max-w-4xl mx-auto px-4">
         <div className="relative h-12 md:h-14">
           <AnimatePresence mode="wait">
@@ -36,7 +36,8 @@ export function LogosCarousel() {
               <img
                 src={logos[current].src}
                 alt={logos[current].name}
-                className="h-8 md:h-10 w-auto object-contain"
+                className="h-8 md:h-10 w-auto object-contain brightness-110 contrast-100 drop-shadow-lg"
+                style={{ filter: 'brightness(1.15) contrast(1.05)' }}
               />
             </motion.div>
           </AnimatePresence>
