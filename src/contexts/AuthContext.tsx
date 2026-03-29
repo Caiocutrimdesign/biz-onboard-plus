@@ -23,7 +23,7 @@ function simpleHash(password: string): string {
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
-  return 'hash_' + Math.abs(hash).toString(16) + '_' + Date.now().toString(16);
+  return 'hash_' + Math.abs(hash).toString(16);
 }
 
 function verifyPassword(password: string, hash: string): boolean {
