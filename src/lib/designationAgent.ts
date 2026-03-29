@@ -79,7 +79,7 @@ class DesignationAgentSystem {
     const customers = await customerService.getAllCustomers();
     return customers.filter(c => 
       (!c.technician_id || c.technician_id === '') &&
-      (c.status === 'novo_cadastro' || c.status === 'pendente' || c.status === 'novo')
+      (c.status === 'novo_cadastro' || c.status === 'pendente')
     );
   }
 

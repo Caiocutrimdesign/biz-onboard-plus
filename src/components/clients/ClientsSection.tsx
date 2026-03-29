@@ -484,7 +484,7 @@ export default function ClientsSection() {
                     onClick={() => handleInactivate(selectedCustomer.id, selectedCustomer.status)}
                     disabled={loadingStatus === selectedCustomer.id}
                     variant="outline"
-                    className={`${selectedCustomer.status === 'inactive' || selectedCustomer.status === 'inativo' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
+                    className={`${selectedCustomer.status === 'inactive' || (selectedCustomer.status as string) === 'inativo' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
                   >
                     {loadingStatus === selectedCustomer.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

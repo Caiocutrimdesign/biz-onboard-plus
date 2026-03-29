@@ -96,7 +96,7 @@ export default function GuardianDashboard() {
   );
 }
 
-function ErrorItem({ error }: { error: ErrorInfo }) {
+function ErrorItem({ error }: { error: { message: string; stack?: string; timestamp: number; componentStack?: string } }) {
   const [expanded, setExpanded] = useState(false);
 
   return (

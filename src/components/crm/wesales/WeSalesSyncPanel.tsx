@@ -120,7 +120,7 @@ export default function WeSalesSyncPanel() {
                     status.color === 'blue' ? 'bg-blue-100' : 'bg-gray-100'
                   }`}>
                     {status.color === 'green' ? (
-                      <CloudOn className="h-6 w-6 text-green-600" />
+                      <Cloud className="h-6 w-6 text-green-600" />
                     ) : status.color === 'red' ? (
                       <AlertCircle className="h-6 w-6 text-red-600" />
                     ) : status.color === 'blue' ? (
