@@ -345,22 +345,22 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
         <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl animate-pulse" />
       </div>
       
-      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-6">
-        <Logo3D size={100} animated={true} glowColor="white" />
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={() => navigate('/planos')}
-            className="h-11 rounded-full border border-primary bg-white/10 px-6 text-sm font-medium text-white backdrop-blur-md hover:bg-white/20 transition-all"
-          >
-            Planos
-          </Button>
-          <Button
-            onClick={() => navigate('/admin/login')}
-            className="h-11 rounded-full bg-white text-gray-900 px-6 text-sm font-semibold hover:bg-white/90 transition-all"
-          >
-            Acesso Restrito
-          </Button>
-        </div>
+      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-center p-6">
+        <Logo3D size={140} animated={true} glowColor="white" />
+      </div>
+      <div className="absolute top-6 right-6 z-30 flex items-center gap-3">
+        <Button
+          onClick={() => navigate('/planos')}
+          className="h-11 rounded-full border border-primary bg-white/10 px-6 text-sm font-medium text-white backdrop-blur-md hover:bg-white/20 transition-all"
+        >
+          Planos
+        </Button>
+        <Button
+          onClick={() => navigate('/admin/login')}
+          className="h-11 rounded-full bg-white text-gray-900 px-6 text-sm font-semibold hover:bg-white/90 transition-all"
+        >
+          Acesso Restrito
+        </Button>
       </div>
 
       <div className="relative z-10 flex h-full items-center">
