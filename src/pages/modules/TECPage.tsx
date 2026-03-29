@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, getTecnicos } from '@/contexts/AuthContext';
 import SuperLayout from '@/components/layout/SuperLayout';
 import { tecService } from '@/lib/tecService';
 import type { Service, ServiceStatus, ServiceType, PhotoType, Technician } from '@/types/tec';
@@ -116,17 +116,35 @@ export default function TECPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user?.id, user?.role]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [servicesData, techData] = await Promise.all([
+      const [servicesData] = await Promise.all([
         tecService.getAllServices(),
-        tecService.getAllTechnicians(),
       ]);
-      setServices(servicesData);
-      setTechnicians(techData);
+      
+      const isTechnician = (user?.role as string) === 'technician';
+      const userId = user?.id || '';
+      
+      let filteredServices = servicesData;
+      if (isTechnician) {
+        filteredServices = servicesData.filter((s: Service) => s.technician_id === userId);
+      }
+      
+      const registeredTecnicos = getTecnicos().map(t => ({
+        id: t.id,
+        name: t.name,
+        email: t.email,
+        phone: t.phone,
+        cpf: t.cpf,
+        status: t.active ? 'active' as const : 'inactive' as const,
+        created_at: t.created_at,
+      }));
+      
+      setServices(filteredServices);
+      setTechnicians(registeredTecnicos);
     } catch (e) {
       console.error('Error loading data:', e);
     }
