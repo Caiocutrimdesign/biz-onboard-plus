@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Users, Target, Zap, Mail, Calendar, 
   BarChart3, GitBranch, Settings, Bell, Menu, X,
-  ChevronRight, LogOut, Search, Plus, ChevronDown, Bot, Smile
+  ChevronRight, LogOut, Search, Plus, ChevronDown, Bot, Smile,
+  UserCog
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCRMStore } from '@/stores/crmStore';
 import { useAgents } from '@/agents/context/AgentContext';
 
-type CRMLodule = 'dashboard' | 'leads' | 'pipeline' | 'automation' | 'email' | 'calendar' | 'analytics' | 'funnels' | 'satisfaction' | 'agents' | 'settings';
+type CRMLodule = 'dashboard' | 'leads' | 'pipeline' | 'automation' | 'email' | 'calendar' | 'analytics' | 'funnels' | 'satisfaction' | 'users' | 'agents' | 'settings';
 
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-500' },
@@ -23,6 +24,7 @@ const modules = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'text-cyan-500' },
   { id: 'funnels', label: 'Funis', icon: GitBranch, color: 'text-indigo-500' },
   { id: 'satisfaction', label: 'Satisfação', icon: Smile, color: 'text-green-500' },
+  { id: 'users', label: 'Usuários', icon: UserCog, color: 'text-teal-500', adminOnly: true },
   { id: 'agents', label: 'Agentes', icon: Bot, color: 'text-violet-500' },
   { id: 'settings', label: 'Configurações', icon: Settings, color: 'text-gray-500' },
 ];

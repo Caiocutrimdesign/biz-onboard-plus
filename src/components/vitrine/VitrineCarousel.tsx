@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Shield, MapPin, Zap, BarChart3, Users, Car, Bell, Check, 
   ArrowRight, X, ChevronRight, Phone, Video, MessageCircle,
-  Lock, Eye, Globe, Clock, AlertTriangle, CheckCircle2
+  Lock, Eye, Globe, Clock, AlertTriangle, CheckCircle2,
+  Target, Key, FileText, Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo3D } from '@/components/ui/Logo3D';
@@ -17,6 +18,11 @@ const slides = [
     description: 'Sistema completo de rastreamento e proteção veicular. Sua tranquilidade é nossa prioridade 24 horas por dia.',
     gradient: 'from-orange-600 via-red-600 to-pink-600',
     features: ['Monitoramento 24h', 'Alertas em Tempo Real', 'Bloqueio Imediato'],
+    stats: [
+      { icon: Eye, label: 'Monitoramento', value: '24/7' },
+      { icon: Shield, label: 'Proteção', value: '100%' },
+      { icon: CheckCircle2, label: 'Tranquilidade', value: 'Garantida' },
+    ],
     faqs: [
       { q: 'O que é proteção veicular?', a: 'É um serviço de monitoramento e rastreamento que protege seu veículo 24 horas por dia. Em caso de roubo ou furto, nossa equipe especializadas aciona as autoridades e bloqueia o veículo remotamente.' },
       { q: 'Quanto tempo demora a instalação?', a: 'A instalação é rápida e profissional. Em média, leva de 1 a 2 horas. Nossa equipe técnica vai até você no local de sua preferência.' },
@@ -27,11 +33,16 @@ const slides = [
   },
   {
     id: 'tracking',
-    title: 'Acompanhe',
-    subtitle: 'Onde Estiver',
-    description: 'Veja a localização do seu veículo em tempo real, de qualquer lugar do Brasil.',
+    title: 'Rastreie',
+    subtitle: 'em Tempo Real',
+    description: 'Acompanhe cada movimento do seu veículo com GPS de última geração. Precisão de metros, cobertura em todo o Brasil.',
     gradient: 'from-blue-600 via-cyan-600 to-teal-600',
-    features: ['GPS de Alta Precisão', 'Cobertura em Todo BR', 'Atualizações ao Vivo'],
+    features: ['GPS de Alta Precisão', 'Cobertura Nacional', 'Atualizações ao Vivo'],
+    stats: [
+      { icon: MapPin, label: 'Precisão', value: '±2m' },
+      { icon: Globe, label: 'Cobertura', value: '100% BR' },
+      { icon: Clock, label: 'Atualização', value: '10s' },
+    ],
     faqs: [
       { q: 'Como funciona o rastreamento?', a: 'O equipamento GPS instalado no veículo envia sinais de localização via rede celular. Você acompanha tudo pelo aplicativo ou painel web em tempo real.' },
       { q: 'A localização é atualizada em tempo real?', a: 'Sim! As coordenadas são atualizadas constantemente. Você vê o veículo se mover no mapa em tempo real, com precisão de metros.' },
@@ -43,10 +54,15 @@ const slides = [
   {
     id: 'security',
     title: 'Bloqueio',
-    subtitle: 'Na Hora Certa',
-    description: 'Em caso de emergência, bloqueie o motor do seu veículo à distância em segundos.',
+    subtitle: 'Instantâneo',
+    description: 'Em caso de emergência, bloqueie o motor do seu veículo à distância. Proteção que age em segundos para sua segurança.',
     gradient: 'from-purple-600 via-violet-600 to-indigo-600',
     features: ['Bloqueio Remoto', 'Alerta de Emergência', 'Central 24h'],
+    stats: [
+      { icon: Zap, label: 'Tempo de Bloqueio', value: '< 30s' },
+      { icon: Shield, label: 'SOC', value: '24 horas' },
+      { icon: Check, label: 'Sem Danos', value: 'Garantido' },
+    ],
     faqs: [
       { q: 'Como funciona o bloqueio remoto?', a: 'Em caso de roubo ou furto, você aciona o bloqueio pelo app ou liga para nossa central 24h. O motor do veículo é cortado em até 30 segundos, immobilizando o carro em local seguro.' },
       { q: 'O bloqueio danifica o veículo?', a: 'Não! O bloqueio é feito eletronicamente, sem nenhuma intervenção mecânica. Não há risco de danos ao motor ou outros sistemas do veículo.' },
@@ -58,10 +74,15 @@ const slides = [
   {
     id: 'analytics',
     title: 'Relatórios',
-    subtitle: 'Detalhados',
-    description: 'Acesse todos os dados do seu veículo: rotas, velocidades, alertas e muito mais.',
+    subtitle: 'Completos',
+    description: 'Acesse todos os dados do seu veículo: rotas, velocidades, alertas e muito mais. Informações detalhadas ao seu alcance.',
     gradient: 'from-emerald-600 via-green-600 to-lime-600',
-    features: ['Dados em Tempo Real', 'Relatórios Inteligentes', 'Análises Completas'],
+    features: ['Dados em Tempo Real', 'Relatórios PDF', 'Análises Detalhadas'],
+    stats: [
+      { icon: FileText, label: 'Relatórios', value: 'PDF/Excel' },
+      { icon: Users, label: 'Usuários', value: 'até 5' },
+      { icon: Target, label: 'Geofencing', value: 'Disponível' },
+    ],
     faqs: [
       { q: 'Que tipo de relatórios posso gerar?', a: 'Você pode gerar relatórios detalhados de uso do veículo, rotas percorridas, velocidades, tempos de uso, consumo e muito mais. Tudo exportável em PDF e Excel.' },
       { q: 'Posso adicionar outros usuários?', a: 'Sim! Você pode cadastrar até 5 usuários por veículo, cada um com diferentes níveis de acesso: rastreamento, bloqueio ou apenas visualização.' },
@@ -111,7 +132,6 @@ function InfoPanel({ slide, onClose }: { slide: any; onClose: () => void }) {
         </div>
 
         <div className="p-6 space-y-8">
-          {/* Benefits */}
           <div>
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-green-400" />
@@ -127,7 +147,6 @@ function InfoPanel({ slide, onClose }: { slide: any; onClose: () => void }) {
             </div>
           </div>
 
-          {/* FAQ */}
           <div>
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-blue-400" />
@@ -140,7 +159,6 @@ function InfoPanel({ slide, onClose }: { slide: any; onClose: () => void }) {
             </div>
           </div>
 
-          {/* Contact */}
           <div className="bg-gradient-to-r from-primary/20 to-orange-500/20 rounded-2xl p-6 border border-primary/30">
             <h3 className="text-lg font-bold text-white mb-3">Fala com a Gente</h3>
             <p className="text-white/70 text-sm mb-4">Tira as tuas dúvidas com nosso time que é nota 10.</p>
@@ -177,170 +195,158 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gray-950">
-      {/* Logos Carousel - Top Bar */}
       <LogosCarousel />
       
-      {/* Background */}
       <div className="absolute inset-0">
         <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} transition-all duration-1000`} style={{ opacity: 0.95 }} />
         
-        {/* Grid Pattern - GPS Map Style */}
         <div className="absolute inset-0" style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
                           linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
           backgroundSize: '50px 50px',
         }} />
         
-        {/* Animated Radar Sweep - Slide 1 */}
+        {/* 3D Effects - Slide 1: Radar Shield */}
         {slide.id === 'welcome' && (
           <>
-            <div className="absolute inset-0 flex items-center justify-end pr-20 overflow-hidden">
-              <div className="relative w-[600px] h-[600px]">
-                <div className="absolute inset-0 border-2 border-white/10 rounded-full animate-spin" style={{ animationDuration: '8s' }} />
-                <div className="absolute inset-8 border-2 border-white/15 rounded-full animate-spin" style={{ animationDuration: '6s', animationDirection: 'reverse' }} />
-                <div className="absolute inset-16 border-2 border-white/20 rounded-full animate-spin" style={{ animationDuration: '4s' }} />
-                <div className="absolute inset-24 border border-white/30 rounded-full animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }} />
+            <div className="absolute inset-0 flex items-center justify-end overflow-hidden">
+              <div className="relative w-[700px] h-[700px] -mr-20" style={{ transform: 'perspective(1000px) rotateY(-15deg)' }}>
+                <div className="absolute inset-0 border-4 border-white/10 rounded-full animate-spin" style={{ animationDuration: '20s' }} />
+                <div className="absolute inset-12 border-4 border-white/15 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }} />
+                <div className="absolute inset-24 border-4 border-white/20 rounded-full animate-spin" style={{ animationDuration: '10s' }} />
+                <div className="absolute inset-36 border-2 border-white/25 rounded-full animate-spin" style={{ animationDuration: '7s', animationDirection: 'reverse' }} />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 bg-green-400 rounded-full animate-ping shadow-lg shadow-green-400/50" />
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-400/50 animate-pulse">
+                    <Shield className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="absolute top-1/4 right-1/4 w-4 h-4 bg-white/20 rounded-full animate-ping" />
-            <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-white/15 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
-            <div className="absolute top-1/2 right-1/5 w-5 h-5 bg-white/10 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-1/4 left-1/4 w-4 h-4 bg-green-400/40 rounded-full animate-ping" />
+            <div className="absolute top-1/3 left-1/3 w-3 h-3 bg-white/20 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+            <div className="absolute bottom-1/3 right-1/4 w-5 h-5 bg-white/15 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
           </>
         )}
         
-        {/* GPS Signal Waves - Slide 2 */}
+        {/* 3D Effects - Slide 2: GPS Signal Globe */}
         {slide.id === 'tracking' && (
           <>
-            <div className="absolute top-1/3 left-1/4">
-              <div className="relative">
-                <div className="w-4 h-4 bg-cyan-400 rounded-full shadow-lg shadow-cyan-400/50" />
-                <div className="absolute inset-0 w-4 h-4 bg-cyan-400 rounded-full animate-ping" />
-                <div className="absolute inset-0 w-8 h-8 border-2 border-cyan-400/50 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
-                <div className="absolute inset-0 w-12 h-12 border border-cyan-400/30 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
-                <div className="absolute inset-0 w-16 h-16 border border-cyan-400/20 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
-              </div>
-            </div>
-            <div className="absolute bottom-1/3 right-1/4">
-              <div className="relative">
-                <div className="w-3 h-3 bg-teal-400 rounded-full shadow-lg shadow-teal-400/50" />
-                <div className="absolute inset-0 w-6 h-6 border-2 border-teal-400/50 rounded-full animate-ping" />
-                <div className="absolute inset-0 w-10 h-10 border border-teal-400/30 rounded-full animate-ping" style={{ animationDelay: '0.7s' }} />
-              </div>
-            </div>
-            <div className="absolute top-1/2 right-1/3">
-              <div className="relative">
-                <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                <div className="absolute inset-0 w-4 h-4 border border-blue-400/40 rounded-full animate-ping" />
-              </div>
-            </div>
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-1 h-1 bg-white/40 rounded-full"
-                style={{
-                  top: `${20 + i * 12}%`,
-                  left: `${10 + i * 8}%`,
-                  animation: `pulse ${2 + i * 0.3}s ease-in-out infinite`,
-                  animationDelay: `${i * 0.2}s`,
-                }}
-              />
-            ))}
-          </>
-        )}
-        
-        {/* Lock/Block Animation - Slide 3 */}
-        {slide.id === 'security' && (
-          <>
-            <div className="absolute top-1/4 right-1/4">
-              <div className="relative">
-                <div className="w-32 h-32 border-4 border-white/20 rounded-full" />
-                <div className="absolute inset-4 w-24 h-24 border-4 border-white/25 rounded-full animate-spin" style={{ animationDuration: '10s' }} />
-                <div className="absolute inset-8 w-16 h-16 border-2 border-white/30 rounded-full" />
+            <div className="absolute inset-0 flex items-center justify-end overflow-hidden">
+              <div className="relative w-[600px] h-[600px] -mr-20" style={{ transform: 'perspective(1000px) rotateX(10deg) rotateY(-10deg)' }}>
+                <div className="absolute inset-0 border-2 border-cyan-400/30 rounded-full" />
+                <div className="absolute inset-4 border-2 border-cyan-400/25 rounded-full" />
+                <div className="absolute inset-8 border-2 border-cyan-400/20 rounded-full" />
+                <div className="absolute inset-12 border border-cyan-400/30" style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }} />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-pulse" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full shadow-2xl shadow-cyan-400/50 flex items-center justify-center animate-bounce" style={{ animationDuration: '2s' }}>
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="absolute bottom-1/4 left-1/3">
-              <div className="relative">
-                <div className="w-20 h-20 border-2 border-white/15 rounded-full" />
-                <div className="absolute inset-2 w-16 h-16 border-2 border-white/20 rounded-full animate-ping" />
-                <div className="absolute inset-4 w-12 h-12 bg-red-500/30 rounded-full" />
-              </div>
-            </div>
-            <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-red-400 rounded-full animate-ping" />
-            <div className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-white/20 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
-          </>
-        )}
-        
-        {/* Data/Dashboard Lines - Slide 4 */}
-        {slide.id === 'analytics' && (
-          <>
-            <div className="absolute inset-0 overflow-hidden">
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  style={{
-                    top: `${15 + i * 10}%`,
-                    left: '-100%',
-                    width: '200%',
-                    animation: `slideRight ${4 + i * 0.5}s linear infinite`,
-                    animationDelay: `${i * 0.3}s`,
-                  }}
-                />
-              ))}
-            </div>
-            <div className="absolute top-1/4 right-1/4">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
+                {[0, 60, 120, 180, 240, 300].map((angle, i) => (
                   <div
                     key={i}
-                    className="w-2 bg-green-400/50 rounded-full animate-pulse"
+                    className="absolute w-3 h-3 bg-cyan-400 rounded-full"
                     style={{
-                      height: `${10 + i * 8}px`,
-                      animationDelay: `${i * 0.1}s`,
+                      top: '50%',
+                      left: '50%',
+                      transform: `rotate(${angle}deg) translateY(-250px)`,
+                      transformOrigin: 'center',
                     }}
                   />
                 ))}
               </div>
             </div>
-            <div className="absolute bottom-1/3 right-1/3">
-              <div className="flex gap-2">
-                {[...Array(4)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-8 h-1 bg-white/30 rounded-full"
-                    style={{ animation: `pulse ${2 + i * 0.3}s ease-in-out infinite` }}
-                  />
-                ))}
+            <div className="absolute top-1/4 right-1/3">
+              <div className="relative">
+                <div className="w-6 h-6 bg-cyan-400 rounded-full shadow-lg shadow-cyan-400/50" />
+                <div className="absolute inset-0 w-12 h-12 border-2 border-cyan-400/50 rounded-full animate-ping" />
+                <div className="absolute inset-0 w-20 h-20 border border-cyan-400/30 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
               </div>
             </div>
           </>
         )}
         
-        {/* Glow Effects */}
+        {/* 3D Effects - Slide 3: Lock Shield */}
+        {slide.id === 'security' && (
+          <>
+            <div className="absolute inset-0 flex items-center justify-end overflow-hidden">
+              <div className="relative w-[600px] h-[600px] -mr-20" style={{ transform: 'perspective(1000px) rotateX(-5deg) rotateY(15deg)' }}>
+                <div className="absolute inset-0 border-4 border-red-500/30 rounded-full" />
+                <div className="absolute inset-12 border-4 border-red-500/25 rounded-full animate-pulse" />
+                <div className="absolute inset-24 border-2 border-red-500/20 rounded-full" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl shadow-2xl shadow-red-500/50 flex items-center justify-center rotate-12" style={{ transform: 'perspective(500px) rotateX(10deg) rotateY(-10deg)' }}>
+                      <Key className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-ping">
+                      <Zap className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-1/4 right-1/3">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-red-500/50 rounded-full" />
+                <div className="absolute inset-2 w-12 h-12 border-2 border-red-500/40 rounded-full animate-spin" style={{ animationDuration: '3s' }} />
+                <div className="absolute inset-4 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+              </div>
+            </div>
+          </>
+        )}
+        
+        {/* 3D Effects - Slide 4: Data Analytics */}
+        {slide.id === 'analytics' && (
+          <>
+            <div className="absolute inset-0 flex items-center justify-end overflow-hidden">
+              <div className="relative w-[600px] h-[600px] -mr-20" style={{ transform: 'perspective(1000px) rotateX(15deg) rotateY(-15deg)' }}>
+                <div className="absolute inset-0 bg-white/5 rounded-3xl backdrop-blur-sm border border-white/20" />
+                <div className="absolute inset-8">
+                  <div className="flex items-end justify-center gap-4 h-full">
+                    {[60, 40, 80, 55, 90, 45, 70, 85].map((h, i) => (
+                      <div
+                        key={i}
+                        className="w-8 bg-gradient-to-t from-green-500 to-emerald-400 rounded-t-lg animate-pulse"
+                        style={{ 
+                          height: `${h}%`,
+                          animationDelay: `${i * 0.1}s`,
+                          boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)'
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full shadow-2xl shadow-green-400/50 flex items-center justify-center">
+                    <BarChart3 className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-1/4 right-1/3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="absolute w-6 h-1 bg-green-400/50 rounded-full"
+                  style={{
+                    top: `${i * 20}px`,
+                    right: '0',
+                    animation: `slideLeft ${2 + i * 0.5}s linear infinite`,
+                    animationDelay: `${i * 0.3}s`,
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        
         <div className="absolute -top-20 -left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl animate-pulse" />
       </div>
       
-      <style>{`
-        @keyframes slideRight {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-      `}</style>
-
-      {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-6">
-        <Logo3D size={80} animated={true} glowColor="white" />
+        <Logo3D size={100} animated={true} glowColor="white" />
         <div className="flex items-center gap-3">
           <Button
             onClick={() => navigate('/planos')}
@@ -357,13 +363,10 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="relative z-10 flex h-full items-center">
         <div className="w-full max-w-7xl mx-auto px-6 md:px-16">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
             <div className="space-y-8">
-              {/* Feature Badges */}
               <div className="flex flex-wrap gap-3">
                 {slide.features.map((f: string, i: number) => (
                   <span key={i} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white border border-primary">
@@ -373,19 +376,16 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                 ))}
               </div>
 
-              {/* Title */}
               <h1 className="font-display text-5xl md:text-7xl font-black text-white leading-tight">
                 {slide.title}
                 <br />
                 <span className="text-white/80">{slide.subtitle}</span>
               </h1>
 
-              {/* Description */}
               <p className="text-xl text-white/70 max-w-lg">
                 {slide.description}
               </p>
 
-              {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4">
                 <Button
                   onClick={onStartRegistration}
@@ -405,7 +405,6 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                 </Button>
               </div>
 
-              {/* Trust Badges */}
               <div className="flex items-center gap-6 pt-4">
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-white/60" />
@@ -420,14 +419,11 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                   <span className="text-white/60 text-sm">Certificado</span>
                 </div>
               </div>
-
             </div>
 
-            {/* Right Visual */}
             <div className="hidden lg:block relative">
               <div className="relative">
-                {/* Main Card */}
-                <div className="bg-primary/20 backdrop-blur-xl rounded-3xl border border-primary p-6 shadow-2xl">
+                <div className="bg-primary/20 backdrop-blur-xl rounded-3xl border border-primary p-6 shadow-2xl" style={{ transform: 'perspective(1000px) rotateY(-5deg)' }}>
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
@@ -450,32 +446,26 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-primary/10 rounded-xl p-3 text-center">
-                      <Eye className="w-5 h-5 text-white mx-auto mb-1" />
-                      <p className="text-white font-bold">Tá de Olho</p>
-                      <p className="text-white/70 text-xs">24 horas</p>
-                    </div>
-                    <div className="bg-primary/10 rounded-xl p-3 text-center">
-                      <Shield className="w-5 h-5 text-white mx-auto mb-1" />
-                      <p className="text-white font-bold">Tá Seguro</p>
-                      <p className="text-white/70 text-xs">100% tranquilo</p>
-                    </div>
-                    <div className="bg-primary/10 rounded-xl p-3 text-center">
-                      <Check className="w-5 h-5 text-white mx-auto mb-1" />
-                      <p className="text-white font-bold">Tudo Tranquilo</p>
-                      <p className="text-white/70 text-xs">Sem alertas</p>
-                    </div>
+                    {slide.stats.map((stat: any, i: number) => {
+                      const Icon = stat.icon;
+                      return (
+                        <div key={i} className="bg-primary/10 rounded-xl p-3 text-center">
+                          <Icon className="w-5 h-5 text-white mx-auto mb-1" />
+                          <p className="text-white font-bold text-sm">{stat.value}</p>
+                          <p className="text-white/70 text-xs">{stat.label}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Floating Cards */}
                 <div className="absolute -left-8 top-1/4 bg-primary/20 backdrop-blur-md rounded-2xl p-4 border border-primary animate-bounce" style={{ animationDuration: '3s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
                       <Check className="w-5 h-5 text-green-400" />
                     </div>
                     <div>
-                      <p className="text-white font-medium text-sm">Veículo Arretado</p>
+                      <p className="text-white font-medium text-sm">Veículo Protegido</p>
                       <p className="text-white/50 text-xs">BRA-1234</p>
                     </div>
                   </div>
@@ -498,7 +488,6 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
         </div>
       </div>
 
-      {/* Bottom Navigation */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
         <div className="flex items-center gap-4 bg-primary/20 backdrop-blur-md rounded-full px-6 py-3 border border-primary">
           {slides.map((s, i) => (
@@ -513,17 +502,23 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
         </div>
       </div>
 
-      {/* Slide Counter */}
       <div className="absolute bottom-8 right-8 z-20">
-        <div className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 border border-primary">
+        <div className="bg-primary/20 backdrop-blur-md rounded-xl px-4 py-2 border border-primary">
           <span className="text-white font-bold">{current + 1}</span>
           <span className="text-white/50 mx-1">/</span>
           <span className="text-white/50">{slides.length}</span>
         </div>
       </div>
 
-      {/* Info Panel */}
       {showInfo && <InfoPanel slide={slide} onClose={() => setShowInfo(false)} />}
+      
+      <style>{`
+        @keyframes slideLeft {
+          0% { transform: translateX(100px); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translateX(-100px); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }

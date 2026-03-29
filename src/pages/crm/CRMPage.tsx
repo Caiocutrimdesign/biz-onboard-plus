@@ -11,6 +11,7 @@ import FunnelsView from '@/components/crm/FunnelsView';
 import SettingsView from '@/components/crm/SettingsView';
 import { AgentPanel } from '@/components/agents/AgentPanel';
 import { SatisfactionSection } from '@/components/clients/SatisfactionSection';
+import UsersPage from './UsersPage';
 import { CRMProvider, useCRMContext } from '@/contexts/CRMContext';
 
 function CRMContent() {
@@ -36,6 +37,8 @@ function CRMContent() {
         return <FunnelsView />;
       case 'satisfaction':
         return <SatisfactionSection />;
+      case 'users':
+        return <UsersPage />;
       case 'agents':
         return <AgentPanel />;
       case 'settings':
