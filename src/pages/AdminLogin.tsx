@@ -68,8 +68,8 @@ export default function AdminLogin() {
         className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-surface-dark-foreground/10 bg-surface-dark/40 p-8 shadow-2xl backdrop-blur-xl"
       >
         <div className="mb-8 flex flex-col items-center">
-          <div className="mb-4">
-            <Logo3D size={100} animated={true} glowColor="primary" />
+          <div className="mb-6">
+            <Logo3D size={160} animated={true} glowColor="primary" />
           </div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-surface-dark-foreground">
             Acesso Restrito

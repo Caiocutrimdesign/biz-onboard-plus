@@ -69,7 +69,7 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
       </div>
 
       <div className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between p-6">
-        <Logo3D size={64} animated={true} glowColor="white" />
+        <Logo3D size={100} animated={true} glowColor="white" />
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"

@@ -112,7 +112,7 @@ export default function AdminDashboard() {
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} flex flex-col bg-surface-dark border-r border-border transition-all duration-300`}>
         <div className="flex h-20 items-center justify-center border-b border-border px-4">
           <div className="flex items-center gap-2">
-            <Logo3D size={isSidebarOpen ? 40 : 32} animated={false} />
+            <Logo3D size={isSidebarOpen ? 48 : 40} animated={false} />
             {isSidebarOpen && (
               <div>
                 <span className="font-bold text-sm">Rastremix</span>
