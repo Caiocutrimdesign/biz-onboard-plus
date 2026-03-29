@@ -11,11 +11,13 @@ import { StepPlan } from './StepPlan';
 import { StepPayment } from './StepPayment';
 import { StepNotes } from './StepNotes';
 import { StepSuccess } from './StepSuccess';
+import { StepSatisfaction } from './StepSatisfaction';
 import { useRegistrationStore } from '@/store/registrationStore';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { sendWelcomeEmail } from '@/lib/emailService';
+import { generateWhatsAppLink, generateSatisfactionLink } from '@/lib/whatsappService';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 const IDLE_TIMEOUT = 120000;
 
 interface Props {
@@ -272,7 +274,19 @@ export function RegistrationFlow({ onClose }: Props) {
           {currentStep === 4 && <StepPlan key="plan" onNext={next} onBack={back} />}
           {currentStep === 5 && <StepPayment key="payment" onNext={next} onBack={back} />}
           {currentStep === 6 && <StepNotes key="notes" onNext={handleSubmit} onBack={back} isSubmitting={isSubmitting} />}
-          {currentStep === 7 && <StepSuccess key="success" onNewRegistration={handleNewRegistration} onGoHome={handleGoHome} />}
+          {currentStep === 7 && (
+            <StepSatisfaction
+              key="satisfaction"
+              onNext={next}
+              onBack={back}
+              onWhatsApp={() => {
+                const link = generateSatisfactionLink(data.full_name || 'Cliente');
+                window.open(link, '_blank');
+              }}
+              customerName={data.full_name || 'Cliente'}
+            />
+          )}
+          {currentStep === 8 && <StepSuccess key="success" onNewRegistration={handleNewRegistration} onGoHome={handleGoHome} />}
         </AnimatePresence>
       </div>
     </div>
