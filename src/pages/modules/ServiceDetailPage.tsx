@@ -291,6 +291,7 @@ export default function ServiceDetailPage({
               <Image className="w-4 h-4" />
               Fotos do Início
               {isPendente && <span className="text-red-500 text-sm">*Obrigatório para iniciar</span>}
+              {isEmAndamento && <span className="text-orange-500 text-sm">(Adicionar mais fotos)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -298,7 +299,7 @@ export default function ServiceDetailPage({
               {fotosInicio.map((foto, index) => (
                 <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
                   <img src={foto} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
-                  {isPendente && (
+                  {(isPendente || isEmAndamento) && (
                     <Button
                       variant="destructive"
                       size="icon"
@@ -311,7 +312,7 @@ export default function ServiceDetailPage({
                 </div>
               ))}
             </div>
-            {isPendente && (
+            {(isPendente || isEmAndamento) && (
               <div className="flex gap-2">
                 <input
                   type="file"
