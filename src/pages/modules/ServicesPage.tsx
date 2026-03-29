@@ -412,7 +412,7 @@ export default function ServicesPage() {
                     <SelectValue placeholder="Selecionar técnico" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Selecionar técnico...</SelectItem>
+                    <SelectItem value="none">Selecionar técnico...</SelectItem>
                     {technicians.map(tech => (
                       <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                     ))}
