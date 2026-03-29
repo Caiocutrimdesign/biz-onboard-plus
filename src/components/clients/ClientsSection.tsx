@@ -4,7 +4,7 @@ import {
   Search, Eye, Plus, Car, Smartphone, Mail, MapPin,
   Users, Clock, CheckCircle2, AlertCircle, User, CreditCard,
   Calendar, X, Save, Trash2, Send, RefreshCw, MessageCircle,
-  Play, Power, Pause, Loader2, Check, Edit2, Trash
+  Play, Power, Pause, Loader2, Check, Edit2, Trash, Wrench
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerStatus } from '@/types/customer';
 import { customerService } from '@/lib/customerService';
+import { tecService } from '@/lib/tecService';
+import type { Technician } from '@/types/tec';
 
 const WESALES_KEY = 'wesales_api_key';
 
@@ -52,9 +54,12 @@ export default function ClientsSection() {
   const [loading, setLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
   const [syncingWeSales, setSyncingWeSales] = useState<string | null>(null);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [loadingTechnicians, setLoadingTechnicians] = useState(false);
 
   useEffect(() => {
     loadCustomers();
+    loadTechnicians();
   }, []);
 
   const loadCustomers = async () => {
@@ -66,6 +71,37 @@ export default function ClientsSection() {
       console.error('Erro ao carregar clientes:', e);
     }
     setLoading(false);
+  };
+
+  const loadTechnicians = async () => {
+    setLoadingTechnicians(true);
+    try {
+      const techs = await tecService.getAllTechnicians();
+      setTechnicians(techs.filter(t => t.active !== false));
+    } catch (e) {
+      console.error('Erro ao carregar técnicos:', e);
+    }
+    setLoadingTechnicians(false);
+  };
+
+  const handleAssignTechnician = async (customerId: string, technicianId: string) => {
+    const technician = technicians.find(t => t.id === technicianId);
+    
+    const updatedCustomer = {
+      ...allCustomers.find(c => c.id === customerId),
+      technician_id: technicianId,
+      technician_name: technician?.name || '',
+    } as CustomerRegistration;
+
+    customerService.saveLocalCustomer(updatedCustomer);
+
+    setAllCustomers(prev => prev.map(c => 
+      c.id === customerId ? updatedCustomer : c
+    ));
+
+    if (selectedCustomer?.id === customerId) {
+      setSelectedCustomer(updatedCustomer);
+    }
   };
 
   const logStatusChange = (customerId: string, previousStatus: string, newStatus: string, user?: string) => {
@@ -381,6 +417,42 @@ export default function ClientsSection() {
                   </p>
                 </div>
               )}
+
+              {/* Técnico Designado */}
+              <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <Wrench className="w-4 h-4 text-orange-600" />
+                  <p className="text-sm font-medium text-orange-800">Técnico Designado</p>
+                </div>
+                {loadingTechnicians ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
+                    <span className="text-sm text-orange-600">Carregando técnicos...</span>
+                  </div>
+                ) : (
+                  <Select 
+                    value={selectedCustomer.technician_id || ''} 
+                    onValueChange={(value) => handleAssignTechnician(selectedCustomer.id!, value)}
+                  >
+                    <SelectTrigger className="bg-white border-orange-200">
+                      <SelectValue placeholder="Selecione um técnico..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum técnico</SelectItem>
+                      {technicians.map((tec) => (
+                        <SelectItem key={tec.id} value={tec.id}>
+                          {tec.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {selectedCustomer.technician_name && (
+                  <p className="text-xs text-orange-600 mt-2">
+                    Atual: <strong>{selectedCustomer.technician_name}</strong>
+                  </p>
+                )}
+              </div>
               
               <div className="flex flex-col gap-3 pt-4 border-t">
                 <p className="text-sm font-medium text-muted-foreground">Alterar Status:</p>
