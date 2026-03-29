@@ -469,7 +469,7 @@ export default function ClientsSection() {
                   <Button
                     onClick={() => handleActivate(selectedCustomer.id, selectedCustomer.status)}
                     disabled={loadingStatus === selectedCustomer.id}
-                    className={`${selectedCustomer.status === 'active' || selectedCustomer.status === 'ativo' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                    className={`${selectedCustomer.status === 'active' || (selectedCustomer.status as string) === 'ativo' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
                   >
                     {loadingStatus === selectedCustomer.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
