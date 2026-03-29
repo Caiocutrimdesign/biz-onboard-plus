@@ -147,7 +147,7 @@ export default function TechniciansPage() {
           email: formData.email.toLowerCase().trim(),
           phone: formData.phone,
           cpf: formData.cpf,
-          password: formData.password,
+          password: formData.password.trim(),
           active: formData.active,
           created_at: new Date().toISOString(),
         };
