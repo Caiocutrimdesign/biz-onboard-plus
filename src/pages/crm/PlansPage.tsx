@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, Car, Smartphone, MapPin, Bell, Key, 
   CheckCircle2, Star, Zap, Clock, Users, Globe,
   CreditCard, BarChart3, Phone, FileText, Headphones,
-  ChevronRight, ChevronDown, Play, BookOpen, GraduationCap
+  ChevronRight, ChevronDown, Play, BookOpen, GraduationCap, ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -229,6 +230,7 @@ function X({ className }: { className?: string }) {
 export default function PlansPage() {
   const [expandedPlan, setExpandedPlan] = useState<string | null>('bloqueio');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-8">
@@ -242,7 +244,16 @@ export default function PlansPage() {
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
         
         <div className="relative">
-          <div className="flex items-center gap-3 mb-2">
+          <Button
+            onClick={() => navigate('/')}
+            variant="ghost"
+            className="absolute top-0 left-0 text-white hover:bg-white/10 h-10 px-3"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Voltar
+          </Button>
+          
+          <div className="flex items-center gap-3 mb-2 pt-10">
             <motion.div
               className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
               animate={{ scale: [1, 1.1, 1] }}

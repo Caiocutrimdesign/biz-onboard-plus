@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, MapPin, Zap, Phone, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ interface VitrineCarouselProps {
 
 export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
 
   const next = useCallback(() => {
     setCurrent((c) => (c + 1) % slides.length);
@@ -83,14 +85,24 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
       {/* Header with Logo and Restricted Access */}
       <div className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between p-8">
         <img src={logo} alt="Rastremix" className="h-12 w-auto" />
-        <Button
-          variant="ghost"
-          onClick={() => window.location.href = '/admin/login'}
-          className="group flex h-11 items-center gap-2 rounded-full border border-surface-dark-foreground/10 bg-surface-dark-foreground/5 px-6 text-sm font-medium text-surface-dark-foreground backdrop-blur-md transition-all hover:bg-surface-dark-foreground/10 hover:shadow-lg"
-        >
-          <Shield className="h-4 w-4 text-primary transition-transform group-hover:scale-110" />
-          Acesso Restrito
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/planos')}
+            className="group flex h-11 items-center gap-2 rounded-full border border-surface-dark-foreground/10 bg-surface-dark-foreground/5 px-6 text-sm font-medium text-surface-dark-foreground backdrop-blur-md transition-all hover:bg-surface-dark-foreground/10 hover:shadow-lg"
+          >
+            <Shield className="h-4 w-4 text-primary transition-transform group-hover:scale-110" />
+            Planos
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => window.location.href = '/admin/login'}
+            className="group flex h-11 items-center gap-2 rounded-full border border-surface-dark-foreground/10 bg-surface-dark-foreground/5 px-6 text-sm font-medium text-surface-dark-foreground backdrop-blur-md transition-all hover:bg-surface-dark-foreground/10 hover:shadow-lg"
+          >
+            <Shield className="h-4 w-4 text-primary transition-transform group-hover:scale-110" />
+            Acesso Restrito
+          </Button>
+        </div>
       </div>
 
       {/* Content */}
@@ -128,6 +140,7 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
                 </Button>
                 <Button
                   size="lg"
+                  onClick={() => navigate('/planos')}
                   className="h-14 px-8 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/30"
                 >
                   Conhecer Planos
