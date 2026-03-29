@@ -4,7 +4,7 @@ import {
   Search, Eye, Plus, Car, Smartphone, Mail, MapPin,
   Users, Clock, CheckCircle2, AlertCircle, User, CreditCard,
   Calendar, X, Save, Trash2, Send, RefreshCw, MessageCircle,
-  Play, Power, Pause
+  Play, Power, Pause, Loader2, Check, Edit2, Trash
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerStatus } from '@/types/customer';
+import { customerService } from '@/lib/customerService';
 
-const STORAGE_KEY = 'rastremix_customers';
 const WESALES_KEY = 'wesales_api_key';
 
 function generateWhatsAppMessage(customer: CustomerRegistration): string {
@@ -25,8 +25,8 @@ Segue seu cadastro:
 
 📄 Nome: ${customer.full_name.toUpperCase()}
 📱 Telefone: ${customer.phone.replace(/\D/g, '')}
-🚗 Veículo: ${customer.brand.toUpperCase()} ${customer.model.toUpperCase()}
-🔢 Placa: ${customer.plate.toUpperCase()}
+🚗 Veículo: ${(customer.brand || '').toUpperCase()} ${(customer.model || '').toUpperCase()}
+🔢 Placa: ${(customer.plate || '').toUpperCase()}
 📦 Plano: ${(customer.plan || 'Não informado').toUpperCase()}
 ✅ Status: ${statusLabel.toUpperCase()}
 
@@ -49,24 +49,23 @@ export default function ClientsSection() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<CustomerRegistration>>({});
+  const [loading, setLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
+  const [syncingWeSales, setSyncingWeSales] = useState<string | null>(null);
 
   useEffect(() => {
     loadCustomers();
   }, []);
 
-  const loadCustomers = () => {
+  const loadCustomers = async () => {
+    setLoading(true);
     try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      setAllCustomers(data ? JSON.parse(data) : []);
+      const customers = await customerService.getAllCustomers();
+      setAllCustomers(customers);
     } catch (e) {
-      setAllCustomers([]);
+      console.error('Erro ao carregar clientes:', e);
     }
-  };
-
-  const saveCustomers = (customers: CustomerRegistration[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
-    setAllCustomers(customers);
+    setLoading(false);
   };
 
   const logStatusChange = (customerId: string, previousStatus: string, newStatus: string, user?: string) => {
@@ -87,10 +86,13 @@ export default function ClientsSection() {
     setLoadingStatus(id);
     setTimeout(() => {
       logStatusChange(id, previousStatus, newStatus);
+      customerService.updateCustomerStatus(id, newStatus);
+      
       const updated = allCustomers.map(c => 
         c.id === id ? { ...c, status: newStatus } : c
       );
-      saveCustomers(updated);
+      setAllCustomers(updated);
+      
       if (selectedCustomer?.id === id) {
         setSelectedCustomer({ ...selectedCustomer, status: newStatus });
       }
@@ -114,10 +116,11 @@ export default function ClientsSection() {
     const customer = allCustomers.find(c => c.id === id);
     if (customer && confirm('Tem certeza que deseja cancelar este cliente?')) {
       logStatusChange(id, customer.status, 'cancelado');
+      customerService.updateCustomerStatus(id, 'cancelado');
       const updated = allCustomers.map(c => 
         c.id === id ? { ...c, status: 'cancelado' as CustomerStatus } : c
       );
-      saveCustomers(updated);
+      setAllCustomers(updated);
       setIsViewOpen(false);
     }
   };
@@ -130,32 +133,49 @@ export default function ClientsSection() {
 
   const handleSaveEdit = () => {
     if (!editForm.id) return;
+    
     const customer = allCustomers.find(c => c.id === editForm.id);
     if (customer && customer.status !== editForm.status) {
       logStatusChange(editForm.id!, customer.status, editForm.status || customer.status);
     }
+
+    customerService.saveLocalCustomer(editForm as CustomerRegistration);
+    
     const updated = allCustomers.map(c => 
       c.id === editForm.id ? { ...c, ...editForm } as CustomerRegistration : c
     );
-    saveCustomers(updated);
+    setAllCustomers(updated);
     setIsEditOpen(false);
     setEditForm({});
   };
 
-  const handleSyncToWeSales = (customer: CustomerRegistration) => {
+  const handleSyncToWeSales = async (customer: CustomerRegistration) => {
     const apiKey = localStorage.getItem(WESALES_KEY);
     if (!apiKey) {
       alert('Configure a API Key da WeSales nas configurações primeiro!');
       return;
     }
-    alert(`Cliente "${customer.full_name}" seria sincronizado com WeSales.\nAPI Key: ${apiKey.substring(0, 10)}...`);
+
+    setSyncingWeSales(customer.id);
+    
+    const result = await customerService.syncToWeSales(customer);
+    
+    if (result.success) {
+      alert(`✅ ${result.message}`);
+    } else {
+      alert(`❌ ${result.message}`);
+    }
+    
+    setSyncingWeSales(null);
   };
 
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir este cliente?')) {
+      customerService.deleteCustomer(id);
       const updated = allCustomers.filter(c => c.id !== id);
-      saveCustomers(updated);
+      setAllCustomers(updated);
       setIsEditOpen(false);
+      setIsViewOpen(false);
     }
   };
 
@@ -177,17 +197,33 @@ export default function ClientsSection() {
 
   const stats = useMemo(() => ({
     total: allCustomers.length,
-    active: allCustomers.filter(c => c.status === 'active' || c.status === 'cliente_ativado').length,
-    inactive: allCustomers.filter(c => c.status === 'inactive').length,
-    disabled: allCustomers.filter(c => c.status === 'disabled').length,
-    pending: allCustomers.filter(c => c.status === 'novo_cadastro').length,
+    active: allCustomers.filter(c => c.status === 'active' || c.status === 'cliente_ativado' || c.status === 'ativo').length,
+    inactive: allCustomers.filter(c => c.status === 'inactive' || c.status === 'inativo').length,
+    disabled: allCustomers.filter(c => c.status === 'disabled' || c.status === 'desativado').length,
+    pending: allCustomers.filter(c => c.status === 'novo_cadastro' || c.status === 'novo' || c.status === 'pendente').length,
   }), [allCustomers]);
 
   return (
     <div className="space-y-6 p-6">
       <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-white">
-        <h1 className="text-2xl font-bold">Clientes</h1>
-        <p className="text-white/70">Gerencie todos os clientes cadastrados</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Users className="w-7 h-7" />
+              Clientes
+            </h1>
+            <p className="text-white/70">Gerencie todos os clientes cadastrados</p>
+          </div>
+          <Button 
+            onClick={loadCustomers}
+            variant="outline"
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            size="sm"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
         
         <div className="flex gap-4 mt-4 flex-wrap">
           {[
@@ -228,7 +264,12 @@ export default function ClientsSection() {
         </Select>
       </div>
 
-      {filteredCustomers.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-20">
+          <Loader2 className="w-12 h-12 mx-auto animate-spin text-muted-foreground" />
+          <p className="mt-4 text-muted-foreground">Carregando clientes...</p>
+        </div>
+      ) : filteredCustomers.length > 0 ? (
         <div className="grid gap-4">
           {filteredCustomers.map((customer) => (
             <motion.div
@@ -245,8 +286,12 @@ export default function ClientsSection() {
                   <p className="font-bold">{customer.full_name}</p>
                   <p className="text-sm text-muted-foreground flex items-center gap-2">
                     <Smartphone className="w-3 h-3" /> {customer.phone}
-                    <span className="mx-1">|</span>
-                    <Car className="w-3 h-3" /> {customer.plate}
+                    {customer.plate && (
+                      <>
+                        <span className="mx-1">|</span>
+                        <Car className="w-3 h-3" /> {customer.plate}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -273,9 +318,11 @@ export default function ClientsSection() {
         <div className="text-center py-20 text-muted-foreground">
           <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
           <p>Nenhum cliente encontrado</p>
+          <p className="text-sm mt-2">Cadastros aparecerão aqui</p>
         </div>
       )}
 
+      {/* View Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -323,12 +370,14 @@ export default function ClientsSection() {
                 </div>
               </div>
 
-              {selectedCustomer.city && (
+              {(selectedCustomer.city || selectedCustomer.street) && (
                 <div className="bg-muted/50 p-3 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Localização</p>
                   <p className="text-sm">
                     <MapPin className="w-4 h-4 inline mr-1" />
-                    {selectedCustomer.city} - {selectedCustomer.state}
+                    {selectedCustomer.street && `${selectedCustomer.street}, ${selectedCustomer.number}`}
+                    {selectedCustomer.city && ` - ${selectedCustomer.city}`}
+                    {selectedCustomer.state && `/${selectedCustomer.state}`}
                   </p>
                 </div>
               )}
@@ -339,10 +388,10 @@ export default function ClientsSection() {
                   <Button
                     onClick={() => handleActivate(selectedCustomer.id, selectedCustomer.status)}
                     disabled={loadingStatus === selectedCustomer.id}
-                    className={`${selectedCustomer.status === 'active' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                    className={`${selectedCustomer.status === 'active' || selectedCustomer.status === 'ativo' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
                   >
                     {loadingStatus === selectedCustomer.id ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
                         <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -354,10 +403,10 @@ export default function ClientsSection() {
                     onClick={() => handleInactivate(selectedCustomer.id, selectedCustomer.status)}
                     disabled={loadingStatus === selectedCustomer.id}
                     variant="outline"
-                    className={`${selectedCustomer.status === 'inactive' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
+                    className={`${selectedCustomer.status === 'inactive' || selectedCustomer.status === 'inativo' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
                   >
                     {loadingStatus === selectedCustomer.id ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
                         <Pause className="w-4 h-4 mr-2" />
@@ -371,7 +420,7 @@ export default function ClientsSection() {
                     variant="destructive"
                   >
                     {loadingStatus === selectedCustomer.id ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
                         <Power className="w-4 h-4 mr-2" />
@@ -388,7 +437,7 @@ export default function ClientsSection() {
                   className="flex-1 bg-green-500 hover:bg-green-600 text-white"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Enviar Cadastro via WhatsApp
+                  WhatsApp
                 </Button>
               </div>
               
@@ -397,15 +446,21 @@ export default function ClientsSection() {
                   onClick={() => handleSyncToWeSales(selectedCustomer)}
                   variant="outline"
                   className="flex-1"
+                  disabled={syncingWeSales === selectedCustomer.id}
                 >
-                  <Send className="w-4 h-4 mr-2" />
+                  {syncingWeSales === selectedCustomer.id ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
                   WeSales
                 </Button>
                 <Button 
                   onClick={() => handleEdit(selectedCustomer)}
                   variant="outline"
+                  className="flex-1"
                 >
-                  <Eye className="w-4 h-4 mr-2" />
+                  <Edit2 className="w-4 h-4 mr-2" />
                   Editar
                 </Button>
                 <Button 
@@ -420,10 +475,14 @@ export default function ClientsSection() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Cliente</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit2 className="w-5 h-5" />
+              Editar Cliente
+            </DialogTitle>
           </DialogHeader>
           {editForm.id && (
             <div className="space-y-4">
@@ -474,7 +533,7 @@ export default function ClientsSection() {
                   <label className="text-xs text-muted-foreground">Placa</label>
                   <Input 
                     value={editForm.plate || ''} 
-                    onChange={(e) => setEditForm({...editForm, plate: e.target.value})}
+                    onChange={(e) => setEditForm({...editForm, plate: e.target.value.toUpperCase()})}
                     className="uppercase"
                   />
                 </div>
@@ -494,6 +553,21 @@ export default function ClientsSection() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Cidade</label>
+                  <Input 
+                    value={editForm.city || ''} 
+                    onChange={(e) => setEditForm({...editForm, city: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Estado</label>
+                  <Input 
+                    value={editForm.state || ''} 
+                    onChange={(e) => setEditForm({...editForm, state: e.target.value.toUpperCase()})}
+                    maxLength={2}
+                  />
+                </div>
               </div>
               
               <div>
@@ -505,7 +579,7 @@ export default function ClientsSection() {
                 />
               </div>
               
-              <DialogFooter>
+              <DialogFooter className="flex-wrap gap-2">
                 <Button variant="outline" onClick={() => setIsEditOpen(false)}>
                   Cancelar
                 </Button>
@@ -513,12 +587,8 @@ export default function ClientsSection() {
                   <Save className="w-4 h-4 mr-2" />
                   Salvar
                 </Button>
-                <Button variant="destructive" onClick={() => {
-                  handleDelete(editForm.id!);
-                  setIsEditOpen(false);
-                  setIsViewOpen(false);
-                }}>
-                  <Trash2 className="w-4 h-4 mr-2" />
+                <Button variant="destructive" onClick={() => handleDelete(editForm.id!)}>
+                  <Trash className="w-4 h-4 mr-2" />
                   Excluir
                 </Button>
               </DialogFooter>

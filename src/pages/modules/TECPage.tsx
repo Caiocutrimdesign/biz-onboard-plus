@@ -221,9 +221,30 @@ export default function TECPage() {
         status: 'concluido',
       } as any);
 
-      // Save photos
-      for (const photo of serviceData.photos) {
-        await tecService.savePhotos(newService.id, [photo]);
+      // Save ALL photos to the service
+      if (serviceData.photos.length > 0) {
+        console.log(`📸 Salvando ${serviceData.photos.length} fotos para serviço ${newService.id}`);
+        await tecService.savePhotos(newService.id, serviceData.photos);
+      }
+
+      // Save signatures
+      const signaturesToSave = [];
+      if (serviceData.signatureFuncionario) {
+        signaturesToSave.push({
+          url: serviceData.signatureFuncionario,
+          signed_by: 'Funcionario',
+        });
+      }
+      if (serviceData.signatureCliente) {
+        signaturesToSave.push({
+          url: serviceData.signatureCliente,
+          signed_by: 'Cliente',
+        });
+      }
+      
+      if (signaturesToSave.length > 0) {
+        console.log(`✍️ Salvando ${signaturesToSave.length} assinaturas para serviço ${newService.id}`);
+        await tecService.saveSignatures(newService.id, signaturesToSave);
       }
 
       // Save satisfaction rating linked to client
@@ -241,37 +262,48 @@ export default function TECPage() {
           // Save to localStorage
           localStorage.setItem(`tec_satisfaction_${newService.id}`, JSON.stringify(satisfactionData));
           
-          // Also save to client registration for visibility
-          const clientRegistrations = JSON.parse(localStorage.getItem('customer_registrations') || '[]');
+          // Also save to rastremix_customers for CRM visibility
+          const customerData = {
+            id: currentService.client_id || currentClient?.id,
+            full_name: currentService.client_name || currentClient?.name,
+            phone: currentService.client_phone || currentClient?.phone,
+            email: currentClient?.email || '',
+            address: currentService.client_address || '',
+            vehicle: currentService.vehicle || '',
+            plate: currentService.plate || '',
+            plan: cart.length > 0 ? cart[0].name : '',
+            status: 'active' as const,
+            brand: currentClient?.vehicleBrand || '',
+            model: currentClient?.vehicleModel || '',
+            created_at: new Date().toISOString(),
+          };
+          
+          // Save to customer registrations
+          const clientRegistrations = JSON.parse(localStorage.getItem('rastremix_customers') || '[]');
           const clientIndex = clientRegistrations.findIndex((c: any) => 
-            c.id === currentService.client_id || 
-            c.phone === currentService.client_phone ||
-            c.name === currentService.client_name
+            c.id === customerData.id || 
+            c.phone === customerData.phone ||
+            c.full_name === customerData.full_name
           );
           
           if (clientIndex >= 0) {
             clientRegistrations[clientIndex].satisfaction = satisfactionData;
-            localStorage.setItem('customer_registrations', JSON.stringify(clientRegistrations));
+            clientRegistrations[clientIndex].tec_service_id = newService.id;
+            localStorage.setItem('rastremix_customers', JSON.stringify(clientRegistrations));
           } else {
-            // Create new client entry with satisfaction
             clientRegistrations.push({
-              id: currentService.client_id || currentClient?.id,
-              name: currentService.client_name || currentClient?.name,
-              phone: currentService.client_phone || currentClient?.phone,
-              email: currentClient?.email || '',
-              address: currentService.client_address || currentClient?.address || '',
-              vehicle: currentService.vehicle || currentClient?.vehicle,
-              plate: currentService.plate || currentClient?.plate,
+              ...customerData,
               satisfaction: satisfactionData,
-              created_at: new Date().toISOString(),
+              tec_service_id: newService.id,
             });
-            localStorage.setItem('customer_registrations', JSON.stringify(clientRegistrations));
+            localStorage.setItem('rastremix_customers', JSON.stringify(clientRegistrations));
           }
         } catch (e) {
           console.error('Error saving satisfaction:', e);
         }
       }
 
+      console.log('✅ Serviço finalizado com sucesso!');
       await loadData();
       
       // Reset everything

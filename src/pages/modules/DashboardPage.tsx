@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, Clock, CheckCircle, AlertCircle, TrendingUp,
@@ -8,13 +9,47 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import SuperLayout from '@/components/layout/SuperLayout';
+import { customerService, type CustomerStats } from '@/lib/customerService';
+import { tecService } from '@/lib/tecService';
 
 export default function DashboardPage() {
-  const stats = {
-    totalCustomers: 0,
-    activeClients: 0,
-    pendingServices: 0,
-    monthlyRevenue: 0,
+  const [stats, setStats] = useState<CustomerStats>({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    disabled: 0,
+    pending: 0,
+  });
+  const [tecStats, setTecStats] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    completed: 0,
+  });
+  const [recentCustomers, setRecentCustomers] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const customerStats = customerService.getStats();
+      setStats(customerStats);
+
+      const services = await tecService.getAllServices();
+      setTecStats({
+        total: services.length,
+        pending: services.filter(s => s.status === 'pendente').length,
+        inProgress: services.filter(s => s.status === 'em_andamento').length,
+        completed: services.filter(s => s.status === 'concluido').length,
+      });
+
+      const customers = await customerService.getAllCustomers();
+      setRecentCustomers(customers.slice(0, 5));
+    } catch (e) {
+      console.error('Erro ao carregar dados:', e);
+    }
   };
 
   return (
@@ -42,7 +77,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Customers */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
@@ -52,7 +87,7 @@ export default function DashboardPage() {
                     <Users className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <p className="text-3xl font-bold">{stats.totalCustomers}</p>
+                    <p className="text-3xl font-bold">{stats.total}</p>
                     <p className="text-sm text-muted-foreground">Total Clientes</p>
                   </div>
                 </div>
@@ -69,11 +104,11 @@ export default function DashboardPage() {
                     <CheckCircle className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <p className="text-3xl font-bold">{stats.activeClients}</p>
+                    <p className="text-3xl font-bold">{stats.active}</p>
                     <p className="text-sm text-muted-foreground">Clientes Ativos</p>
                   </div>
                 </div>
-                <Badge className="bg-green-100 text-green-800">+0%</Badge>
+                <Badge className="bg-green-100 text-green-800">+{stats.pending}</Badge>
               </div>
             </CardContent>
           </Card>
@@ -86,8 +121,8 @@ export default function DashboardPage() {
                     <Clock className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <p className="text-3xl font-bold">{stats.pendingServices}</p>
-                    <p className="text-sm text-muted-foreground">Pendências</p>
+                    <p className="text-3xl font-bold">{stats.pending}</p>
+                    <p className="text-sm text-muted-foreground">Cadastros Pendentes</p>
                   </div>
                 </div>
                 <AlertCircle className="w-6 h-6 text-yellow-500" />
@@ -100,11 +135,11 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
-                    <DollarSign className="w-7 h-7 text-white" />
+                    <Car className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">R$ {stats.monthlyRevenue.toLocaleString('pt-BR')}</p>
-                    <p className="text-sm text-muted-foreground">Receita Mensal</p>
+                    <p className="text-3xl font-bold">{tecStats.completed}</p>
+                    <p className="text-sm text-muted-foreground">Serviços Concluídos</p>
                   </div>
                 </div>
                 <TrendingUp className="w-6 h-6 text-green-500" />
@@ -168,19 +203,87 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Atividade Recente</CardTitle>
-            <Button variant="ghost" size="sm">Ver tudo</Button>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-12 text-muted-foreground">
-              <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p>Nenhuma atividade recente</p>
-              <p className="text-sm">As atividades aparecerão aqui</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Clientes Recentes</CardTitle>
+              <Link to="/crm">
+                <Button variant="ghost" size="sm">Ver tudo</Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {recentCustomers.length > 0 ? (
+                <div className="space-y-3">
+                  {recentCustomers.map((customer) => (
+                    <div key={customer.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <Users className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{customer.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{customer.phone} • {customer.plate}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline">{customer.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum cliente ainda</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Serviços Recentes</CardTitle>
+              <Link to="/tec">
+                <Button variant="ghost" size="sm">Ver tudo</Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-yellow-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{tecStats.pending}</p>
+                      <p className="text-xs text-muted-foreground">Pendentes</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <AlertCircle className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{tecStats.inProgress}</p>
+                      <p className="text-xs text-muted-foreground">Em Andamento</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-green-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{tecStats.completed}</p>
+                      <p className="text-xs text-muted-foreground">Concluídos</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </SuperLayout>
   );

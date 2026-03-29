@@ -5,6 +5,7 @@ const SERVICES_KEY = 'tec_services';
 const TECHNICIANS_KEY = 'tec_technicians';
 const TEC_AGENTS_KEY = 'tec_agents';
 const PHOTOS_KEY = 'tec_photos';
+const SIGNATURES_KEY = 'tec_signatures';
 
 export const tecService = {
   async saveService(service: Omit<Service, 'id' | 'created_at' | 'updated_at'>): Promise<Service> {
@@ -19,16 +20,26 @@ export const tecService = {
       const { data, error } = await supabase
         .from('tec_services')
         .insert({
-          ...newService,
-          photos: undefined,
+          client_id: newService.client_id || null,
+          client_name: newService.client_name,
+          client_phone: newService.client_phone,
+          client_address: newService.client_address || null,
+          technician_id: newService.technician_id,
+          technician_name: newService.technician_name || null,
+          vehicle: newService.vehicle,
+          plate: newService.plate,
+          service_type: newService.type,
+          status: newService.status,
+          observations: newService.observations || null,
+          signature: newService.signature || null,
+          completed_date: newService.status === 'concluido' ? new Date().toISOString() : null,
         })
         .select()
         .single();
 
-      if (error) throw error;
-
-      if (newService.photos?.length) {
-        await this.savePhotos(newService.id, newService.photos);
+      if (error) {
+        console.error('Error saving service to Supabase:', error);
+        throw error;
       }
 
       return { ...newService, id: data.id };
@@ -37,10 +48,6 @@ export const tecService = {
     const services = this.getServices();
     services.unshift(newService);
     localStorage.setItem(SERVICES_KEY, JSON.stringify(services));
-
-    if (newService.photos?.length) {
-      this.savePhotosLocal(newService.id, newService.photos);
-    }
 
     return newService;
   },
@@ -59,24 +66,69 @@ export const tecService = {
   },
 
   async getAllServices(): Promise<Service[]> {
+    let allServices: Service[] = [];
+
     if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase
-        .from('tec_services')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('tec_services')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
+        if (!error && data) {
+          allServices = await Promise.all(
+            data.map(async (s: any) => {
+              const dbPhotos = await this.getPhotosFromDB(s.id);
+              const localPhotos = this.getPhotos(s.id);
+              const allPhotos = [...dbPhotos];
+              
+              localPhotos.forEach((lp: ServicePhoto) => {
+                if (!allPhotos.some(p => p.id === lp.id)) {
+                  allPhotos.push(lp);
+                }
+              });
 
-      const services = data || [];
-      return Promise.all(
-        services.map(async (s: any) => ({
-          ...s,
-          photos: await this.getPhotosFromDB(s.id),
-        }))
-      );
+              return {
+                id: s.id,
+                client_id: s.client_id,
+                client_name: s.client_name,
+                client_phone: s.client_phone,
+                client_address: s.client_address,
+                technician_id: s.technician_id,
+                technician_name: s.technician_name,
+                vehicle: s.vehicle,
+                plate: s.plate,
+                type: s.service_type,
+                status: s.status,
+                observations: s.observations,
+                signature: s.signature,
+                scheduled_date: s.scheduled_date,
+                completed_date: s.completed_date,
+                photos: allPhotos,
+                created_at: s.created_at,
+                updated_at: s.updated_at,
+              };
+            })
+          );
+        }
+      } catch (e) {
+        console.error('Error loading from Supabase, using local:', e);
+      }
     }
 
-    return this.getServices();
+    const localServices = this.getServices();
+    
+    localServices.forEach((ls: Service) => {
+      if (!allServices.some((s: Service) => s.id === ls.id)) {
+        allServices.push(ls);
+      }
+    });
+
+    allServices.sort((a: Service, b: Service) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    return allServices;
   },
 
   updateService(id: string, updates: Partial<Service>): Service | null {
@@ -104,29 +156,92 @@ export const tecService = {
 
   savePhotosLocal(serviceId: string, photos: Omit<ServicePhoto, 'id' | 'service_id' | 'created_at'>[]) {
     const allPhotos = JSON.parse(localStorage.getItem(PHOTOS_KEY) || '{}');
-    const servicePhotos: ServicePhoto[] = photos.map(p => ({
+    const existingPhotos = allPhotos[serviceId] || [];
+    const newPhotos: ServicePhoto[] = photos.map(p => ({
       ...p,
       id: `photo_${Date.now()}_${Math.random()}`,
       service_id: serviceId,
       created_at: new Date().toISOString(),
     }));
-    allPhotos[serviceId] = servicePhotos;
+    allPhotos[serviceId] = [...existingPhotos, ...newPhotos];
     localStorage.setItem(PHOTOS_KEY, JSON.stringify(allPhotos));
   },
 
   async savePhotos(serviceId: string, photos: Omit<ServicePhoto, 'id' | 'service_id' | 'created_at'>[]) {
+    if (!photos.length) return;
+
     if (!isSupabaseConfigured() || !supabase) {
       this.savePhotosLocal(serviceId, photos);
       return;
     }
 
-    const photosToSave = photos.map(p => ({
-      ...p,
-      service_id: serviceId,
-    }));
+    try {
+      const photosToSave = photos.map(p => ({
+        url: p.url,
+        type: p.type,
+        service_id: serviceId,
+      }));
 
-    const { error } = await supabase.from('tec_service_photos').insert(photosToSave);
-    if (error) console.error('Error saving photos:', error);
+      const { error } = await supabase
+        .from('tec_service_photos')
+        .insert(photosToSave);
+
+      if (error) {
+        console.error('Error saving photos to Supabase, saving locally:', error);
+        this.savePhotosLocal(serviceId, photos);
+      }
+    } catch (e) {
+      console.error('Error saving photos:', e);
+      this.savePhotosLocal(serviceId, photos);
+    }
+  },
+
+  async saveSignatures(serviceId: string, signatures: { url: string; signed_by: string }[]) {
+    if (!signatures.length) return;
+
+    if (!isSupabaseConfigured() || !supabase) {
+      this.saveSignaturesLocal(serviceId, signatures);
+      return;
+    }
+
+    try {
+      const signaturesToSave = signatures.map(s => ({
+        service_id: serviceId,
+        signature_url: s.url,
+        signed_by: s.signed_by,
+      }));
+
+      const { error } = await supabase
+        .from('tec_service_signatures')
+        .insert(signaturesToSave);
+
+      if (error) {
+        console.error('Error saving signatures to Supabase, saving locally:', error);
+        this.saveSignaturesLocal(serviceId, signatures);
+      }
+    } catch (e) {
+      console.error('Error saving signatures:', e);
+      this.saveSignaturesLocal(serviceId, signatures);
+    }
+  },
+
+  saveSignaturesLocal(serviceId: string, signatures: { url: string; signed_by: string }[]) {
+    const allSignatures = JSON.parse(localStorage.getItem(SIGNATURES_KEY) || '{}');
+    const existingSignatures = allSignatures[serviceId] || [];
+    const newSignatures = signatures.map(s => ({
+      id: `sig_${Date.now()}_${Math.random()}`,
+      service_id: serviceId,
+      signature_url: s.url,
+      signed_by: s.signed_by,
+      created_at: new Date().toISOString(),
+    }));
+    allSignatures[serviceId] = [...existingSignatures, ...newSignatures];
+    localStorage.setItem(SIGNATURES_KEY, JSON.stringify(allSignatures));
+  },
+
+  getSignatures(serviceId: string): Array<{ id: string; service_id: string; signature_url: string; signed_by: string; created_at: string }> {
+    const allSignatures = JSON.parse(localStorage.getItem(SIGNATURES_KEY) || '{}');
+    return allSignatures[serviceId] || [];
   },
 
   getPhotos(serviceId: string): ServicePhoto[] {
@@ -135,18 +250,34 @@ export const tecService = {
   },
 
   async getPhotosFromDB(serviceId: string): Promise<ServicePhoto[]> {
+    const localPhotos = this.getPhotos(serviceId);
+    
     if (!isSupabaseConfigured() || !supabase) {
-      return this.getPhotos(serviceId);
+      return localPhotos;
     }
 
-    const { data, error } = await supabase
-      .from('tec_service_photos')
-      .select('*')
-      .eq('service_id', serviceId)
-      .order('created_at', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('tec_service_photos')
+        .select('*')
+        .eq('service_id', serviceId)
+        .order('created_at', { ascending: true });
 
-    if (error) return this.getPhotos(serviceId);
-    return data || [];
+      if (error) return localPhotos;
+      
+      const dbPhotos: ServicePhoto[] = data || [];
+      
+      const allPhotos = [...dbPhotos];
+      localPhotos.forEach((lp: ServicePhoto) => {
+        if (!allPhotos.some(p => p.id === lp.id)) {
+          allPhotos.push(lp);
+        }
+      });
+      
+      return allPhotos;
+    } catch {
+      return localPhotos;
+    }
   },
 
   async uploadPhoto(file: File, serviceId: string, type: PhotoType): Promise<string> {

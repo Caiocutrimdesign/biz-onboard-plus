@@ -45,37 +45,43 @@ export type PaymentMethod = 'pix' | 'cartao' | 'boleto' | 'recorrente' | 'conver
 
 export interface CustomerRegistration {
   // Personal
-  full_name: string;
-  phone: string;
-  cpf_cnpj: string;
-  email: string;
+  full_name?: string;
+  phone?: string;
+  cpf_cnpj?: string;
+  email?: string;
   birth_date?: string;
   // Address
-  cep: string;
-  street: string;
-  number: string;
-  neighborhood: string;
-  city: string;
-  state: string;
+  cep?: string;
+  street?: string;
+  number?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
   complement?: string;
   // Vehicle
-  vehicle_type: VehicleType;
-  plate: string;
-  brand: string;
-  model: string;
-  year: string;
-  color: string;
+  vehicle_type?: string;
+  plate?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
+  color?: string;
   renavam?: string;
   chassi?: string;
+  vehicle?: string;
   // Plan
-  plan: PlanType;
+  plan?: string;
   // Payment
-  payment_method: PaymentMethod;
+  payment_method?: string;
   // Notes
   notes?: string;
   preferred_contact_time?: string;
+  // TEC
+  satisfaction?: any;
+  tec_service_id?: string;
   // Meta
-  status: CustomerStatus;
-  created_at: string;
+  status?: CustomerStatus;
+  created_at?: string;
+  updated_at?: string;
+  synced?: boolean;
   id?: string;
 }
