@@ -14,9 +14,13 @@ export interface Technician {
   id: string;
   name: string;
   email: string;
+  password?: string;
   phone: string;
+  cpf?: string;
+  role?: string;
+  status: 'active' | 'inactive';
   avatar?: string;
-  active: boolean;
+  rating?: number;
   created_at: string;
 }
 
