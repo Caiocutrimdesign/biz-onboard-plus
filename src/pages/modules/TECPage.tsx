@@ -226,16 +226,47 @@ export default function TECPage() {
         await tecService.savePhotos(newService.id, [photo]);
       }
 
-      // Save satisfaction rating
-      if (serviceData.rating && serviceData.rating > 0) {
+      // Save satisfaction rating linked to client
+      if (serviceData.rating !== undefined) {
         try {
           const satisfactionData = {
             service_id: newService.id,
+            client_id: currentService.client_id || currentClient?.id,
+            client_name: currentService.client_name || currentClient?.name,
             rating: serviceData.rating,
             comment: serviceData.comment || '',
             created_at: new Date().toISOString(),
           };
+          
+          // Save to localStorage
           localStorage.setItem(`tec_satisfaction_${newService.id}`, JSON.stringify(satisfactionData));
+          
+          // Also save to client registration for visibility
+          const clientRegistrations = JSON.parse(localStorage.getItem('customer_registrations') || '[]');
+          const clientIndex = clientRegistrations.findIndex((c: any) => 
+            c.id === currentService.client_id || 
+            c.phone === currentService.client_phone ||
+            c.name === currentService.client_name
+          );
+          
+          if (clientIndex >= 0) {
+            clientRegistrations[clientIndex].satisfaction = satisfactionData;
+            localStorage.setItem('customer_registrations', JSON.stringify(clientRegistrations));
+          } else {
+            // Create new client entry with satisfaction
+            clientRegistrations.push({
+              id: currentService.client_id || currentClient?.id,
+              name: currentService.client_name || currentClient?.name,
+              phone: currentService.client_phone || currentClient?.phone,
+              email: currentClient?.email || '',
+              address: currentService.client_address || currentClient?.address || '',
+              vehicle: currentService.vehicle || currentClient?.vehicle,
+              plate: currentService.plate || currentClient?.plate,
+              satisfaction: satisfactionData,
+              created_at: new Date().toISOString(),
+            });
+            localStorage.setItem('customer_registrations', JSON.stringify(clientRegistrations));
+          }
         } catch (e) {
           console.error('Error saving satisfaction:', e);
         }
@@ -1875,7 +1906,7 @@ function FinalizeView({ service, onSave, onBack }: {
           </Card>
 
           {/* Satisfaction Evaluation */}
-          <Card>
+          <Card className="border-primary/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ThumbsUp className="w-5 h-5 text-primary" />
@@ -1884,53 +1915,65 @@ function FinalizeView({ service, onSave, onBack }: {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground text-center">
-                Como voce avalia o servico prestado?
+                De 0 a 10, qual sua nota para o servico?
               </p>
               
-              {/* Star Rating */}
-              <div className="flex justify-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
+              {/* Numeric Rating 0-10 */}
+              <div className="grid grid-cols-11 gap-1">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                   <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="p-2 transition-transform hover:scale-110"
+                    key={num}
+                    onClick={() => setRating(num)}
+                    className={`
+                      h-10 rounded-lg font-bold text-sm transition-all
+                      ${rating === num 
+                        ? num >= 8 ? 'bg-green-500 text-white shadow-lg scale-110' 
+                          : num >= 5 ? 'bg-yellow-500 text-white shadow-lg scale-110'
+                          : 'bg-red-500 text-white shadow-lg scale-110'
+                        : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                      }
+                    `}
                   >
-                    <Star 
-                      className={`w-12 h-12 transition-colors ${
-                        star <= rating 
-                          ? 'fill-yellow-400 text-yellow-400' 
-                          : 'text-gray-300'
-                      }`}
-                    />
+                    {num}
                   </button>
                 ))}
               </div>
-              
+
               {/* Rating Labels */}
               <div className="text-center">
-                {rating === 1 && <p className="text-red-500 font-medium">Muito Ruim</p>}
-                {rating === 2 && <p className="text-orange-500 font-medium">Ruim</p>}
-                {rating === 3 && <p className="text-yellow-500 font-medium">Regular</p>}
-                {rating === 4 && <p className="text-lime-500 font-medium">Bom</p>}
-                {rating === 5 && <p className="text-green-500 font-medium">Excelente!</p>}
-                {rating === 0 && <p className="text-muted-foreground text-sm">Toque nas estrelas para avaliar</p>}
+                {rating >= 9 && <p className="text-green-600 font-bold text-lg">Excelente! Nota {rating}/10</p>}
+                {rating === 8 && <p className="text-green-500 font-medium">Muito Bom! Nota 8/10</p>}
+                {rating === 7 && <p className="text-lime-500 font-medium">Bom! Nota 7/10</p>}
+                {rating >= 5 && rating <= 6 && <p className="text-yellow-500 font-medium">Regular. Nota {rating}/10</p>}
+                {rating >= 3 && rating <= 4 && <p className="text-orange-500 font-medium">Ruim. Nota {rating}/10</p>}
+                {rating >= 1 && rating <= 2 && <p className="text-red-500 font-medium">Muito Ruim. Nota {rating}/10</p>}
+                {rating === 0 && <p className="text-muted-foreground text-sm">Selecione uma nota de 0 a 10</p>}
               </div>
 
               {/* Quick Feedback Tags */}
-              <div className="flex flex-wrap justify-center gap-2">
-                {['Atendimento', 'Instalacao', 'Tempo', 'Qualidade'].map((tag) => (
-                  <span 
-                    key={tag}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
-                      comment.includes(tag) 
-                        ? 'bg-primary/10 border-primary text-primary' 
-                        : 'bg-muted border-muted-foreground/20 text-muted-foreground hover:border-primary/50'
-                    }`}
-                    onClick={() => setComment(comment ? `${comment}, ${tag}` : tag)}
-                  >
-                    {tag}
-                  </span>
-                ))}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2 text-center">Tags rapidas (opcional):</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {['Atendimento', 'Instalacao', 'Rapidez', 'Qualidade', 'Profissional'].map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        if (comment.includes(tag)) {
+                          setComment(comment.replace(`, ${tag}`, '').replace(tag, '').trim());
+                        } else {
+                          setComment(comment ? `${comment}, ${tag}` : tag);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        comment.includes(tag) 
+                          ? 'bg-primary text-white border-primary' 
+                          : 'bg-muted border-muted-foreground/20 text-muted-foreground hover:border-primary/50'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Comment Field */}
@@ -1938,7 +1981,7 @@ function FinalizeView({ service, onSave, onBack }: {
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Deixe um comentario (opcional)"
+                  placeholder="Comentario adicional (opcional)"
                   className="w-full p-3 rounded-xl border bg-transparent min-h-[80px] resize-none text-sm"
                 />
               </div>
