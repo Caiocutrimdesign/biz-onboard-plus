@@ -22,6 +22,7 @@ import {
 } from '@/contexts/ServiceContext';
 import type { Service, ServiceStatus, ServiceType } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS } from '@/types/service';
+import ServiceDetailPage from './ServiceDetailPage';
 
 type TabType = 'designados' | 'todos';
 
@@ -35,6 +36,7 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showDetailPage, setShowDetailPage] = useState(false);
   const [showStartDialog, setShowStartDialog] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -202,7 +204,11 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
               key={service.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-card border rounded-xl p-4"
+              className="bg-card border rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => {
+                setSelectedService(service);
+                setShowDetailPage(true);
+              }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -238,7 +244,8 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
                     <Button 
                       size="sm" 
                       className="bg-blue-500 hover:bg-blue-600"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedService(service);
                         setShowStartDialog(true);
                       }}
@@ -251,9 +258,10 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
                     <Button 
                       size="sm" 
                       className="bg-green-500 hover:bg-green-600"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedService(service);
-                        setShowFinishDialog(true);
+                        setShowDetailPage(true);
                       }}
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
@@ -353,6 +361,23 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
           setShowCreateDialog(false);
         }}
       />
+
+      {/* Service Detail Page */}
+      {showDetailPage && selectedService && (
+        <ServiceDetailPage
+          service={selectedService}
+          tecnicoId={tecnicoId}
+          tecnicoName={tecnicoName}
+          onBack={() => {
+            setShowDetailPage(false);
+            setSelectedService(null);
+            loadServices();
+          }}
+          onUpdated={() => {
+            loadServices();
+          }}
+        />
+      )}
     </div>
   );
 }

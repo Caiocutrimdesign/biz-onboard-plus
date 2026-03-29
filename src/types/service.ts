@@ -37,6 +37,11 @@ export const SERVICE_STATUS_COLORS: Record<ServiceStatus, string> = {
 
 export const SERVICE_STATUS_ORDER: ServiceStatus[] = ['pendente', 'designado', 'em_andamento', 'finalizado', 'cancelado'];
 
+export interface ChecklistItem {
+  item: string;
+  concluido: boolean;
+}
+
 export interface Service {
   id: string;
   cliente_id: string;
@@ -57,6 +62,12 @@ export interface Service {
   criado_por?: 'admin' | 'tecnico';
   finalizado_por?: string;
   updated_at?: string;
+  fotos_inicio?: string[];
+  fotos_final?: string[];
+  assinatura_cliente?: string;
+  checklist?: ChecklistItem[];
+  localizacao_inicio?: string;
+  localizacao_fim?: string;
 }
 
 export interface ServiceHistory {

@@ -103,19 +103,33 @@ export function assignTechnician(serviceId: string, technicianId: string, techni
   }, 'Admin');
 }
 
-export function startService(serviceId: string): void {
+export function startService(serviceId: string, fotosInicio?: string[], localizacao?: string): void {
   updateService(serviceId, {
     status: 'em_andamento',
     data_inicio: new Date().toISOString(),
+    fotos_inicio: fotosInicio,
+    localizacao_inicio: localizacao,
   }, 'Técnico');
 }
 
-export function finishService(serviceId: string, observacoes: string, tecnicoName: string): void {
+export function finishService(
+  serviceId: string, 
+  observacoes: string, 
+  tecnicoName: string,
+  fotosFinal?: string[],
+  assinatura?: string[],
+  checklist?: { item: string; concluido: boolean }[],
+  localizacaoFim?: string
+): void {
   updateService(serviceId, {
     status: 'finalizado',
     data_finalizacao: new Date().toISOString(),
     observacoes_tecnico: observacoes,
     finalizado_por: tecnicoName,
+    fotos_final: fotosFinal,
+    assinatura_cliente: assinatura?.[0],
+    checklist: checklist,
+    localizacao_fim: localizacaoFim,
   }, 'Técnico');
 }
 
