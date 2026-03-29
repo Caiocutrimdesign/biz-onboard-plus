@@ -123,11 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const tecnico = findTecnicoByEmail(emailLower);
+      console.log('Login attempt for:', emailLower, 'Found technician:', tecnico);
       if (tecnico) {
         if (tecnico.password !== password) {
           setIsLoading(false);
           return { success: false, error: 'Senha incorreta' };
         }
+        console.log('Technician active status:', tecnico.active);
         if (!tecnico.active) {
           setIsLoading(false);
           return { success: false, error: 'Técnico inativo. Contacte o administrador.' };
