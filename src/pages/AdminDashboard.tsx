@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   LogOut, LayoutDashboard, Users, Car, DollarSign, Settings, Bell, 
-  Menu, ChevronRight, TrendingUp, ShieldCheck, Phone, Mail, Calendar,
+  Menu, X, ChevronRight, TrendingUp, ShieldCheck, Phone, Mail, Calendar,
   BarChart3, Target, Zap, CalendarCheck, GitBranch, Bot, HelpCircle,
   MessageSquare, Send, Gift, Wrench, ClipboardList
 } from 'lucide-react';
@@ -42,6 +42,7 @@ export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [allCustomers, setAllCustomers] = useState<any[]>([]);
   const [birthdays, setBirthdays] = useState<any[]>([]);
 
@@ -170,12 +171,114 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
+      {/* Mobile Menu Drawer */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div 
+            className="absolute inset-0 bg-black/60" 
+            onClick={() => {
+              console.log('Overlay clicked, closing mobile menu');
+              setIsMobileOpen(false);
+            }}
+          />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-surface-dark shadow-2xl">
+            {/* Header */}
+            <div className="flex h-20 items-center justify-between px-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <Logo3D size={40} animated={false} />
+                <div>
+                  <span className="font-bold text-sm text-white">Rastremix</span>
+                  <span className="block text-xs text-primary">CRM Plus</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  console.log('Close button clicked');
+                  setIsMobileOpen(false);
+                }}
+                className="p-2 hover:bg-muted rounded-lg cursor-pointer"
+              >
+                <X className="h-6 w-6 text-white" />
+              </button>
+            </div>
+
+            {/* User Info */}
+            <div className="p-4 bg-card/50 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold">
+                  {user?.name?.charAt(0).toUpperCase() || 'A'}
+                </div>
+                <div>
+                  <p className="font-semibold text-white">{user?.name || 'Administrador'}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email || 'admin@rastremix.com'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Items */}
+            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    console.log('Mobile nav item clicked:', item.id);
+                    handleNavigate(item);
+                    setIsMobileOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all cursor-pointer ${
+                    activeModule === item.id 
+                      ? 'bg-primary text-white' 
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </nav>
+
+            {/* Bottom Actions */}
+            <div className="p-3 border-t border-border space-y-1">
+              <button
+                onClick={() => {
+                  handleCRMNavigation();
+                  setIsMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-blue-500 hover:bg-blue-500/10 transition-all cursor-pointer"
+              >
+                <Zap className="h-5 w-5 flex-shrink-0" />
+                <span>CRM Completo</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all cursor-pointer"
+              >
+                <LogOut className="h-5 w-5 flex-shrink-0" />
+                <span>Sair</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="h-14 md:h-16 flex items-center justify-between px-3 md:px-6 border-b bg-card">
           <div className="flex items-center gap-2 md:gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-muted rounded-lg lg:hidden">
+            <button 
+              onClick={() => {
+                console.log('Hamburger clicked, isMobileOpen:', !isMobileOpen);
+                setIsMobileOpen(!isMobileOpen);
+              }} 
+              className="p-2 hover:bg-muted rounded-lg cursor-pointer touch-manipulation"
+              aria-label="Abrir menu"
+              style={{ pointerEvents: 'auto' }}
+            >
               <Menu className="h-5 w-5" />
             </button>
             <h1 className="text-lg md:text-xl font-bold capitalize">{activeModule}</h1>
