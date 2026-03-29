@@ -70,7 +70,7 @@ export default function AdminDashboard() {
         } flex flex-col border-r border-surface-dark-foreground/10 bg-surface-dark transition-all duration-300`}
       >
         <div className="flex h-20 items-center justify-center border-b border-surface-dark-foreground/10 px-6">
-          <img src={logo} alt="Rastremix" className={`${isSidebarOpen ? 'h-8' : 'h-6'} transition-all`} />
+          <img src={logo} alt="Rastremix" className={`${isSidebarOpen ? 'h-10' : 'h-8'} transition-all`} />
           {isSidebarOpen && <span className="ml-2 text-xs font-bold text-primary">ADMIN</span>}
         </div>
 

@@ -68,15 +68,7 @@ export default function AdminLogin() {
         className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-surface-dark-foreground/10 bg-surface-dark/40 p-8 shadow-2xl backdrop-blur-xl"
       >
         <div className="mb-10 flex flex-col items-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 backdrop-blur-sm"
-          >
-            <Shield className="h-8 w-8 text-primary" />
-          </motion.div>
-          <img src={logo} alt="Rastremix" className="mb-4 h-10 w-auto opacity-80" />
+          <img src={logo} alt="Rastremix" className="mb-6 h-24 w-auto" />
           <h1 className="font-display text-2xl font-bold tracking-tight text-surface-dark-foreground">
             Acesso Restrito
           </h1>

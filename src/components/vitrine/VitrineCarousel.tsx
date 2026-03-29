@@ -84,7 +84,7 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
 
       {/* Header with Logo and Restricted Access */}
       <div className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between p-8">
-        <img src={logo} alt="Rastremix" className="h-12 w-auto" />
+        <img src={logo} alt="Rastremix" className="h-16 w-auto" />
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"

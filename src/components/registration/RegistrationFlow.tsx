@@ -204,7 +204,7 @@ export function RegistrationFlow({ onClose }: Props) {
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       {/* Header */}
       <header className="flex items-center justify-between border-b px-6 py-4">
-        <img src="/logo-rastremix.png" alt="Rastremix" className="h-8 w-auto" onError={(e) => e.currentTarget.style.display = 'none'} />
+        <img src="/logo-rastremix.png" alt="Rastremix" className="h-10 w-auto" onError={(e) => e.currentTarget.style.display = 'none'} />
         {currentStep < TOTAL_STEPS - 1 && (
           <Button variant="ghost" size="icon" onClick={handleGoHome} className="text-muted-foreground">
             <X className="h-5 w-5" />
