@@ -101,16 +101,13 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         <header className="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg lg:hidden"
+              onClick={() => {
+                console.log('Menu mobile clicked!');
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              className="relative z-50 p-2 hover:bg-gray-100 rounded-lg lg:hidden cursor-pointer"
             >
-              <Menu className="h-5 w-5" />
-            </button>
-            <button 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg lg:hidden"
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
             
             <div className="relative hidden sm:block">
