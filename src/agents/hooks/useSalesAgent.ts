@@ -31,7 +31,7 @@ export function useSalesAgent(config: SalesAgentConfig = DEFAULT_CONFIG) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { leads, updateLead } = useCRMStore();
 
-  const qualifyLead = useCallback((lead: Lead): { score: number; tier: 'hot' | 'warm' | 'cold'; reasons: string[] } => {
+  const qualifyLead = useCallback((lead: any): { score: number; tier: 'hot' | 'warm' | 'cold'; reasons: string[] } => {
     const reasons: string[] = [];
     let score = 0;
 
