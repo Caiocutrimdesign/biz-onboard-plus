@@ -160,8 +160,9 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
                 console.log('Menu clicked!');
                 setIsMobileOpen((prev) => !prev);
               }}
-              className="relative z-[101] p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 cursor-pointer"
+              className="relative z-[101] p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 cursor-pointer touch-manipulation"
               aria-label="Abrir menu"
+              style={{ pointerEvents: 'auto' }}
             >
               <Menu className="h-7 w-7 text-gray-800" />
             </button>
