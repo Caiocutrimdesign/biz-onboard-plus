@@ -39,7 +39,8 @@ export default function ServicesPage() {
   }, []);
 
   const loadData = () => {
-    setTechnicians(getTecnicos());
+    const tecnicos = getTecnicos();
+    setTechnicians(tecnicos);
     loadServices();
   };
 
@@ -507,7 +508,8 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
   const handleSubmit = () => {
     if (!form.cliente_name || !form.cliente_phone) return;
     
-    const tech = technicians.find(t => t.id === form.tecnico_id);
+    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'none');
+    const tecnicoId = form.tecnico_id && form.tecnico_id !== 'none' ? form.tecnico_id : undefined;
     
     createService({
       cliente_id: `cliente_${Date.now()}`,
@@ -517,7 +519,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
       tipo_servico: form.tipo_servico,
       descricao: form.descricao,
       data_agendamento: form.data_agendamento || undefined,
-      tecnico_id: form.tecnico_id || undefined,
+      tecnico_id: tecnicoId,
       tecnico_name: tech?.name,
       criado_por: 'admin',
     });
@@ -609,7 +611,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
                 <SelectValue placeholder="Selecionar técnico (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum - Ficará pendente</SelectItem>
+                <SelectItem value="none">Nenhum - Ficará pendente</SelectItem>
                 {technicians.map(tech => (
                   <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                 ))}

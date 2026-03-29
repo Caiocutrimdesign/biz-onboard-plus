@@ -22,12 +22,14 @@ export function getServicesByClient(clientId: string): Service[] {
 }
 
 export function getServicesByTechnician(technicianId: string): Service[] {
-  return getServices().filter(s => s.tecnico_id === technicianId);
+  const normalizedId = technicianId.replace('user_', '');
+  return getServices().filter(s => s.tecnico_id === technicianId || s.tecnico_id === normalizedId);
 }
 
 export function getAssignedServicesForTechnician(technicianId: string): Service[] {
+  const normalizedId = technicianId.replace('user_', '');
   return getServices().filter(s => 
-    s.tecnico_id === technicianId && 
+    (s.tecnico_id === technicianId || s.tecnico_id === normalizedId) && 
     (s.status === 'designado' || s.status === 'em_andamento')
   );
 }
