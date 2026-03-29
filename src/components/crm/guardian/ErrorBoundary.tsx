@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -131,9 +132,3 @@ export function withErrorBoundary<P extends object>(
     );
   };
 }
-
-function motion(props: any) {
-  return null;
-}
-
-import { motion } from 'framer-motion';

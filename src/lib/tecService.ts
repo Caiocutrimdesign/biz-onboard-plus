@@ -291,7 +291,7 @@ export const tecService = {
 
       const { data: urlData } = supabase.storage
         .from('tec-photos')
-        .getPublicUrl(data.Key);
+        .getPublicUrl(data.path);
 
       await this.savePhotos(serviceId, [{
         url: urlData.publicUrl,

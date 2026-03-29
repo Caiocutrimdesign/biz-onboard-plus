@@ -233,6 +233,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
         recipient: lead.phone,
         subject: template.subject?.replace('{name}', lead.name.split(' ')[0]),
         message: template.message.replace('{name}', lead.name.split(' ')[0]),
+        status: 'pending',
       };
 
       sendNotification(notification);

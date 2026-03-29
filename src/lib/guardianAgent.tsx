@@ -60,7 +60,7 @@ class GuardianAgent {
     this.logError(errorInfo);
   }
 
-  private logError(error: ErrorInfo): void {
+  logError(error: ErrorInfo): void {
     this.errors.push(error);
     
     if (this.errors.length > MAX_ERRORS_BEFORE_RESET) {

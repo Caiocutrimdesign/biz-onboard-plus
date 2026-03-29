@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, CheckCircle2, AlertCircle, Clock, Settings, 
   Zap, Bell, ChevronRight, ExternalLink, Copy, Check,
-  ArrowRightLeft, CloudOff, CloudOn, Loader2
+  ArrowRightLeft, CloudOff, Cloud, Loader2
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
