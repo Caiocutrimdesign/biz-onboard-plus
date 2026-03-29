@@ -2,42 +2,42 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  LayoutDashboard, Users, Wrench, Building2, ShoppingCart,
-  Settings, ChevronLeft, ChevronRight, Menu, X,
-  LogOut, Bell, Search, Shield, Package, FileText, Calendar,
-  Bot, Smile, BarChart3, Target, Zap, Mail, GitBranch, UserCog
+  LayoutDashboard, Wrench, Building2, ShoppingCart,
+  Settings, ChevronLeft, Menu, X,
+  LogOut, Bell, UserCog
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SuperLayoutProps {
   children: React.ReactNode;
+  showCRM?: boolean;
+  showFullMenu?: boolean;
 }
 
-const menuItems = [
+const tecMenuItems = [
+  { id: 'home', label: 'Inicio', icon: LayoutDashboard, path: '/tec', color: 'text-orange-500' },
+  { id: 'erp', label: 'ERP', icon: Building2, path: '/erp', color: 'text-green-500' },
+  { id: 'shell', label: 'SHELL', icon: ShoppingCart, path: '/shell', color: 'text-pink-500' },
+];
+
+const fullMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', color: 'text-blue-500' },
-  { id: 'crm', label: 'CRM', icon: Users, path: '/crm', color: 'text-purple-500' },
+  { id: 'crm', label: 'CRM', icon: UserCog, path: '/crm', color: 'text-purple-500' },
   { id: 'tec', label: 'TEC', icon: Wrench, path: '/tec', color: 'text-orange-500' },
   { id: 'erp', label: 'ERP', icon: Building2, path: '/erp', color: 'text-green-500' },
   { id: 'shell', label: 'SHELL', icon: ShoppingCart, path: '/shell', color: 'text-pink-500' },
 ];
 
-const secondaryItems = [
-  { id: 'satisfaction', label: 'Satisfação', icon: Smile, path: '/dashboard/satisfaction', color: 'text-green-500' },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/dashboard/analytics', color: 'text-cyan-500' },
-  { id: 'calendar', label: 'Agendamentos', icon: Calendar, path: '/dashboard/calendar', color: 'text-orange-500' },
-  { id: 'users', label: 'Usuários', icon: UserCog, path: '/dashboard/users', color: 'text-teal-500' },
-  { id: 'agents', label: 'Agentes', icon: Bot, path: '/dashboard/agents', color: 'text-violet-500' },
-  { id: 'settings', label: 'Configurações', icon: Settings, path: '/dashboard/settings', color: 'text-gray-500' },
-];
-
-export default function SuperLayout({ children }: SuperLayoutProps) {
+export default function SuperLayout({ children, showCRM = true, showFullMenu = true }: SuperLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const isInTEC = location.pathname.startsWith('/tec');
+  const menuItems = isInTEC ? tecMenuItems : (showFullMenu ? fullMenuItems : tecMenuItems);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
@@ -66,7 +66,9 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
               </div>
               <div>
                 <span className="font-display font-bold text-gray-900">Rastremix</span>
-                <p className="text-xs text-muted-foreground">Plataforma Unificada</p>
+                <p className="text-xs text-muted-foreground">
+                  {isInTEC ? 'Area Tecnico' : 'Plataforma Unificada'}
+                </p>
               </div>
             </div>
           )}
@@ -75,7 +77,9 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
         {/* Main Menu */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {!isCollapsed && (
-            <p className="text-xs font-semibold text-muted-foreground px-3 mb-2">PRINCIPAL</p>
+            <p className="text-xs font-semibold text-muted-foreground px-3 mb-2">
+              {isInTEC ? 'MENU TECNICO' : 'MENU PRINCIPAL'}
+            </p>
           )}
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -102,30 +106,6 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
               </Link>
             );
           })}
-
-          {!isCollapsed && (
-            <p className="text-xs font-semibold text-muted-foreground px-3 mb-2 mt-4">FERRAMENTAS</p>
-          )}
-          {secondaryItems.slice(0, 4).map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            return (
-              <Link
-                key={item.id}
-                to={item.path}
-                className={`
-                  group flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all
-                  ${active 
-                    ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                  }
-                `}
-              >
-                <Icon className={`h-5 w-5 ${active ? 'text-white' : item.color}`} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
         </nav>
 
         {/* Collapse Button */}
@@ -135,10 +115,10 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
             className="flex w-full items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-100 transition-colors"
           >
             {isCollapsed ? (
-              <ChevronRight className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" />
             ) : (
               <>
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5 rotate-180" />
                 <span>Recolher</span>
               </>
             )}
@@ -153,8 +133,8 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.name || 'Admin'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || 'admin@rastremix.com'}</p>
+                <p className="text-sm font-medium truncate">{user?.name || 'Tecnico'}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || 'tecnico@rastremix.com'}</p>
               </div>
             )}
             {!isCollapsed && (
@@ -184,7 +164,9 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">R</span>
               </div>
-              <span className="font-bold text-gray-900">Rastremix</span>
+              <span className="font-bold text-gray-900">
+                {isInTEC ? 'TEC' : 'Rastremix'}
+              </span>
             </div>
           </div>
           <Button variant="ghost" size="icon" className="relative">
@@ -207,7 +189,9 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
                   <span className="text-white font-bold text-lg">R</span>
                 </div>
-                <span className="font-display font-bold text-gray-900">Rastremix</span>
+                <span className="font-display font-bold text-gray-900">
+                  {isInTEC ? 'Area TEC' : 'Rastremix'}
+                </span>
               </div>
             </div>
             <nav className="p-3 space-y-1">
@@ -232,29 +216,16 @@ export default function SuperLayout({ children }: SuperLayoutProps) {
                   </Link>
                 );
               })}
-              <div className="border-t border-gray-200 my-3" />
-              {secondaryItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                return (
-                  <Link
-                    key={item.id}
-                    to={item.path}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={`
-                      flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-                      ${active 
-                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
             </nav>
+            <div className="absolute bottom-0 left-0 right-0 p-3 border-t bg-white">
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Sair</span>
+              </button>
+            </div>
           </aside>
         </div>
       )}

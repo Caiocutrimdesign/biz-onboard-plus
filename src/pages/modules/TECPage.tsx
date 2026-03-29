@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Wrench, Plus, Search, X, Check, Camera, Pen, FileText, 
+  Wrench, Plus, X, Check, Camera, Pen, FileText, 
   Clock, User, Phone, Car, MapPin, DollarSign, Package,
-  ChevronLeft, ChevronRight, Save, Loader2, Trash2, Eye,
-  CheckCircle, AlertCircle, Image, Eraser
+  ChevronLeft, Save, Loader2, Trash2, AlertCircle,
+  CheckCircle, MapPinned, Image
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import SuperLayout from '@/components/layout/SuperLayout';
 import { tecService } from '@/lib/tecService';
-import type { Service, ServiceStatus, ServiceType, PhotoType } from '@/types/tec';
+import type { Service, ServiceStatus, ServiceType, PhotoType, Technician } from '@/types/tec';
 
 type TECView = 'home' | 'novo-cliente' | 'servico' | 'vendas' | 'finalizar';
 type Client = {
@@ -21,9 +21,19 @@ type Client = {
   name: string;
   phone: string;
   email?: string;
+  cpf?: string;
   address?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  cep?: string;
   vehicle?: string;
+  vehicleBrand?: string;
+  vehicleModel?: string;
+  vehicleYear?: string;
+  vehicleColor?: string;
   plate?: string;
+  renavam?: string;
 };
 
 type Product = {
@@ -46,6 +56,7 @@ export default function TECPage() {
   const { user } = useAuth();
   const [view, setView] = useState<TECView>('home');
   const [services, setServices] = useState<Service[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Current client being registered
@@ -59,16 +70,20 @@ export default function TECPage() {
   const [saleTotal, setSaleTotal] = useState(0);
 
   useEffect(() => {
-    loadServices();
+    loadData();
   }, []);
 
-  const loadServices = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const data = await tecService.getAllServices();
-      setServices(data);
+      const [servicesData, techData] = await Promise.all([
+        tecService.getAllServices(),
+        tecService.getAllTechnicians(),
+      ]);
+      setServices(servicesData);
+      setTechnicians(techData);
     } catch (e) {
-      console.error('Error loading services:', e);
+      console.error('Error loading data:', e);
     }
     setLoading(false);
   };
@@ -83,9 +98,19 @@ export default function TECPage() {
       name: '',
       phone: '',
       email: '',
+      cpf: '',
       address: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      cep: '',
       vehicle: '',
+      vehicleBrand: '',
+      vehicleModel: '',
+      vehicleYear: '',
+      vehicleColor: '',
       plate: '',
+      renavam: '',
     });
     setCurrentService({});
     setCart([]);
@@ -109,28 +134,27 @@ export default function TECPage() {
     setSaleTotal(saleTotal - removed.price);
   };
 
-  const startService = () => {
+  const startService = (selectedTecId?: string, selectedTecName?: string) => {
     if (!currentClient) return;
     
     setCurrentService({
       client_id: currentClient.id,
       client_name: currentClient.name,
       client_phone: currentClient.phone,
-      client_address: currentClient.address,
-      vehicle: currentClient.vehicle,
+      client_address: `${currentClient.address}, ${currentClient.neighborhood} - ${currentClient.city}/${currentClient.state}`,
+      vehicle: `${currentClient.vehicleBrand} ${currentClient.vehicleModel} ${currentClient.vehicleYear}`.trim(),
       plate: currentClient.plate,
       type: 'instalacao',
       status: 'pendente',
-      technician_id: user?.id || 'unknown',
-      technician_name: user?.name,
+      technician_id: selectedTecId || user?.id || 'unknown',
+      technician_name: selectedTecName || user?.name,
       photos: [],
       observations: '',
     });
     goTo('servico');
   };
 
-  const finishService = async () => {
-    if (!currentService) return;
+  const finishService = () => {
     goTo('finalizar');
   };
 
@@ -140,21 +164,21 @@ export default function TECPage() {
     signatureCliente: string;
     observations: string;
   }) => {
+    if (!currentService) return;
+    
     try {
-      await tecService.saveService({
+      const newService = await tecService.saveService({
         ...currentService,
         observations: serviceData.observations,
         signature: serviceData.signatureFuncionario,
       } as any);
 
       // Save photos
-      const savedService = await tecService.saveService(currentService as any);
-      
       for (const photo of serviceData.photos) {
-        await tecService.savePhotos(savedService.id, [photo]);
+        await tecService.savePhotos(newService.id, [photo]);
       }
 
-      await loadServices();
+      await loadData();
       
       // Reset everything
       setCurrentClient(null);
@@ -162,8 +186,11 @@ export default function TECPage() {
       setCart([]);
       setSaleTotal(0);
       goTo('home');
+      
+      alert('Servico criado com sucesso!');
     } catch (e) {
       console.error('Error saving service:', e);
+      alert('Erro ao salvar servico');
     }
   };
 
@@ -193,6 +220,7 @@ export default function TECPage() {
             cart={cart}
             total={saleTotal}
             products={PRODUCTS}
+            technicians={technicians}
             onAddProduct={addToCart}
             onRemoveProduct={removeFromCart}
             onStartService={startService}
@@ -250,42 +278,58 @@ function HomeView({ services, loading, onNewClient, userName }: {
           </h1>
           <p className="text-muted-foreground">Bem-vindo, {userName}</p>
         </div>
+        <Button 
+          onClick={onNewClient} 
+          className="bg-orange-500 hover:bg-orange-600"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Servico
+        </Button>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <motion.button
-          whileTap={{ scale: 0.98 }}
-          onClick={onNewClient}
-          className="p-6 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 text-white text-left shadow-lg"
-        >
-          <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <Plus className="w-7 h-7" />
-          </div>
-          <p className="text-xl font-bold">Novo Cliente</p>
-          <p className="text-white/80 text-sm mt-1">Cadastrar cliente + servico</p>
-        </motion.button>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-yellow-100 rounded-xl flex items-center justify-center">
-              <Clock className="w-7 h-7 text-yellow-600" />
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+              <FileText className="w-6 h-6 text-orange-600" />
             </div>
             <div>
-              <p className="text-3xl font-bold">{stats.pending}</p>
-              <p className="text-sm text-muted-foreground">Pendentes</p>
+              <p className="text-2xl font-bold">{stats.today}</p>
+              <p className="text-xs text-muted-foreground">Hoje</p>
             </div>
           </div>
         </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-              <CheckCircle className="w-7 h-7 text-green-600" />
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+              <Clock className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <p className="text-3xl font-bold">{stats.completed}</p>
-              <p className="text-sm text-muted-foreground">Concluidos</p>
+              <p className="text-2xl font-bold">{stats.pending}</p>
+              <p className="text-xs text-muted-foreground">Pendentes</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <AlertCircle className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.inProgress}</p>
+              <p className="text-xs text-muted-foreground">Em Andamento</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.completed}</p>
+              <p className="text-xs text-muted-foreground">Concluidos</p>
             </div>
           </div>
         </Card>
@@ -329,7 +373,12 @@ function HomeView({ services, loading, onNewClient, userName }: {
                         </p>
                       </div>
                     </div>
-                    <StatusBadge status={service.status} />
+                    <div className="text-right">
+                      <StatusBadge status={service.status} />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(service.created_at).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -352,13 +401,45 @@ function ClientFormView({ client, onSave, onBack }: {
     name: '',
     phone: '',
     email: '',
+    cpf: '',
     address: '',
+    neighborhood: '',
+    city: '',
+    state: '',
+    cep: '',
     vehicle: '',
+    vehicleBrand: '',
+    vehicleModel: '',
+    vehicleYear: '',
+    vehicleColor: '',
     plate: '',
+    renavam: '',
   });
   const [step, setStep] = useState(1);
 
   const isValid = form.name.trim() && form.phone.trim();
+
+  const formatCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 3) return numbers;
+    if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+    if (numbers.length <= 9) return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
+  };
+
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return `(${numbers}`;
+    if (numbers.length <= 6) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    if (numbers.length <= 10) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
+
+  const formatCEP = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 5) return numbers;
+    return `${numbers.slice(0, 5)}-${numbers.slice(5, 8)}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -369,69 +450,133 @@ function ClientFormView({ client, onSave, onBack }: {
         </Button>
         <div>
           <h1 className="text-xl font-bold">Cadastro do Cliente</h1>
-          <p className="text-sm text-muted-foreground">Passo {step} de 2</p>
+          <p className="text-sm text-muted-foreground">Passo {step} de 2 - Dados Pessoais</p>
         </div>
       </div>
 
       {/* Progress */}
       <div className="flex gap-2">
-        <div className={`flex-1 h-2 rounded-full ${step >= 1 ? 'bg-orange-500' : 'bg-muted'}`} />
-        <div className={`flex-1 h-2 rounded-full ${step >= 2 ? 'bg-orange-500' : 'bg-muted'}`} />
+        <div className={`flex-1 h-2 rounded-full transition-colors ${step >= 1 ? 'bg-orange-500' : 'bg-muted'}`} />
+        <div className={`flex-1 h-2 rounded-full transition-colors ${step >= 2 ? 'bg-orange-500' : 'bg-muted'}`} />
       </div>
 
       <Card>
         <CardContent className="p-6 space-y-4">
           {step === 1 && (
             <>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Nome Completo *</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    value={form.name}
-                    onChange={(e) => setForm({...form, name: e.target.value})}
-                    placeholder="Nome do cliente"
-                    className="pl-10"
-                  />
+              {/* Dados Pessoais */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Nome Completo *</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      value={form.name}
+                      onChange={(e) => setForm({...form, name: e.target.value.toUpperCase()})}
+                      placeholder="Nome completo"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">CPF</label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      value={form.cpf}
+                      onChange={(e) => setForm({...form, cpf: formatCPF(e.target.value)})}
+                      placeholder="000.000.000-00"
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Telefone *</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    value={form.phone}
-                    onChange={(e) => setForm({...form, phone: e.target.value})}
-                    placeholder="(99) 99999-9999"
-                    className="pl-10"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Telefone *</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      value={form.phone}
+                      onChange={(e) => setForm({...form, phone: formatPhone(e.target.value)})}
+                      placeholder="(00) 00000-0000"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Email</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      value={form.email}
+                      onChange={(e) => setForm({...form, email: e.target.value.toLowerCase()})}
+                      placeholder="email@exemplo.com"
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Email</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    value={form.email}
-                    onChange={(e) => setForm({...form, email: e.target.value})}
-                    placeholder="email@exemplo.com"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+              {/* Endereco */}
+              <div className="pt-4 border-t">
+                <p className="text-sm font-medium mb-3">Endereco</p>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium mb-2 block">Logradouro</label>
+                    <div className="relative">
+                      <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        value={form.address}
+                        onChange={(e) => setForm({...form, address: e.target.value})}
+                        placeholder="Rua, numero, complemento"
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Endereco</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    value={form.address}
-                    onChange={(e) => setForm({...form, address: e.target.value})}
-                    placeholder="Endereco completo"
-                    className="pl-10"
-                  />
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">CEP</label>
+                    <Input
+                      value={form.cep}
+                      onChange={(e) => setForm({...form, cep: formatCEP(e.target.value)})}
+                      placeholder="00000-000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Bairro</label>
+                    <Input
+                      value={form.neighborhood}
+                      onChange={(e) => setForm({...form, neighborhood: e.target.value})}
+                      placeholder="Bairro"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Cidade</label>
+                    <Input
+                      value={form.city}
+                      onChange={(e) => setForm({...form, city: e.target.value.toUpperCase()})}
+                      placeholder="Cidade"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Estado</label>
+                    <Input
+                      value={form.state}
+                      onChange={(e) => setForm({...form, state: e.target.value.toUpperCase()})}
+                      placeholder="UF"
+                      maxLength={2}
+                    />
+                  </div>
                 </div>
               </div>
             </>
@@ -439,29 +584,68 @@ function ClientFormView({ client, onSave, onBack }: {
 
           {step === 2 && (
             <>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Veiculo *</label>
-                <div className="relative">
-                  <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    value={form.vehicle}
-                    onChange={(e) => setForm({...form, vehicle: e.target.value})}
-                    placeholder="Ex: Fiat Toro, VW Saveiro"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+              {/* Dados do Veiculo */}
+              <div className="pt-4 border-t">
+                <p className="text-sm font-medium mb-3">Dados do Veiculo</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Marca</label>
+                    <Input
+                      value={form.vehicleBrand}
+                      onChange={(e) => setForm({...form, vehicleBrand: e.target.value.toUpperCase()})}
+                      placeholder="Ex: Fiat, VW, Chevrolet"
+                    />
+                  </div>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Placa *</label>
-                <div className="relative">
-                  <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    value={form.plate}
-                    onChange={(e) => setForm({...form, plate: e.target.value.toUpperCase()})}
-                    placeholder="ABC-1234"
-                    className="pl-10 uppercase"
-                  />
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Modelo</label>
+                    <Input
+                      value={form.vehicleModel}
+                      onChange={(e) => setForm({...form, vehicleModel: e.target.value.toUpperCase()})}
+                      placeholder="Ex: Toro, Saveiro, Onix"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Ano</label>
+                    <Input
+                      value={form.vehicleYear}
+                      onChange={(e) => setForm({...form, vehicleYear: e.target.value})}
+                      placeholder="Ex: 2023"
+                      maxLength={4}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Cor</label>
+                    <Input
+                      value={form.vehicleColor}
+                      onChange={(e) => setForm({...form, vehicleColor: e.target.value.toUpperCase()})}
+                      placeholder="Ex: Preto, Branco, Prata"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Placa *</label>
+                    <Input
+                      value={form.plate}
+                      onChange={(e) => setForm({...form, plate: e.target.value.toUpperCase()})}
+                      placeholder="ABC-1234"
+                      className="uppercase font-mono text-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Renavam</label>
+                    <Input
+                      value={form.renavam}
+                      onChange={(e) => setForm({...form, renavam: e.target.value})}
+                      placeholder="00000000000"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -471,7 +655,8 @@ function ClientFormView({ client, onSave, onBack }: {
                 <div className="text-sm space-y-1 text-muted-foreground">
                   <p><strong>Nome:</strong> {form.name}</p>
                   <p><strong>Telefone:</strong> {form.phone}</p>
-                  <p><strong>Veiculo:</strong> {form.vehicle} - {form.plate}</p>
+                  <p><strong>Veiculo:</strong> {form.vehicleBrand} {form.vehicleModel} {form.vehicleYear}</p>
+                  <p><strong>Placa:</strong> {form.plate}</p>
                 </div>
               </div>
             </>
@@ -496,16 +681,16 @@ function ClientFormView({ client, onSave, onBack }: {
           <Button 
             onClick={() => setStep(step + 1)} 
             className="flex-1 bg-orange-500"
-            disabled={step === 1 && !form.name}
+            disabled={step === 1 && !isValid}
           >
             Proximo
-            <ChevronRight className="w-4 h-4 ml-2" />
+            <ChevronLeft className="w-4 h-4 ml-2 rotate-180" />
           </Button>
         ) : (
           <Button 
             onClick={() => onSave(form)}
             className="flex-1 bg-green-600"
-            disabled={!form.vehicle || !form.plate}
+            disabled={!form.plate}
           >
             <Check className="w-4 h-4 mr-2" />
             Continuar para Vendas
@@ -517,17 +702,26 @@ function ClientFormView({ client, onSave, onBack }: {
 }
 
 // ============ SALES VIEW ============
-function SalesView({ client, cart, total, products, onAddProduct, onRemoveProduct, onStartService, onBack, onNewClient }: {
+function SalesView({ client, cart, total, products, technicians, onAddProduct, onRemoveProduct, onStartService, onBack, onNewClient }: {
   client: Client | null;
   cart: Product[];
   total: number;
   products: Product[];
+  technicians: Technician[];
   onAddProduct: (product: Product) => void;
   onRemoveProduct: (index: number) => void;
-  onStartService: () => void;
+  onStartService: (tecId?: string, tecName?: string) => void;
   onBack: () => void;
   onNewClient: () => void;
 }) {
+  const [selectedTec, setSelectedTec] = useState<string>('');
+  const [showTecSelect, setShowTecSelect] = useState(false);
+
+  const handleStartService = () => {
+    const tec = technicians.find(t => t.id === selectedTec);
+    onStartService(selectedTec || undefined, tec?.name || undefined);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -537,9 +731,9 @@ function SalesView({ client, cart, total, products, onAddProduct, onRemoveProduc
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">Vendas</h1>
+            <h1 className="text-xl font-bold">Vendas e Produtos</h1>
             <p className="text-sm text-muted-foreground">
-              Cliente: {client?.name}
+              Cliente: {client?.name} - {client?.phone}
             </p>
           </div>
         </div>
@@ -587,7 +781,7 @@ function SalesView({ client, cart, total, products, onAddProduct, onRemoveProduc
         <CardContent>
           {cart.length === 0 ? (
             <p className="text-center text-muted-foreground py-4">
-              Nenhum produto adicionado
+              Selecione os produtos para adicionar ao carrinho
             </p>
           ) : (
             <div className="space-y-2">
@@ -619,9 +813,47 @@ function SalesView({ client, cart, total, products, onAddProduct, onRemoveProduc
         </CardContent>
       </Card>
 
+      {/* Technician Selection */}
+      {technicians.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Selecionar Tecnico para o Servico
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {technicians.map((tec) => (
+                <button
+                  key={tec.id}
+                  onClick={() => setSelectedTec(tec.id)}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    selectedTec === tec.id 
+                      ? 'border-orange-500 bg-orange-50' 
+                      : 'hover:border-muted-foreground/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${selectedTec === tec.id ? 'bg-orange-500' : 'bg-muted'}`} />
+                    <span className="font-medium">{tec.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            {selectedTec && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                <Check className="w-4 h-4 inline mr-1 text-green-500" />
+                Tecnico selecionado: {technicians.find(t => t.id === selectedTec)?.name}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Action */}
       <Button 
-        onClick={onStartService}
+        onClick={handleStartService}
         className="w-full h-14 text-lg bg-orange-500"
         disabled={cart.length === 0}
       >
@@ -670,7 +902,7 @@ function ServiceView({ service, cart, total, onFinish, onBack }: {
             </div>
             <div className="p-3 bg-muted/30 rounded-lg">
               <p className="text-xs text-muted-foreground">Placa</p>
-              <p className="font-medium">{service?.plate}</p>
+              <p className="font-medium font-mono">{service?.plate}</p>
             </div>
           </div>
           
@@ -736,8 +968,91 @@ function FinalizeView({ service, onSave, onBack }: {
   const funcCanvasRef = useRef<HTMLCanvasElement>(null);
   const clientCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDrawingFunc, setIsDrawingFunc] = useState(false);
+  const [isDrawingClient, setIsDrawingClient] = useState(false);
 
   const isValid = photos.length > 0 && signatureFuncionario && signatureCliente;
+
+  // Initialize canvases
+  useEffect(() => {
+    if (funcCanvasRef.current) {
+      const canvas = funcCanvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (clientCanvasRef.current) {
+      const canvas = clientCanvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+      }
+    }
+  }, []);
+
+  const getCanvasCoords = (canvas: HTMLCanvasElement, e: React.MouseEvent | React.TouchEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    if ('touches' in e) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  };
+
+  const startDrawing = (
+    e: React.MouseEvent | React.TouchEvent,
+    canvas: HTMLCanvasElement,
+    setter: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    e.preventDefault();
+    setter(true);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const coords = getCanvasCoords(canvas, e);
+    ctx.beginPath();
+    ctx.moveTo(coords.x, coords.y);
+  };
+
+  const draw = (
+    e: React.MouseEvent | React.TouchEvent,
+    canvas: HTMLCanvasElement,
+    isDrawing: boolean,
+    setter: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const coords = getCanvasCoords(canvas, e);
+    ctx.lineTo(coords.x, coords.y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setter(false);
+  };
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -758,30 +1073,29 @@ function FinalizeView({ service, onSave, onBack }: {
     setPhotos(photos.filter((_, i) => i !== index));
   };
 
-  const clearSignature = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
+  const clearSignature = (canvasRef: React.RefObject<HTMLCanvasElement | null>, setter: React.Dispatch<React.SetStateAction<string>>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setter('');
   };
 
-  const saveSignature = (canvasRef: React.RefObject<HTMLCanvasElement>, setter: (sig: string) => void) => {
+  const saveSignature = (canvasRef: React.RefObject<HTMLCanvasElement | null>, setter: React.Dispatch<React.SetStateAction<string>>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    setter(canvas.toDataURL('image/png'));
+    const dataUrl = canvas.toDataURL('image/png');
+    setter(dataUrl);
   };
 
   const handleSave = async () => {
     setSaving(true);
     
-    // Convert file photos to base64 if needed
-    const finalPhotos = await Promise.all(photos.map(async (p) => {
-      if (p.file) {
-        return { url: p.url, type: p.type };
-      }
-      return { url: p.url, type: p.type };
+    const finalPhotos = photos.map((p) => ({
+      url: p.url,
+      type: p.type
     }));
 
     onSave({
@@ -896,7 +1210,7 @@ function FinalizeView({ service, onSave, onBack }: {
               <Pen className="w-5 h-5" />
               Assinatura do Funcionario
             </span>
-            {signatureFuncionario && <Badge variant="outline" className="text-green-600">Salva</Badge>}
+            {signatureFuncionario && <Badge variant="outline" className="text-green-600 border-green-500">Assinatura Salva</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -905,42 +1219,29 @@ function FinalizeView({ service, onSave, onBack }: {
               ref={funcCanvasRef}
               width={500}
               height={150}
-              className="w-full touch-none"
-              onMouseDown={(e) => {
-                const canvas = funcCanvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.beginPath();
-                ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-              }}
-              onMouseMove={(e) => {
-                const canvas = funcCanvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return;
-                if (e.buttons === 1) {
-                  ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-                  ctx.stroke();
-                }
-              }}
+              className="w-full touch-none cursor-crosshair"
+              onMouseDown={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
+              onMouseMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
+              onMouseUp={() => stopDrawing(setIsDrawingFunc)}
+              onMouseLeave={() => stopDrawing(setIsDrawingFunc)}
+              onTouchStart={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
+              onTouchMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
+              onTouchEnd={() => stopDrawing(setIsDrawingFunc)}
             />
             {!signatureFuncionario && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <p className="text-muted-foreground/50 text-sm">Desenhe aqui</p>
+                <p className="text-muted-foreground/50 text-sm">Desenhe sua assinatura aqui</p>
               </div>
             )}
           </div>
           <div className="flex gap-2 mt-2">
-            <Button size="sm" variant="outline" onClick={() => clearSignature(funcCanvasRef)}>
-              <Eraser className="w-4 h-4 mr-1" />
+            <Button size="sm" variant="outline" onClick={() => clearSignature(funcCanvasRef, setSignatureFuncionario)}>
+              <X className="w-4 h-4 mr-1" />
               Limpar
             </Button>
             <Button size="sm" className="bg-orange-500" onClick={() => saveSignature(funcCanvasRef, setSignatureFuncionario)}>
               <Save className="w-4 h-4 mr-1" />
-              Salvar
+              Salvar Assinatura
             </Button>
           </div>
         </CardContent>
@@ -954,7 +1255,7 @@ function FinalizeView({ service, onSave, onBack }: {
               <Pen className="w-5 h-5" />
               Assinatura do Cliente
             </span>
-            {signatureCliente && <Badge variant="outline" className="text-green-600">Salva</Badge>}
+            {signatureCliente && <Badge variant="outline" className="text-green-600 border-green-500">Assinatura Salva</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -963,42 +1264,29 @@ function FinalizeView({ service, onSave, onBack }: {
               ref={clientCanvasRef}
               width={500}
               height={150}
-              className="w-full touch-none"
-              onMouseDown={(e) => {
-                const canvas = clientCanvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.beginPath();
-                ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-              }}
-              onMouseMove={(e) => {
-                const canvas = clientCanvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return;
-                if (e.buttons === 1) {
-                  ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-                  ctx.stroke();
-                }
-              }}
+              className="w-full touch-none cursor-crosshair"
+              onMouseDown={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
+              onMouseMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
+              onMouseUp={() => stopDrawing(setIsDrawingClient)}
+              onMouseLeave={() => stopDrawing(setIsDrawingClient)}
+              onTouchStart={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
+              onTouchMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
+              onTouchEnd={() => stopDrawing(setIsDrawingClient)}
             />
             {!signatureCliente && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <p className="text-muted-foreground/50 text-sm">Cliente assina aqui</p>
+                <p className="text-muted-foreground/50 text-sm">Cliente: assine aqui para confirmar o servico</p>
               </div>
             )}
           </div>
           <div className="flex gap-2 mt-2">
-            <Button size="sm" variant="outline" onClick={() => clearSignature(clientCanvasRef)}>
-              <Eraser className="w-4 h-4 mr-1" />
+            <Button size="sm" variant="outline" onClick={() => clearSignature(clientCanvasRef, setSignatureCliente)}>
+              <X className="w-4 h-4 mr-1" />
               Limpar
             </Button>
             <Button size="sm" className="bg-green-600" onClick={() => saveSignature(clientCanvasRef, setSignatureCliente)}>
               <Save className="w-4 h-4 mr-1" />
-              Salvar
+              Salvar Assinatura do Cliente
             </Button>
           </div>
         </CardContent>
@@ -1007,19 +1295,19 @@ function FinalizeView({ service, onSave, onBack }: {
       {/* Observations */}
       <Card>
         <CardHeader>
-          <CardTitle>Observacoes</CardTitle>
+          <CardTitle>Observacoes Finais</CardTitle>
         </CardHeader>
         <CardContent>
           <textarea
             value={observations}
             onChange={(e) => setObservations(e.target.value)}
-            placeholder="Observacoes sobre o servico..."
+            placeholder="Observacoes sobre o servico realizado..."
             className="w-full p-3 rounded-xl border bg-transparent min-h-[100px] resize-none"
           />
         </CardContent>
       </Card>
 
-      {/* Action */}
+      {/* Final Action */}
       <Button 
         onClick={handleSave}
         disabled={!isValid || saving}
@@ -1033,10 +1321,19 @@ function FinalizeView({ service, onSave, onBack }: {
         ) : (
           <>
             <CheckCircle className="w-5 h-5 mr-2" />
-            Concluir Servico
+            Concluir e Salvar Servico
           </>
         )}
       </Button>
+
+      {/* Validation Info */}
+      {!isValid && (
+        <div className="text-center text-sm text-muted-foreground">
+          {!photos.length && <p>Adicione pelo menos 1 foto</p>}
+          {!signatureFuncionario && <p>Salve a assinatura do funcionario</p>}
+          {!signatureCliente && <p>Salve a assinatura do cliente</p>}
+        </div>
+      )}
     </div>
   );
 }
