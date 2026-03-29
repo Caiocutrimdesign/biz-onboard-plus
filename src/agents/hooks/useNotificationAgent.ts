@@ -207,6 +207,7 @@ export function useNotificationAgent(config: NotificationAgentConfig = DEFAULT_C
         recipient: apt.leadName || 'unknown',
         subject: `Lembrete: ${apt.title}`,
         message: `Você tem um compromisso amanhã: ${apt.title} às ${new Date(apt.startDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+        status: 'pending',
       };
 
       sendNotification(notification);
