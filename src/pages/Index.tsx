@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { VitrineCarousel } from '@/components/vitrine/VitrineCarousel';
 import { RegistrationFlow } from '@/components/registration/RegistrationFlow';
-import { LogosCarousel } from '@/components/ui/LogosCarousel';
 
 const Index = () => {
   const [mode, setMode] = useState<'vitrine' | 'cadastro'>('vitrine');
@@ -9,10 +8,7 @@ const Index = () => {
   return (
     <>
       {mode === 'vitrine' && (
-        <>
-          <VitrineCarousel onStartRegistration={() => setMode('cadastro')} />
-          <LogosCarousel />
-        </>
+        <VitrineCarousel onStartRegistration={() => setMode('cadastro')} />
       )}
       {mode === 'cadastro' && (
         <RegistrationFlow onClose={() => setMode('vitrine')} />

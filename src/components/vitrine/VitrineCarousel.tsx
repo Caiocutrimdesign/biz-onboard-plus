@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo3D } from '@/components/ui/Logo3D';
+import { LogosCarousel } from '@/components/ui/LogosCarousel';
 
 const slides = [
   {
@@ -176,6 +177,9 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gray-950">
+      {/* Logos Carousel - Top Bar */}
+      <LogosCarousel />
+      
       {/* Background */}
       <div className="absolute inset-0">
         <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} transition-all duration-1000`} style={{ opacity: 0.95 }} />
@@ -240,7 +244,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                 <Button
                   onClick={onStartRegistration}
                   size="lg"
-                  className="h-14 px-8 text-lg bg-white text-gray-900 font-semibold rounded-xl hover:bg-white/90 shadow-2xl shadow-black/20 transition-all hover:scale-105"
+                  className="h-14 px-8 text-lg bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 shadow-2xl shadow-black/20 transition-all hover:scale-105"
                 >
                   Começar Agora
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -248,32 +252,21 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                 <Button
                   onClick={() => setShowInfo(true)}
                   size="lg"
-                  variant="outline"
-                  className="h-14 px-8 text-lg border-2 border-primary text-white font-semibold rounded-xl hover:bg-primary/20 backdrop-blur-md transition-all"
+                  className="h-14 px-8 text-lg bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 backdrop-blur-md transition-all"
                 >
                   <Eye className="mr-2 w-5 h-5" />
                   saiba mais
                 </Button>
               </div>
 
-              {/* Trust Badges */}
-              <div className="flex items-center gap-6 pt-4">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-white/60" />
-                  <span className="text-white/60 text-sm">Feito no Maranhão</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-white/60" />
-                  <span className="text-white/60 text-sm">Conexão Zica</span>
-                </div>
-              </div>
+
             </div>
 
             {/* Right Visual */}
             <div className="hidden lg:block relative">
               <div className="relative">
                 {/* Main Card */}
-                <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-primary p-6 shadow-2xl">
+                <div className="bg-primary/20 backdrop-blur-xl rounded-3xl border border-primary p-6 shadow-2xl">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
@@ -282,7 +275,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                     <Clock className="w-5 h-5 text-white/50" />
                   </div>
 
-                  <div className="bg-white/5 rounded-2xl h-48 mb-4 flex items-center justify-center relative overflow-hidden">
+                  <div className="bg-primary/10 rounded-2xl h-48 mb-4 flex items-center justify-center relative overflow-hidden">
                     <MapPin className="w-16 h-16 text-white/20" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       {[...Array(8)].map((_, i) => (
@@ -296,26 +289,26 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-white/5 rounded-xl p-3 text-center">
-                      <Eye className="w-5 h-5 text-green-400 mx-auto mb-1" />
+                    <div className="bg-primary/10 rounded-xl p-3 text-center">
+                      <Eye className="w-5 h-5 text-white mx-auto mb-1" />
                       <p className="text-white font-bold">Tá de Olho</p>
-                      <p className="text-white/50 text-xs">24 horas</p>
+                      <p className="text-white/70 text-xs">24 horas</p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-3 text-center">
-                      <Shield className="w-5 h-5 text-green-400 mx-auto mb-1" />
+                    <div className="bg-primary/10 rounded-xl p-3 text-center">
+                      <Shield className="w-5 h-5 text-white mx-auto mb-1" />
                       <p className="text-white font-bold">Tá Seguro</p>
-                      <p className="text-white/50 text-xs">100% tranquilo</p>
+                      <p className="text-white/70 text-xs">100% tranquilo</p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-3 text-center">
-                      <Check className="w-5 h-5 text-green-400 mx-auto mb-1" />
+                    <div className="bg-primary/10 rounded-xl p-3 text-center">
+                      <Check className="w-5 h-5 text-white mx-auto mb-1" />
                       <p className="text-white font-bold">Tudo Tranquilo</p>
-                      <p className="text-white/50 text-xs">Sem alertas</p>
+                      <p className="text-white/70 text-xs">Sem alertas</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Floating Cards */}
-                <div className="absolute -left-8 top-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-primary animate-bounce" style={{ animationDuration: '3s' }}>
+                <div className="absolute -left-8 top-1/4 bg-primary/20 backdrop-blur-md rounded-2xl p-4 border border-primary animate-bounce" style={{ animationDuration: '3s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
                       <Check className="w-5 h-5 text-green-400" />
@@ -327,7 +320,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                   </div>
                 </div>
 
-                <div className="absolute -right-4 bottom-1/4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-primary animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>
+                <div className="absolute -right-4 bottom-1/4 bg-primary/20 backdrop-blur-md rounded-2xl p-4 border border-primary animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
                       <Zap className="w-5 h-5 text-blue-400" />
@@ -346,13 +339,13 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
 
       {/* Bottom Navigation */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-full px-6 py-3 border border-primary">
+        <div className="flex items-center gap-4 bg-primary/20 backdrop-blur-md rounded-full px-6 py-3 border border-primary">
           {slides.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setCurrent(i)}
               className={`h-2 rounded-full transition-all duration-500 ${
-                i === current ? 'w-12 bg-white' : 'w-2 bg-white/30 hover:bg-white/50'
+                i === current ? 'w-12 bg-primary' : 'w-2 bg-white/30 hover:bg-primary/50'
               }`}
             />
           ))}
