@@ -30,7 +30,7 @@ const fullMenuItems = [
   { id: 'shell', label: 'SHELL', icon: ShoppingCart, path: '/shell', color: 'text-cyan-500' },
 ];
 
-export default function SuperLayout({ children, showCRM = true, showFullMenu = true }: SuperLayoutProps) {
+export default function SuperLayout({ children, showCRM = true, showFullMenu = false }: SuperLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -39,7 +39,7 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = t
 
   const isInTEC = location.pathname.startsWith('/tec') || location.pathname.startsWith('/erp') || location.pathname.startsWith('/shell');
   const isTechnician = (user?.role as string) === 'technician';
-  const menuItems = (isInTEC && isTechnician) ? tecMenuItems : (showFullMenu ? fullMenuItems : tecMenuItems);
+  const menuItems = isTechnician ? tecMenuItems : fullMenuItems;
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
