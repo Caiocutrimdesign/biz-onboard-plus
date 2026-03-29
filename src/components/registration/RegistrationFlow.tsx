@@ -13,6 +13,7 @@ import { StepNotes } from './StepNotes';
 import { StepSuccess } from './StepSuccess';
 import { useRegistrationStore } from '@/store/registrationStore';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { sendWelcomeEmail } from '@/lib/emailService';
 
 const TOTAL_STEPS = 8;
 const IDLE_TIMEOUT = 120000;
@@ -149,10 +150,32 @@ export function RegistrationFlow({ onClose }: Props) {
         await supabase.from('leads').insert(leadData);
         
         console.log('✅ Cadastro salvo no Supabase com sucesso!');
+        
+        if (data.email) {
+          console.log('📧 Enviando email de boas-vindas...');
+          await sendWelcomeEmail({
+            to: data.email,
+            customerName: data.full_name || 'Cliente',
+            plan: data.plan,
+            vehicle: data.brand && data.model ? `${data.brand} ${data.model}` : undefined,
+            plate: data.plate,
+          });
+        }
       } else {
         console.warn('⚠️ Supabase não configurado, salvando localmente...');
         saveToLocalStorage(customerData);
         console.log('✅ Cadastro salvo localmente!');
+        
+        if (data.email) {
+          console.log('📧 Enviando email de boas-vindas (local)...');
+          await sendWelcomeEmail({
+            to: data.email,
+            customerName: data.full_name || 'Cliente',
+            plan: data.plan,
+            vehicle: data.brand && data.model ? `${data.brand} ${data.model}` : undefined,
+            plate: data.plate,
+          });
+        }
       }
 
       next();
@@ -185,6 +208,18 @@ export function RegistrationFlow({ onClose }: Props) {
       saveToLocalStorage(customerData);
       
       console.log('✅ Cadastro salvo localmente como fallback!');
+      
+      if (data.email) {
+        console.log('📧 Enviando email de boas-vindas (fallback)...');
+        await sendWelcomeEmail({
+          to: data.email,
+          customerName: data.full_name || 'Cliente',
+          plan: data.plan,
+          vehicle: data.brand && data.model ? `${data.brand} ${data.model}` : undefined,
+          plate: data.plate,
+        });
+      }
+      
       next();
     } finally {
       setIsSubmitting(false);
