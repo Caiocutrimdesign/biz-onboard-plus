@@ -441,13 +441,15 @@ function HomeView({ services, loading, onNewClient, userName }: {
           </h1>
           <p className="text-muted-foreground">Bem-vindo, {userName}</p>
         </div>
-        <Button 
-          onClick={onNewClient} 
-          className="bg-orange-500 hover:bg-orange-600"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Servico
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={onNewClient} 
+            className="bg-orange-500 hover:bg-orange-600"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Servico
+          </Button>
+        </div>
       </div>
 
       {/* Quick Stats */}

@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerStatus } from '@/types/customer';
 import { customerService } from '@/lib/customerService';
-import { tecService } from '@/lib/tecService';
+import { getTecnicos } from '@/contexts/AuthContext';
 import type { Technician } from '@/types/tec';
 
 const WESALES_KEY = 'wesales_api_key';
@@ -76,8 +76,17 @@ export default function ClientsSection() {
   const loadTechnicians = async () => {
     setLoadingTechnicians(true);
     try {
-      const techs = await tecService.getAllTechnicians();
-      setTechnicians(techs.filter(t => t.active !== false));
+      const tecnicos = getTecnicos();
+      const techs: Technician[] = tecnicos.map(t => ({
+        id: t.id,
+        name: t.name,
+        email: t.email,
+        phone: t.phone || '',
+        cpf: t.cpf || '',
+        status: (t.active ? 'active' : 'inactive') as 'active' | 'inactive',
+        created_at: t.created_at || new Date().toISOString(),
+      }));
+      setTechnicians(techs);
     } catch (e) {
       console.error('Erro ao carregar técnicos:', e);
     }
