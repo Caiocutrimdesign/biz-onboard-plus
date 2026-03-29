@@ -76,7 +76,7 @@ export function useNormalizerAgent(config: NormalizerConfig = DEFAULT_CONFIG) {
       lng,
       speed: Math.min(raw.speed || 0, config.maxSpeed),
       heading: raw.heading || raw.direction || 0,
-      ignition: raw.ignition ?? raw ACC_STATUS === 'ON' ?? true,
+      ignition: raw.ignition ?? (raw.ACC_STATUS === 'ON') ?? true,
       battery: raw.battery ?? raw.volt ?? 100,
       timestamp: parseDate(raw.datetime || raw.time || raw.timestamp),
       protocol: 'TK103',
