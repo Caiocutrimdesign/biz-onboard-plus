@@ -137,11 +137,13 @@ export default function TECPage() {
         id: t.id,
         name: t.name,
         email: t.email,
-        phone: t.phone,
-        cpf: t.cpf,
-        status: t.active ? 'active' as const : 'inactive' as const,
-        created_at: t.created_at,
+        phone: t.phone || '',
+        cpf: t.cpf || '',
+        status: (t.active ? 'active' : 'inactive') as 'active' | 'inactive',
+        created_at: t.created_at || new Date().toISOString(),
       }));
+      
+      console.log('Técnicos carregados:', registeredTecnicos);
       
       setServices(filteredServices);
       setTechnicians(registeredTecnicos);
@@ -1198,42 +1200,52 @@ function SalesView({ client, cart, total, products, technicians, onAddProduct, o
       </Card>
 
       {/* Technician Selection */}
-      {technicians.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Selecionar Tecnico para o Servico
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="w-5 h-5" />
+            Selecionar Tecnico para o Servico
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {technicians.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">
+              Nenhum técnico cadastrado. Cadastre técnicos no painel Admin &gt; Cadastro Tec
+            </p>
+          ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {technicians.map((tec) => (
                 <button
                   key={tec.id}
                   onClick={() => setSelectedTec(tec.id)}
+                  disabled={tec.status === 'inactive'}
                   className={`p-3 rounded-xl border text-left transition-all ${
                     selectedTec === tec.id 
                       ? 'border-orange-500 bg-orange-50' 
-                      : 'hover:border-muted-foreground/30'
+                      : tec.status === 'inactive'
+                        ? 'opacity-50 cursor-not-allowed bg-muted/30'
+                        : 'hover:border-muted-foreground/30'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${selectedTec === tec.id ? 'bg-orange-500' : 'bg-muted'}`} />
+                    <div className={`w-3 h-3 rounded-full ${selectedTec === tec.id ? 'bg-orange-500' : tec.status === 'inactive' ? 'bg-red-400' : 'bg-muted'}`} />
                     <span className="font-medium">{tec.name}</span>
+                    {tec.status === 'inactive' && (
+                      <Badge variant="outline" className="text-xs ml-1">Inativo</Badge>
+                    )}
                   </div>
                 </button>
               ))}
             </div>
-            {selectedTec && (
-              <p className="mt-3 text-sm text-muted-foreground">
-                <Check className="w-4 h-4 inline mr-1 text-green-500" />
-                Tecnico selecionado: {technicians.find(t => t.id === selectedTec)?.name}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
+          )}
+          {selectedTec && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              <Check className="w-4 h-4 inline mr-1 text-green-500" />
+              Tecnico selecionado: {technicians.find(t => t.id === selectedTec)?.name}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Action */}
       <Button 
