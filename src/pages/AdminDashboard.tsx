@@ -120,8 +120,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} flex flex-col bg-surface-dark border-r border-border transition-all duration-300`}>
+      {/* Sidebar - Desktop */}
+      <aside className={`hidden lg:flex flex-col ${isSidebarOpen ? 'w-64' : 'w-20'} bg-surface-dark border-r border-border transition-all duration-300`}>
         <div className="flex h-20 items-center justify-center border-b border-border px-4">
           <div className="flex items-center gap-2">
             <Logo3D size={isSidebarOpen ? 48 : 40} animated={false} />
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -173,42 +173,42 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b bg-card">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-muted rounded-lg">
+        <header className="h-14 md:h-16 flex items-center justify-between px-3 md:px-6 border-b bg-card">
+          <div className="flex items-center gap-2 md:gap-4">
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-muted rounded-lg lg:hidden">
               <Menu className="h-5 w-5" />
             </button>
-            <h1 className="text-xl font-bold capitalize">{activeModule}</h1>
+            <h1 className="text-lg md:text-xl font-bold capitalize">{activeModule}</h1>
           </div>
           
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={handleCRMNavigation}>
-              <Zap className="w-4 h-4 mr-2" />
-              CRM Completo
+          <div className="flex items-center gap-2 md:gap-4">
+            <Button variant="outline" size="sm" onClick={handleCRMNavigation} className="text-xs md:text-sm px-2 md:px-4">
+              <Zap className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">CRM Completo</span>
             </Button>
             <div className="relative p-2 text-muted-foreground">
-              <Bell className="h-5 w-5" />
+              <Bell className="h-4 w-4 md:h-5 md:w-5" />
               <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full" />
             </div>
-            <div className="h-9 w-9 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-sm">
+            <div className="h-8 w-8 md:h-9 md:w-9 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-xs md:text-sm">
               {user?.name?.charAt(0).toUpperCase() || 'A'}
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 md:p-6">
           {/* Dashboard View */}
           {activeModule === 'dashboard' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* Welcome */}
-              <div className="rounded-2xl bg-gradient-to-r from-primary to-orange-500 p-6 text-white">
-                <div className="flex items-center justify-between">
+              <div className="rounded-xl md:rounded-2xl bg-gradient-to-r from-primary to-orange-500 p-4 md:p-6 text-white">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold">Bem-vindo, {user?.name || 'Administrador'}!</h2>
-                    <p className="text-white/70 mt-1">Resumo da sua operação hoje</p>
+                    <h2 className="text-lg md:text-2xl font-bold">Bem-vindo, {user?.name || 'Administrador'}!</h2>
+                    <p className="text-white/70 mt-1 text-sm md:text-base">Resumo da sua operação hoje</p>
                   </div>
-                  <Button onClick={handleCRMNavigation} className="bg-white/20 hover:bg-white/30 text-white border-0">
+                  <Button onClick={handleCRMNavigation} className="bg-white/20 hover:bg-white/30 text-white border-0 w-full md:w-auto">
                     <BarChart3 className="w-4 h-4 mr-2" />
                     Ver CRM
                   </Button>
@@ -217,26 +217,26 @@ export default function AdminDashboard() {
 
               {/* Birthday Section */}
               {birthdays.length > 0 && (
-                <div className="rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 p-6 text-white">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Gift className="h-6 w-6" />
-                    <h3 className="text-lg font-bold">Aniversariantes de Hoje</h3>
+                <div className="rounded-xl md:rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 p-4 md:p-6 text-white">
+                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <Gift className="h-5 w-5 md:h-6 md:w-6" />
+                    <h3 className="text-base md:text-lg font-bold">Aniversariantes de Hoje</h3>
                     <Badge className="bg-white/20 text-white">{birthdays.length}</Badge>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2 md:space-y-3">
                     {birthdays.map((b: any) => (
-                      <div key={b.id} className="flex items-center justify-between bg-white/10 rounded-xl p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <Gift className="h-5 w-5" />
+                      <div key={b.id} className="flex items-center justify-between bg-white/10 rounded-lg md:rounded-xl p-2 md:p-3">
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <Gift className="h-4 w-4 md:h-5 md:w-5" />
                           </div>
                           <div>
-                            <p className="font-medium">{b.full_name}</p>
-                            <p className="text-sm text-white/70">{b.phone}</p>
+                            <p className="font-medium text-sm md:text-base">{b.full_name}</p>
+                            <p className="text-xs md:text-sm text-white/70">{b.phone}</p>
                           </div>
                         </div>
-                        <Button onClick={() => sendBirthdayMessage(b)} size="sm" className="bg-white/20 hover:bg-white/30 text-white border-0">
-                          <MessageSquare className="w-4 h-4 mr-2" />
+                        <Button onClick={() => sendBirthdayMessage(b)} size="sm" className="bg-white/20 hover:bg-white/30 text-white border-0 h-8 md:h-9">
+                          <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                           Enviar
                         </Button>
                       </div>

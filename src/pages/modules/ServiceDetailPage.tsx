@@ -295,7 +295,7 @@ export default function ServiceDetailPage({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {fotosInicio.map((foto, index) => (
                 <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
                   <img src={foto} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
@@ -397,7 +397,7 @@ export default function ServiceDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {fotosFinal.map((foto, index) => (
                   <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
                     <img src={foto} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
@@ -535,7 +535,7 @@ export default function ServiceDetailPage({
                 <CardTitle className="text-base">Fotos Iniciais</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {(currentService.fotos_inicio || fotosInicio).map((foto, index) => (
                     <img 
                       key={index} 
@@ -553,7 +553,7 @@ export default function ServiceDetailPage({
                 <CardTitle className="text-base">Fotos da Finalização</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {(currentService.fotos_final || fotosFinal).map((foto, index) => (
                     <img 
                       key={index} 

@@ -87,63 +87,64 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Wrench className="w-7 h-7 text-orange-500" />
+          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+            <Wrench className="w-5 h-5 md:w-7 md:h-7 text-orange-500" />
             Meus Serviços
           </h1>
-          <p className="text-muted-foreground">Gerencie seus serviços</p>
+          <p className="text-muted-foreground text-sm">Gerencie seus serviços</p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="bg-orange-500 hover:bg-orange-600">
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Serviço
+        <Button onClick={() => setShowCreateDialog(true)} className="bg-orange-500 hover:bg-orange-600 h-9 md:h-10">
+          <Plus className="w-4 h-4 md:mr-2" />
+          <span className="hidden md:inline">Novo Serviço</span>
+          <span className="md:hidden">Novo</span>
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <User className="w-5 h-5 text-purple-600" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <User className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.designado}</p>
+              <p className="text-lg md:text-xl font-bold">{stats.designado}</p>
               <p className="text-xs text-muted-foreground">Designados</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Play className="w-5 h-5 text-blue-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <Play className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.emAndamento}</p>
+              <p className="text-lg md:text-xl font-bold">{stats.emAndamento}</p>
               <p className="text-xs text-muted-foreground">Em Andamento</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.finalized}</p>
+              <p className="text-lg md:text-xl font-bold">{stats.finalized}</p>
               <p className="text-xs text-muted-foreground">Finalizados</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-              <FileText className="w-5 h-5 text-gray-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <FileText className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.total}</p>
+              <p className="text-lg md:text-xl font-bold">{stats.total}</p>
               <p className="text-xs text-muted-foreground">Total</p>
             </div>
           </div>
@@ -152,10 +153,10 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
 
       {/* Tabs */}
       <div className="bg-white rounded-xl border p-2">
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => setActiveTab('designados')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+            className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-lg md:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
               activeTab === 'designados' 
                 ? 'bg-orange-500 text-white shadow-md' 
                 : 'bg-muted/50 text-muted-foreground hover:bg-muted'
@@ -163,13 +164,13 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
           >
             <CheckCircle className="w-4 h-4" />
             <span>Designados</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'designados' ? 'bg-white/20' : 'bg-muted'}`}>
+            <span className={`px-1.5 md:px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'designados' ? 'bg-white/20' : 'bg-muted'}`}>
               {stats.designado}
             </span>
           </button>
           <button
             onClick={() => setActiveTab('todos')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+            className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-lg md:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
               activeTab === 'todos' 
                 ? 'bg-orange-500 text-white shadow-md' 
                 : 'bg-muted/50 text-muted-foreground hover:bg-muted'
@@ -177,7 +178,7 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
           >
             <FileText className="w-4 h-4" />
             <span>Todos</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'todos' ? 'bg-white/20' : 'bg-muted'}`}>
+            <span className={`px-1.5 md:px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'todos' ? 'bg-white/20' : 'bg-muted'}`}>
               {stats.total}
             </span>
           </button>
@@ -204,28 +205,28 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
               key={service.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-card border rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-card border rounded-lg md:rounded-xl p-3 md:p-4 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => {
                 setSelectedService(service);
                 setShowDetailPage(true);
               }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-3 md:gap-4 min-w-0">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 ${
                     SERVICE_STATUS_COLORS[service.status]?.replace('text-', 'bg-').replace('800', '100') || 'bg-gray-100'
                   }`}>
-                    <Wrench className={`w-6 h-6 ${
+                    <Wrench className={`w-5 h-5 md:w-6 md:h-6 ${
                       SERVICE_STATUS_COLORS[service.status]?.replace('bg-', 'text-').replace('100', '600') || 'text-gray-600'
                     }`} />
                   </div>
-                  <div>
-                    <p className="font-medium">{service.cliente_name}</p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Phone className="w-3 h-3" />
-                      {service.cliente_phone}
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{service.cliente_name}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1 md:gap-2">
+                      <Phone className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{service.cliente_phone}</span>
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs md:text-sm text-muted-foreground truncate">
                       {SERVICE_TYPE_LABELS[service.tipo_servico as ServiceType] || service.tipo_servico}
                     </p>
                     {service.data_agendamento && (
@@ -236,36 +237,36 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Badge className={SERVICE_STATUS_COLORS[service.status]}>
                     {SERVICE_STATUS_LABELS[service.status]}
                   </Badge>
                   {service.status === 'designado' && (
                     <Button 
                       size="sm" 
-                      className="bg-blue-500 hover:bg-blue-600"
+                      className="bg-blue-500 hover:bg-blue-600 h-8"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedService(service);
                         setShowStartDialog(true);
                       }}
                     >
-                      <Play className="w-4 h-4 mr-1" />
-                      Iniciar
+                      <Play className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                      <span className="hidden md:inline">Iniciar</span>
                     </Button>
                   )}
                   {service.status === 'em_andamento' && (
                     <Button 
                       size="sm" 
-                      className="bg-green-500 hover:bg-green-600"
+                      className="bg-green-500 hover:bg-green-600 h-8"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedService(service);
                         setShowDetailPage(true);
                       }}
                     >
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Finalizar
+                      <CheckCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                      <span className="hidden md:inline">Finalizar</span>
                     </Button>
                   )}
                 </div>

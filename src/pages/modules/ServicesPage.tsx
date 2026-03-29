@@ -109,92 +109,94 @@ export default function ServicesPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Wrench className="w-7 h-7 text-orange-500" />
-            Serviços
+          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+            <Wrench className="w-5 h-5 md:w-7 md:h-7 text-orange-500" />
+            <span className="hidden sm:inline">Serviços</span>
+            <span className="sm:hidden">OS</span>
           </h1>
-          <p className="text-muted-foreground">Gerencie todos os serviços</p>
+          <p className="text-muted-foreground text-sm">Gerencie todos os serviços</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setShowCreate(true)} className="bg-orange-500 hover:bg-orange-600">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Serviço
+          <Button onClick={() => setShowCreate(true)} className="bg-orange-500 hover:bg-orange-600 h-9 md:h-10">
+            <Plus className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Novo Serviço</span>
+            <span className="md:hidden">Novo</span>
           </Button>
-          <Button onClick={loadData} variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Atualizar
+          <Button onClick={loadData} variant="outline" size="icon" className="h-9 md:h-10 md:w-auto md:px-3">
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden md:inline ml-2">Atualizar</span>
           </Button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-              <Wrench className="w-5 h-5 text-gray-600" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <Wrench className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
+              <p className="text-lg md:text-xl font-bold">{stats.total}</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Total</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-              <Clock className="w-5 h-5 text-yellow-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <Clock className="w-4 h-4 md:w-5 md:h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.pendente}</p>
-              <p className="text-xs text-muted-foreground">Pendente</p>
+              <p className="text-lg md:text-xl font-bold">{stats.pendente}</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Pendente</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <User className="w-5 h-5 text-purple-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <User className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.designado}</p>
-              <p className="text-xs text-muted-foreground">Designado</p>
+              <p className="text-lg md:text-xl font-bold">{stats.designado}</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Designado</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <ArrowRightCircle className="w-5 h-5 text-blue-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <ArrowRightCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.emAndamento}</p>
-              <p className="text-xs text-muted-foreground">Em Andamento</p>
+              <p className="text-lg md:text-xl font-bold">{stats.emAndamento}</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Em Andamento</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.finalized}</p>
-              <p className="text-xs text-muted-foreground">Finalizado</p>
+              <p className="text-lg md:text-xl font-bold">{stats.finalized}</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Finalizado</p>
             </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-              <XCircle className="w-5 h-5 text-red-600" />
+        <Card className="p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 rounded-lg md:rounded-xl flex items-center justify-center">
+              <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-xl font-bold">{stats.cancelado}</p>
-              <p className="text-xs text-muted-foreground">Cancelado</p>
+              <p className="text-lg md:text-xl font-bold">{stats.cancelado}</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Cancelado</p>
             </div>
           </div>
         </Card>
@@ -202,7 +204,7 @@ export default function ServicesPage() {
 
       {/* Tabs */}
       <div className="bg-white rounded-xl border p-2">
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -210,16 +212,16 @@ export default function ServicesPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all whitespace-nowrap
+                  flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 rounded-lg md:rounded-xl font-medium transition-all whitespace-nowrap text-sm md:text-base
                   ${isActive 
                     ? `${tab.activeBg} text-white shadow-md` 
                     : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                   }
                 `}
               >
-                {isActive && <CheckCircle className="w-4 h-4" />}
-                <span>{tab.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isActive ? 'bg-white/20' : 'bg-muted'}`}>
+                <span className="hidden md:inline">{tab.label}</span>
+                <span className="md:hidden">{tab.label.replace('Em Andamento', 'Andamento').replace('Finalizado', 'Final.')}</span>
+                <span className={`px-1.5 md:px-2 py-0.5 rounded-full text-xs font-bold ${isActive ? 'bg-white/20' : 'bg-muted'}`}>
                   {tab.count}
                 </span>
               </button>
@@ -230,21 +232,21 @@ export default function ServicesPage() {
 
       {/* Filters */}
       <div className="flex gap-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <div className="relative flex-1 min-w-[150px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
           <Input
-            placeholder="Buscar por cliente, telefone..."
+            placeholder="Buscar..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-12 rounded-xl"
+            className="pl-9 md:pl-10 h-10 md:h-12 rounded-lg md:rounded-xl"
           />
         </div>
         <Select value={techFilter} onValueChange={setTechFilter}>
-          <SelectTrigger className="w-48 h-12 rounded-xl">
+          <SelectTrigger className="w-full sm:w-40 md:w-48 h-10 md:h-12 rounded-lg md:rounded-xl">
             <SelectValue placeholder="Técnico" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os Técnicos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             {technicians.map(tech => (
               <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
             ))}
@@ -269,28 +271,28 @@ export default function ServicesPage() {
               key={service.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-card border rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-card border rounded-lg md:rounded-xl p-3 md:p-4 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => openDetail(service)}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-3 md:gap-4 min-w-0">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 ${
                     SERVICE_STATUS_COLORS[service.status]?.replace('text-', 'bg-').replace('800', '100') || 'bg-gray-100'
                   }`}>
-                    <Wrench className={`w-6 h-6 ${
+                    <Wrench className={`w-5 h-5 md:w-6 md:h-6 ${
                       SERVICE_STATUS_COLORS[service.status]?.replace('bg-', 'text-') || 'text-gray-600'
                     }`} />
                   </div>
-                  <div>
-                    <p className="font-medium">{service.cliente_name}</p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Phone className="w-3 h-3" />
-                      {service.cliente_phone}
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{service.cliente_name}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1 md:gap-2">
+                      <Phone className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{service.cliente_phone}</span>
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs md:text-sm text-muted-foreground truncate">
                       {SERVICE_TYPE_LABELS[service.tipo_servico as ServiceType] || service.tipo_servico}
                       {service.data_agendamento && (
-                        <span className="ml-2 flex items-center gap-1">
+                        <span className="ml-1 md:ml-2 flex items-center gap-0.5 md:gap-1">
                           <Calendar className="w-3 h-3" />
                           {new Date(service.data_agendamento).toLocaleDateString('pt-BR')}
                         </span>
@@ -298,8 +300,8 @@ export default function ServicesPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
+                <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                  <div className="text-right hidden sm:block">
                     {service.tecnico_name ? (
                       <p className="text-sm font-medium flex items-center gap-1">
                         <User className="w-3 h-3" />
@@ -312,7 +314,12 @@ export default function ServicesPage() {
                       {SERVICE_STATUS_LABELS[service.status]}
                     </Badge>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  <div className="sm:hidden">
+                    <Badge className={SERVICE_STATUS_COLORS[service.status]}>
+                      {SERVICE_STATUS_LABELS[service.status]}
+                    </Badge>
+                  </div>
+                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
                 </div>
               </div>
             </motion.div>
