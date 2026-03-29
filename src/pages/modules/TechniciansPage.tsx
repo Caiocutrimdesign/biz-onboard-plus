@@ -167,8 +167,11 @@ export default function TechniciansPage() {
   };
 
   const handleToggleActive = (tech: Tecnico) => {
-    updateTecnicoAuth(tech.id, { active: !tech.active });
+    const newStatus = !tech.active;
+    console.log(`Toggling technician ${tech.name}: ${tech.active} -> ${newStatus}`);
+    updateTecnicoAuth(tech.id, { active: newStatus });
     loadTechnicians();
+    console.log('After toggle, technicians:', getTecnicos().find(t => t.id === tech.id));
   };
 
   const handleDelete = (id: string) => {
@@ -272,11 +275,16 @@ export default function TechniciansPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => handleToggleActive(tech)}>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handleToggleActive(tech)}
+                      title={tech.active ? 'Desativar técnico' : 'Ativar técnico'}
+                    >
                       {tech.active ? (
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                        <EyeOff className="w-4 h-4 text-green-600" />
                       ) : (
-                        <Eye className="w-4 h-4 text-green-600" />
+                        <Eye className="w-4 h-4 text-red-500" />
                       )}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => openEditModal(tech)}>
