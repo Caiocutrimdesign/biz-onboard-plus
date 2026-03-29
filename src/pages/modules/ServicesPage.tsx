@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { 
   Wrench, Search, Filter, User, Calendar, CheckCircle, 
   Clock, XCircle, ChevronRight, Loader2, RefreshCw, 
-  History, UserPlus, Eye, Plus, Phone, MapPin, ArrowRightCircle
+  History, UserPlus, Eye, Plus, Phone, MapPin, ArrowRightCircle,
+  Image, FileText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -398,6 +399,53 @@ export default function ServicesPage() {
                 <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
                   <p className="text-xs text-green-600">Observações do Técnico</p>
                   <p className="font-medium">{selectedService.observacoes_tecnico}</p>
+                </div>
+              )}
+
+              {/* Fotos do Início */}
+              {selectedService.fotos_inicio && selectedService.fotos_inicio.length > 0 && (
+                <div className="bg-purple-50 border border-purple-200 p-3 rounded-lg">
+                  <p className="text-xs text-purple-600 font-medium mb-2 flex items-center gap-1">
+                    <Image className="w-3 h-3" />
+                    Fotos do Início ({selectedService.fotos_inicio.length})
+                  </p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {selectedService.fotos_inicio.map((foto, index) => (
+                      <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <img src={foto} alt={`Foto início ${index + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Fotos da Finalização */}
+              {selectedService.fotos_final && selectedService.fotos_final.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                  <p className="text-xs text-blue-600 font-medium mb-2 flex items-center gap-1">
+                    <Image className="w-3 h-3" />
+                    Fotos da Finalização ({selectedService.fotos_final.length})
+                  </p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {selectedService.fotos_final.map((foto, index) => (
+                      <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <img src={foto} alt={`Foto final ${index + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Assinatura do Cliente */}
+              {selectedService.assinatura_cliente && (
+                <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+                  <p className="text-xs text-orange-600 font-medium mb-2 flex items-center gap-1">
+                    <FileText className="w-3 h-3" />
+                    Assinatura do Cliente
+                  </p>
+                  <div className="border rounded-lg p-2 bg-white">
+                    <img src={selectedService.assinatura_cliente} alt="Assinatura do Cliente" className="h-24 mx-auto" />
+                  </div>
                 </div>
               )}
 
