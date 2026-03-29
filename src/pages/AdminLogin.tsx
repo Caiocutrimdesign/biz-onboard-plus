@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Lock, ArrowRight, Eye, EyeOff, Loader2, Mail, AlertCircle } from 'lucide-react';
+import { Shield, Lock, ArrowRight, Eye, EyeOff, Loader2, Mail, AlertCircle, Wrench, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Logo3D } from '@/components/ui/Logo3D';
 import { useAuth } from '@/contexts/AuthContext';
-import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -15,12 +14,10 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loginMode, setLoginMode] = useState<'admin' | 'tec'>('admin');
   
   const navigate = useNavigate();
-  const location = useLocation();
   const { login } = useAuth();
-
-  const supabaseConfigured = isSupabaseConfigured();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +36,12 @@ export default function AdminLogin() {
       
       if (result.success) {
         toast.success(`Bem-vindo, ${result.user?.name}!`);
-        const from = (location.state as any)?.from || '/admin';
-        navigate(from, { replace: true });
+        
+        if (loginMode === 'tec') {
+          navigate('/tec', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       } else {
         setError(result.error || 'Credenciais inválidas');
         toast.error(result.error || 'Credenciais inválidas');
@@ -51,6 +52,16 @@ export default function AdminLogin() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fillDemo = (mode: 'admin' | 'tec') => {
+    setLoginMode(mode);
+    if (mode === 'admin') {
+      setEmail('admin@rastremix.com');
+    } else {
+      setEmail('tecnico@rastremix.com');
+    }
+    setPassword('Rastremix2024!');
   };
 
   return (
@@ -71,31 +82,73 @@ export default function AdminLogin() {
           <div className="mb-6">
             <Logo3D size={160} animated={true} glowColor="primary" />
           </div>
+          
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => { setLoginMode('admin'); setEmail(''); setPassword(''); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                loginMode === 'admin' 
+                  ? 'bg-primary text-white' 
+                  : 'bg-surface-dark-foreground/10 text-surface-dark-foreground/50 hover:text-surface-dark-foreground'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              Admin
+            </button>
+            <button
+              onClick={() => { setLoginMode('tec'); setEmail(''); setPassword(''); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                loginMode === 'tec' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-surface-dark-foreground/10 text-surface-dark-foreground/50 hover:text-surface-dark-foreground'
+              }`}
+            >
+              <Wrench className="w-4 h-4" />
+              Técnico
+            </button>
+          </div>
+          
           <h1 className="font-display text-2xl font-bold tracking-tight text-surface-dark-foreground">
-            Acesso Restrito
+            {loginMode === 'admin' ? 'Acesso Admin' : 'Acesso Técnico'}
           </h1>
           <p className="mt-2 text-center text-sm text-surface-dark-foreground/50">
-            Entre com suas credenciais para acessar o sistema
+            {loginMode === 'admin' 
+              ? 'Entre com suas credenciais de administrador' 
+              : 'Entre com suas credenciais de técnico'}
           </p>
         </div>
 
-        {!supabaseConfigured && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20"
-          >
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-amber-500">Modo Demo</p>
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-500">
+                {loginMode === 'admin' ? 'Modo Demo Admin' : 'Modo Demo Técnico'}
+              </p>
+              <div className="mt-2 space-y-1">
+                <button 
+                  onClick={() => fillDemo('admin')}
+                  className="block text-xs text-amber-500/70 hover:text-amber-500 underline"
+                >
+                  Admin: admin@rastremix.com
+                </button>
+                <button 
+                  onClick={() => fillDemo('tec')}
+                  className="block text-xs text-amber-500/70 hover:text-amber-500 underline"
+                >
+                  Técnico: tecnico@rastremix.com
+                </button>
                 <p className="text-xs text-amber-500/70 mt-1">
-                  Use: <strong>admin@rastremix.com</strong> / <strong>Rastremix2024!</strong>
+                  Senha: <strong>Rastremix2024!</strong>
                 </p>
               </div>
             </div>
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
 
         {error && (
           <motion.div
@@ -148,14 +201,18 @@ export default function AdminLogin() {
           <Button 
             type="submit" 
             disabled={isLoading}
-            className="group bg-gradient-brand shadow-brand h-14 w-full text-lg font-bold text-primary-foreground transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+            className={`h-14 w-full text-lg font-bold transition-all active:scale-95 disabled:opacity-50 ${
+              loginMode === 'tec' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:opacity-90' 
+                : 'bg-gradient-brand shadow-brand hover:opacity-90'
+            }`}
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
-                Acessar Sistema
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                {loginMode === 'tec' ? 'Acessar TEC' : 'Acessar Sistema'}
+                <ArrowRight className="ml-2 h-5 w-5" />
               </>
             )}
           </Button>

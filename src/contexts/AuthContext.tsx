@@ -89,6 +89,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, user: demoUser };
       }
 
+      if (credentials.email === 'tecnico@rastremix.com' && credentials.password === 'Rastremix2024!') {
+        const techUser: User = {
+          id: 'demo-tech-001',
+          email: 'tecnico@rastremix.com',
+          name: 'Técnico Rastremix',
+          role: 'technician',
+          created_at: new Date().toISOString(),
+          active: true,
+        };
+        
+        const sessionData = {
+          user: techUser,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        setUser(techUser);
+        setIsLoading(false);
+        return { success: true, user: techUser };
+      }
+
       setIsLoading(false);
       return { success: false, error: 'Credenciais inválidas' };
 

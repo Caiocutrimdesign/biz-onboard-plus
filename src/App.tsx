@@ -21,6 +21,9 @@ import TECPage from "./pages/modules/TECPage";
 import ERPPage from "./pages/modules/ERPPage";
 import SHELLPage from "./pages/modules/SHELLPage";
 import AgentsMonitorPage from "./pages/modules/AgentsMonitorPage";
+import TECAdminPage from "./pages/modules/TECAdminPage";
+import TechniciansPage from "./pages/modules/TechniciansPage";
+import CRMAgentsPage from "./pages/modules/CRMAgentsPage";
 
 const queryClient = new QueryClient();
 
@@ -116,12 +119,41 @@ function AppRoutes() {
         }
       />
       
+      {/* CRM Management Routes */}
+      <Route
+        path="/crm/tecnicos"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <TechniciansPage />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/crm/agentes"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <CRMAgentsPage />
+          </ProtectedRoute>
+        }
+      />
+      
       {/* TEC Module */}
       <Route
         path="/tec"
         element={
           <ProtectedRoute allowedRoles={['admin', 'user', 'employee', 'technician']}>
             <TECPage />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* TEC Admin Panel */}
+      <Route
+        path="/tec/admin"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <TECAdminPage />
           </ProtectedRoute>
         }
       />
