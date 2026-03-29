@@ -5,6 +5,25 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html, body {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  button, a, input, select, textarea {
+    touch-action: manipulation;
+  }
+  
+  button:active, a:active {
+    opacity: 0.8;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 220 20% 10%;
