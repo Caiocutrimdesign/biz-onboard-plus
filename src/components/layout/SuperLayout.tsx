@@ -151,24 +151,19 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
       </aside>
 
       {/* Mobile Header */}
-      <div className="fixed inset-x-0 top-0 z-50 lg:hidden bg-white border-b border-gray-200 shadow-sm">
+      <div className="fixed inset-x-0 top-0 z-[100] lg:hidden bg-white border-b border-gray-200 shadow-sm">
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => {
-                console.log('Menu clicked, toggling...', !isMobileOpen);
-                setIsMobileOpen(!isMobileOpen);
+                console.log('Menu clicked!');
+                setIsMobileOpen((prev) => !prev);
               }}
-              className="p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors cursor-pointer touch-manipulation"
+              className="relative z-[101] p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 cursor-pointer"
               aria-label="Abrir menu"
-              aria-expanded={isMobileOpen}
             >
-              {isMobileOpen ? (
-                <X className="h-6 w-6 text-gray-700" />
-              ) : (
-                <Menu className="h-6 w-6 text-gray-700" />
-              )}
+              <Menu className="h-7 w-7 text-gray-800" />
             </button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
@@ -274,7 +269,7 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden pointer-events-auto">
         <main className="flex-1 overflow-y-auto pt-14 lg:pt-0">
           {children}
         </main>
