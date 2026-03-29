@@ -4,7 +4,7 @@ import {
   Wrench, Plus, X, Check, Camera, Pen, FileText, 
   Clock, User, Phone, Car, MapPin, DollarSign, Package,
   ChevronLeft, Save, Loader2, Trash2, AlertCircle,
-  CheckCircle, MapPinned, Image, Shield, Star
+  CheckCircle, MapPinned, Image, Shield, Star, ThumbsUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -208,6 +208,8 @@ export default function TECPage() {
     signatureFuncionario: string;
     signatureCliente: string;
     observations: string;
+    rating?: number;
+    comment?: string;
   }) => {
     if (!currentService) return;
     
@@ -216,11 +218,27 @@ export default function TECPage() {
         ...currentService,
         observations: serviceData.observations,
         signature: serviceData.signatureFuncionario,
+        status: 'concluido',
       } as any);
 
       // Save photos
       for (const photo of serviceData.photos) {
         await tecService.savePhotos(newService.id, [photo]);
+      }
+
+      // Save satisfaction rating
+      if (serviceData.rating && serviceData.rating > 0) {
+        try {
+          const satisfactionData = {
+            service_id: newService.id,
+            rating: serviceData.rating,
+            comment: serviceData.comment || '',
+            created_at: new Date().toISOString(),
+          };
+          localStorage.setItem(`tec_satisfaction_${newService.id}`, JSON.stringify(satisfactionData));
+        } catch (e) {
+          console.error('Error saving satisfaction:', e);
+        }
       }
 
       await loadData();
@@ -230,9 +248,6 @@ export default function TECPage() {
       setCurrentService({});
       setCart([]);
       setSaleTotal(0);
-      goTo('home');
-      
-      alert('Servico criado com sucesso!');
     } catch (e) {
       console.error('Error saving service:', e);
       alert('Erro ao salvar servico');
@@ -1243,16 +1258,24 @@ function FinalizeView({ service, onSave, onBack }: {
     signatureFuncionario: string;
     signatureCliente: string;
     observations: string;
+    rating?: number;
+    comment?: string;
   }) => void;
   onBack: () => void;
 }) {
   const [photos, setPhotos] = useState<Array<{ url: string; type: PhotoType; file?: File }>>([]);
   const [currentPhotoStep, setCurrentPhotoStep] = useState<1 | 2 | 3>(1);
   const [showSignatures, setShowSignatures] = useState(false);
+  const [showSatisfaction, setShowSatisfaction] = useState(false);
   const [signatureFuncionario, setSignatureFuncionario] = useState<string>('');
   const [signatureCliente, setSignatureCliente] = useState<string>('');
   const [observations, setObservations] = useState('');
   const [saving, setSaving] = useState(false);
+  
+  // Satisfaction
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState(false);
   
   const funcCanvasRef = useRef<HTMLCanvasElement>(null);
   const clientCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -1272,7 +1295,8 @@ function FinalizeView({ service, onSave, onBack }: {
 
   // Validation
   const signaturesComplete = signatureFuncionario && signatureCliente;
-  const canFinalize = step3Complete && signaturesComplete;
+  const satisfactionComplete = rating > 0;
+  const canFinalize = step3Complete && signaturesComplete && satisfactionComplete;
 
   // Initialize canvases
   useEffect(() => {
@@ -1404,6 +1428,10 @@ function FinalizeView({ service, onSave, onBack }: {
     if (step3Complete) setShowSignatures(true);
   };
 
+  const goToSatisfaction = () => {
+    if (signaturesComplete) setShowSatisfaction(true);
+  };
+
   const handleSave = async () => {
     if (!canFinalize) return;
     setSaving(true);
@@ -1418,8 +1446,11 @@ function FinalizeView({ service, onSave, onBack }: {
       signatureFuncionario,
       signatureCliente,
       observations,
+      rating,
+      comment,
     });
     
+    setShowSuccess(true);
     setSaving(false);
   };
 
@@ -1429,16 +1460,38 @@ function FinalizeView({ service, onSave, onBack }: {
 
   return (
     <div className="space-y-6">
+      {/* Success Screen */}
+      {showSuccess && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="fixed inset-0 bg-background z-50 flex items-center justify-center p-4"
+        >
+          <div className="text-center max-w-md">
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Servico Concluido!</h2>
+            <p className="text-muted-foreground mb-6">Obrigado pela sua avaliacao!</p>
+            <Button onClick={() => window.location.reload()} className="bg-green-600">
+              Novo Servico
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="ghost" onClick={showSatisfaction ? () => setShowSatisfaction(false) : onBack}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">Finalizar Servico</h1>
+            <h1 className="text-xl font-bold">
+              {showSatisfaction ? 'Avaliacao do Cliente' : showSignatures ? 'Assinaturas' : `Fotos ${currentStepLabel}`}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              {!showSignatures ? `Etapa ${currentPhotoStep} de 3: Fotos ${currentStepLabel}` : 'Assinaturas'}
+              {!showSignatures ? `Etapa ${currentPhotoStep} de 3` : showSatisfaction ? 'Avalie o servico' : 'Confirme com assinaturas'}
             </p>
           </div>
         </div>
@@ -1816,36 +1869,123 @@ function FinalizeView({ service, onSave, onBack }: {
                 value={observations}
                 onChange={(e) => setObservations(e.target.value)}
                 placeholder="Observacoes sobre o servico realizado..."
-                className="w-full p-3 rounded-xl border bg-transparent min-h-[100px] resize-none"
+                className="w-full p-3 rounded-xl border bg-transparent min-h-[80px] resize-none"
               />
             </CardContent>
           </Card>
 
-          {/* Final Action */}
-          <Button 
-            onClick={handleSave}
-            disabled={!canFinalize || saving}
-            className="w-full h-14 text-lg bg-green-600"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-5 h-5 mr-2" />
-                Concluir e Salvar Servico
-              </>
-            )}
-          </Button>
+          {/* Satisfaction Evaluation */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ThumbsUp className="w-5 h-5 text-primary" />
+                Avaliacao do Servico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Como voce avalia o servico prestado?
+              </p>
+              
+              {/* Star Rating */}
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="p-2 transition-transform hover:scale-110"
+                  >
+                    <Star 
+                      className={`w-12 h-12 transition-colors ${
+                        star <= rating 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              
+              {/* Rating Labels */}
+              <div className="text-center">
+                {rating === 1 && <p className="text-red-500 font-medium">Muito Ruim</p>}
+                {rating === 2 && <p className="text-orange-500 font-medium">Ruim</p>}
+                {rating === 3 && <p className="text-yellow-500 font-medium">Regular</p>}
+                {rating === 4 && <p className="text-lime-500 font-medium">Bom</p>}
+                {rating === 5 && <p className="text-green-500 font-medium">Excelente!</p>}
+                {rating === 0 && <p className="text-muted-foreground text-sm">Toque nas estrelas para avaliar</p>}
+              </div>
 
-          {/* Validation Info */}
-          {!canFinalize && (
-            <div className="text-center text-sm text-muted-foreground space-y-1">
-              {!signatureFuncionario && <p>Salve a assinatura do funcionario</p>}
-              {!signatureCliente && <p>Salve a assinatura do cliente</p>}
-            </div>
+              {/* Quick Feedback Tags */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {['Atendimento', 'Instalacao', 'Tempo', 'Qualidade'].map((tag) => (
+                  <span 
+                    key={tag}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                      comment.includes(tag) 
+                        ? 'bg-primary/10 border-primary text-primary' 
+                        : 'bg-muted border-muted-foreground/20 text-muted-foreground hover:border-primary/50'
+                    }`}
+                    onClick={() => setComment(comment ? `${comment}, ${tag}` : tag)}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Comment Field */}
+              <div>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Deixe um comentario (opcional)"
+                  className="w-full p-3 rounded-xl border bg-transparent min-h-[80px] resize-none text-sm"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Go to Satisfaction Button */}
+          {!showSatisfaction && signaturesComplete && (
+            <Button 
+              onClick={goToSatisfaction}
+              className="w-full h-14 text-lg bg-primary"
+            >
+              <ThumbsUp className="w-5 h-5 mr-2" />
+              Avaliar Servico
+            </Button>
+          )}
+
+          {/* Final Action */}
+          {showSatisfaction && (
+            <>
+              <Button 
+                onClick={handleSave}
+                disabled={!canFinalize || saving}
+                className="w-full h-14 text-lg bg-green-600"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    Concluir e Salvar Servico
+                  </>
+                )}
+              </Button>
+
+              {/* Validation Info */}
+              {!canFinalize && (
+                <div className="text-center text-sm text-muted-foreground space-y-1">
+                  {rating === 0 && <p>Selecione uma avaliacao (1-5 estrelas)</p>}
+                  {!signatureFuncionario && <p>Salve a assinatura do funcionario</p>}
+                  {!signatureCliente && <p>Salve a assinatura do cliente</p>}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
