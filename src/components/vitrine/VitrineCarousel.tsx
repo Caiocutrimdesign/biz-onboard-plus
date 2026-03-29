@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, MapPin, Zap, Phone, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import slideHero1 from '@/assets/slide-hero-1.jpg';
 import slideHero2 from '@/assets/slide-hero-2.jpg';
 import slideHero3 from '@/assets/slide-hero-3.jpg';
 import slideHero4 from '@/assets/slide-hero-4.jpg';
-import logo from '@/assets/logo-rastremix.png';
+import { Logo3D } from '@/components/ui/Logo3D';
 
 const slides = [
   {
@@ -69,7 +69,7 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
       </div>
 
       <div className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between p-6">
-        <img src={logo} alt="Rastremix" className="h-16 w-auto" />
+        <Logo3D size={64} animated={true} glowColor="white" />
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"

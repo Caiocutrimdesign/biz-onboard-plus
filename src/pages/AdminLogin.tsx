@@ -5,7 +5,7 @@ import { Shield, Lock, ArrowRight, Eye, EyeOff, Loader2, Mail, AlertCircle } fro
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import logo from '@/assets/logo-rastremix.png';
+import { Logo3D } from '@/components/ui/Logo3D';
 import { useAuth } from '@/contexts/AuthContext';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
@@ -67,8 +67,10 @@ export default function AdminLogin() {
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-surface-dark-foreground/10 bg-surface-dark/40 p-8 shadow-2xl backdrop-blur-xl"
       >
-        <div className="mb-10 flex flex-col items-center">
-          <img src={logo} alt="Rastremix" className="mb-6 h-24 w-auto" />
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-4">
+            <Logo3D size={100} animated={true} glowColor="primary" />
+          </div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-surface-dark-foreground">
             Acesso Restrito
           </h1>
