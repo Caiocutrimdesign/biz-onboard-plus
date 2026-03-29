@@ -13,6 +13,51 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const SESSION_KEY = 'biz_crm_session';
+const TECNICOS_KEY = 'rastremix_tecnicos';
+
+interface TecnicoUser {
+  id: string;
+  email: string;
+  name: string;
+  password?: string;
+  phone: string;
+  cpf: string;
+  active: boolean;
+  created_at: string;
+}
+
+export function getTecnicos(): TecnicoUser[] {
+  try {
+    const data = localStorage.getItem(TECNICOS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveTecnico(tecnico: TecnicoUser) {
+  const tecnicos = getTecnicos();
+  tecnicos.push(tecnico);
+  localStorage.setItem(TECNICOS_KEY, JSON.stringify(tecnicos));
+}
+
+export function updateTecnico(id: string, data: Partial<TecnicoUser>) {
+  const tecnicos = getTecnicos();
+  const index = tecnicos.findIndex(t => t.id === id);
+  if (index !== -1) {
+    tecnicos[index] = { ...tecnicos[index], ...data };
+    localStorage.setItem(TECNICOS_KEY, JSON.stringify(tecnicos));
+  }
+}
+
+export function deleteTecnico(id: string) {
+  const tecnicos = getTecnicos().filter(t => t.id !== id);
+  localStorage.setItem(TECNICOS_KEY, JSON.stringify(tecnicos));
+}
+
+export function findTecnicoByEmail(email: string): TecnicoUser | undefined {
+  return getTecnicos().find(t => t.email.toLowerCase() === email.toLowerCase());
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -77,16 +122,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, user: demoUser };
       }
 
-      if (emailLower === 'tecnico@rastremix.com' && password === 'Rastremix2024!') {
+      const tecnico = findTecnicoByEmail(emailLower);
+      if (tecnico) {
+        if (tecnico.password !== password) {
+          setIsLoading(false);
+          return { success: false, error: 'Senha incorreta' };
+        }
+        if (!tecnico.active) {
+          setIsLoading(false);
+          return { success: false, error: 'Técnico inativo. Contacte o administrador.' };
+        }
         const techUser: User = {
-          id: 'demo-tech-001',
-          email: 'tecnico@rastremix.com',
-          name: 'Tecnico Rastremix',
+          id: tecnico.id,
+          email: tecnico.email,
+          name: tecnico.name,
           role: 'technician',
-          created_at: new Date().toISOString(),
-          active: true,
+          created_at: tecnico.created_at,
+          active: tecnico.active,
+          phone: tecnico.phone,
+          cpf: tecnico.cpf,
         };
-        
         const sessionData = {
           user: techUser,
           timestamp: Date.now(),

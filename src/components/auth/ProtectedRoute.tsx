@@ -4,12 +4,12 @@ import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'user' | 'viewer')[];
+  allowedRoles?: ('admin' | 'user' | 'viewer' | 'technician' | 'employee')[];
 }
 
 export function ProtectedRoute({ 
   children, 
-  allowedRoles = ['admin', 'user', 'viewer'] 
+  allowedRoles = ['admin', 'user', 'viewer', 'technician', 'employee'] 
 }: ProtectedRouteProps) {
   const navigate = useNavigate();
   const location = useLocation();

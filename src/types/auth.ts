@@ -2,13 +2,14 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user' | 'viewer';
+  role: 'admin' | 'user' | 'viewer' | 'technician';
   avatar_url?: string;
   created_at: string;
   last_sign_in_at?: string;
   active?: boolean;
   phone?: string;
   department?: string;
+  cpf?: string;
 }
 
 export interface AuthState {
@@ -26,8 +27,9 @@ export interface RegisterData {
   email: string;
   password: string;
   name: string;
-  role?: 'admin' | 'user' | 'viewer';
+  role?: 'admin' | 'user' | 'viewer' | 'technician';
   phone?: string;
+  cpf?: string;
 }
 
 export interface AuthResponse {
