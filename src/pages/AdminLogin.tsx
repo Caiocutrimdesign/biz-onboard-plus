@@ -41,7 +41,7 @@ export default function AdminLogin() {
         if (loginMode === 'tec') {
           navigate('/tec', { replace: true });
         } else {
-          navigate('/dashboard', { replace: true });
+          navigate('/crm', { replace: true });
         }
       } else {
         setError(result.error || 'Credenciais invalidas');
