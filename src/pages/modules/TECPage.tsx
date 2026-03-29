@@ -4,7 +4,7 @@ import {
   Wrench, Plus, X, Check, Camera, Pen, FileText, 
   Clock, User, Phone, Car, MapPin, DollarSign, Package,
   ChevronLeft, Save, Loader2, Trash2, AlertCircle,
-  CheckCircle, MapPinned, Image
+  CheckCircle, MapPinned, Image, Shield, Star
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,15 +41,60 @@ type Product = {
   name: string;
   price: number;
   description?: string;
+  category: 'gps_plus' | 'central' | 'cobertura';
+  isMonthly?: boolean;
 };
 
+type CompanyCategory = {
+  id: 'gps_plus' | 'central' | 'cobertura';
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+};
+
+const COMPANIES: CompanyCategory[] = [
+  { 
+    id: 'gps_plus', 
+    name: 'GPS+', 
+    description: 'Rastreamento basico com localizacao em tempo real',
+    icon: 'MapPinned',
+    color: 'blue'
+  },
+  { 
+    id: 'central', 
+    name: 'Rastreamento com Central', 
+    description: 'Rastreamento + Central 24h + Bloqueio Remoto',
+    icon: 'Shield',
+    color: 'purple'
+  },
+  { 
+    id: 'cobertura', 
+    name: 'Cobertura / Protecao', 
+    description: 'Protecao + Seguro + Assistencia 24h (Filip / Top Pro)',
+    icon: 'Star',
+    color: 'amber'
+  },
+];
+
 const PRODUCTS: Product[] = [
-  { id: '1', name: 'Rastreador Basic', price: 297, description: 'Rastreador com monitoramento 24h' },
-  { id: '2', name: 'Rastreador Premium', price: 497, description: 'Rastreador + Bloqueio + App' },
-  { id: '3', name: 'Rastreador Gold', price: 697, description: 'Rastreador + Bloqueio + App + Seguro' },
-  { id: '4', name: 'Instalacao', price: 150, description: 'Servico de instalacao' },
-  { id: '5', name: 'Mensalidade Basic', price: 49.90, description: 'Taxa mensal Basic' },
-  { id: '6', name: 'Mensalidade Premium', price: 79.90, description: 'Taxa mensal Premium' },
+  // GPS+ Products
+  { id: 'gps_1', name: 'Kit GPS+ Basic', price: 297, description: 'Equipamento + Instalacao', category: 'gps_plus' },
+  { id: 'gps_2', name: 'Mensalidade GPS+ Basic', price: 49.90, description: 'Taxa mensal', category: 'gps_plus', isMonthly: true },
+  
+  // Central Products
+  { id: 'cen_1', name: 'Kit Central Premium', price: 497, description: 'Equipamento + Central 24h + App', category: 'central' },
+  { id: 'cen_2', name: 'Kit Central Gold', price: 697, description: 'Equipamento + Central + Bloqueio + App', category: 'central' },
+  { id: 'cen_3', name: 'Mensalidade Central', price: 79.90, description: 'Taxa mensal', category: 'central', isMonthly: true },
+  
+  // Cobertura Products
+  { id: 'cob_1', name: 'Protecao Filip Basic', price: 397, description: 'Protecao + Assistencia', category: 'cobertura' },
+  { id: 'cob_2', name: 'Protecao Filip Plus', price: 597, description: 'Protecao + Seguro + Assistencia', category: 'cobertura' },
+  { id: 'cob_3', name: 'Top Pro Cobertura', price: 797, description: 'Cobertura Total + Seguro Completo', category: 'cobertura' },
+  { id: 'cob_4', name: 'Mensalidade Cobertura', price: 99.90, description: 'Taxa mensal', category: 'cobertura', isMonthly: true },
+  
+  // Additional Services
+  { id: 'inst_1', name: 'Instalacao', price: 150, description: 'Servico de instalacao', category: 'gps_plus' },
 ];
 
 export default function TECPage() {
@@ -838,11 +883,35 @@ function SalesView({ client, cart, total, products, technicians, onAddProduct, o
   onNewClient: () => void;
 }) {
   const [selectedTec, setSelectedTec] = useState<string>('');
-  const [showTecSelect, setShowTecSelect] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<'gps_plus' | 'central' | 'cobertura' | null>(null);
+  const [showPlans, setShowPlans] = useState(false);
+
+  const filteredProducts = selectedCompany 
+    ? products.filter(p => p.category === selectedCompany)
+    : [];
 
   const handleStartService = () => {
     const tec = technicians.find(t => t.id === selectedTec);
     onStartService(selectedTec || undefined, tec?.name || undefined);
+  };
+
+  const selectCompany = (companyId: 'gps_plus' | 'central' | 'cobertura') => {
+    setSelectedCompany(companyId);
+    setShowPlans(true);
+  };
+
+  const goBackToCompanies = () => {
+    setSelectedCompany(null);
+    setShowPlans(false);
+  };
+
+  const getCompanyColor = (color: string) => {
+    const colors: Record<string, string> = {
+      blue: 'bg-blue-500',
+      purple: 'bg-purple-500',
+      amber: 'bg-amber-500',
+    };
+    return colors[color] || 'bg-primary';
   };
 
   return (
@@ -850,13 +919,15 @@ function SalesView({ client, cart, total, products, technicians, onAddProduct, o
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="ghost" onClick={showPlans ? goBackToCompanies : onBack}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">Vendas e Produtos</h1>
+            <h1 className="text-xl font-bold">
+              {showPlans ? 'Selecione os Planos' : 'Escolha a Categoria'}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              Cliente: {client?.name} - {client?.phone}
+              Cliente: {client?.name}
             </p>
           </div>
         </div>
@@ -865,30 +936,124 @@ function SalesView({ client, cart, total, products, technicians, onAddProduct, o
         </Button>
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {products.map((product) => (
-          <Card key={product.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => onAddProduct(product)}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Package className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">{product.description}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-lg">R$ {product.price.toFixed(2)}</p>
-                  <p className="text-xs text-muted-foreground">Toque para add</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Progress Indicator */}
+      <div className="flex items-center gap-2 text-sm">
+        <div className={`flex items-center gap-2 ${!showPlans ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+            !showPlans ? 'bg-primary text-primary-foreground' : 'bg-green-500 text-white'
+          }`}>
+            {!showPlans ? '1' : <Check className="w-4 h-4" />}
+          </div>
+          <span>Categoria</span>
+        </div>
+        <div className="flex-1 h-0.5 bg-muted">
+          <div className={`h-full transition-all ${showPlans ? 'bg-primary w-full' : 'w-0'}`} />
+        </div>
+        <div className={`flex items-center gap-2 ${showPlans ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+            showPlans ? 'bg-primary text-primary-foreground' : 'bg-muted'
+          }`}>
+            2
+          </div>
+          <span>Planos</span>
+        </div>
       </div>
+
+      {/* Company Selection (Step 1) */}
+      {!showPlans && (
+        <div className="space-y-4">
+          <p className="text-center text-muted-foreground mb-4">
+            Selecione a categoria do produto/servico:
+          </p>
+          
+          <div className="grid grid-cols-1 gap-4">
+            {COMPANIES.map((company) => (
+              <Card 
+                key={company.id}
+                className="cursor-pointer hover:border-primary/50 hover:shadow-lg transition-all border-2"
+                onClick={() => selectCompany(company.id)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-16 h-16 rounded-2xl ${getCompanyColor(company.color)} flex items-center justify-center shadow-lg`}>
+                      {company.id === 'gps_plus' && <MapPinned className="w-8 h-8 text-white" />}
+                      {company.id === 'central' && <Shield className="w-8 h-8 text-white" />}
+                      {company.id === 'cobertura' && <Star className="w-8 h-8 text-white" />}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold">{company.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{company.description}</p>
+                    </div>
+                    <ChevronLeft className="w-6 h-6 text-muted-foreground rotate-180" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Plans Grid (Step 2) */}
+      {showPlans && selectedCompany && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Planos disponiveis para {COMPANIES.find(c => c.id === selectedCompany)?.name}:
+            </p>
+            <Badge variant="outline">{filteredProducts.length} planos</Badge>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-3">
+            {filteredProducts.map((product) => (
+              <Card 
+                key={product.id} 
+                className="cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => !product.isMonthly && onAddProduct(product)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        product.isMonthly ? 'bg-yellow-100' : 'bg-green-100'
+                      }`}>
+                        {product.isMonthly ? (
+                          <Clock className="w-5 h-5 text-yellow-600" />
+                        ) : (
+                          <Package className="w-5 h-5 text-green-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">{product.description}</p>
+                        {product.isMonthly && (
+                          <Badge variant="outline" className="mt-1 text-xs bg-yellow-50">Mensalidade</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-lg text-green-600">
+                        R$ {product.price.toFixed(2)}
+                      </p>
+                      {!product.isMonthly && (
+                        <Button size="sm" className="mt-2 bg-green-500" onClick={() => onAddProduct(product)}>
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add
+                        </Button>
+                      )}
+                      {product.isMonthly && (
+                        <Button size="sm" variant="outline" className="mt-2" onClick={() => onAddProduct(product)}>
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Cart */}
       <Card>
@@ -904,7 +1069,7 @@ function SalesView({ client, cart, total, products, technicians, onAddProduct, o
         <CardContent>
           {cart.length === 0 ? (
             <p className="text-center text-muted-foreground py-4">
-              Selecione os produtos para adicionar ao carrinho
+              {showPlans ? 'Selecione os produtos para adicionar ao carrinho' : 'Selecione uma categoria primeiro'}
             </p>
           ) : (
             <div className="space-y-2">
