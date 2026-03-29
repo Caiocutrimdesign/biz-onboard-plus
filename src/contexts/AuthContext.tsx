@@ -210,7 +210,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     const emailLower = credentials.email.toLowerCase().trim();
-    const password = credentials.password;
+    const password = credentials.password.trim();
     
     migrateTecnicosToUsers();
     
@@ -327,10 +327,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (isSupabaseConfigured() && supabase) {
+        console.log('Attempting Supabase login with:', { email: emailLower, passwordLength: password.length });
+        
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: credentials.email,
-          password: credentials.password,
+          email: emailLower,
+          password: password,
         });
+        
+        console.log('Supabase response:', { error: authError, hasUser: !!authData?.user });
 
         if (authError) {
           setIsLoading(false);
@@ -344,8 +348,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const user: User = {
           id: authData.user.id,
-          email: authData.user.email || credentials.email,
-          name: authData.user.user_metadata?.name || credentials.email.split('@')[0],
+          email: authData.user.email || emailLower,
+          name: authData.user.user_metadata?.name || emailLower.split('@')[0],
           role: 'user',
           created_at: authData.user.created_at,
           active: true,
