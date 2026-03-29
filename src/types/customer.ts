@@ -78,6 +78,8 @@ export interface CustomerRegistration {
   // TEC
   satisfaction?: any;
   tec_service_id?: string;
+  technician_id?: string;
+  technician_name?: string;
   // Meta
   status?: CustomerStatus;
   created_at?: string;

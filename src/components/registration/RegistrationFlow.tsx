@@ -8,6 +8,7 @@ import { StepPersonalData } from './StepPersonalData';
 import { StepAddress } from './StepAddress';
 import { StepVehicle } from './StepVehicle';
 import { StepPlan } from './StepPlan';
+import { StepTechnician } from './StepTechnician';
 import { StepPayment } from './StepPayment';
 import { StepNotes } from './StepNotes';
 import { StepSuccess } from './StepSuccess';
@@ -17,7 +18,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { sendWelcomeEmail } from '@/lib/emailService';
 import { generateWhatsAppLink, generateSatisfactionLink } from '@/lib/whatsappService';
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 const IDLE_TIMEOUT = 120000;
 
 interface Props {
@@ -43,6 +44,8 @@ interface CustomerData {
   color?: string;
   plan?: string;
   payment_method?: string;
+  technician_id?: string;
+  technician_name?: string;
   status: string;
   created_at: string;
 }
@@ -115,6 +118,8 @@ export function RegistrationFlow({ onClose }: Props) {
         color: data.color || '',
         plan: data.plan || '',
         payment_method: data.payment_method || '',
+        technician_id: data.technician_id || '',
+        technician_name: data.technician_name || '',
         status: 'novo_cadastro',
         created_at: new Date().toISOString(),
       };
@@ -272,9 +277,10 @@ export function RegistrationFlow({ onClose }: Props) {
           {currentStep === 2 && <StepAddress key="address" onNext={next} onBack={back} />}
           {currentStep === 3 && <StepVehicle key="vehicle" onNext={next} onBack={back} />}
           {currentStep === 4 && <StepPlan key="plan" onNext={next} onBack={back} />}
-          {currentStep === 5 && <StepPayment key="payment" onNext={next} onBack={back} />}
-          {currentStep === 6 && <StepNotes key="notes" onNext={handleSubmit} onBack={back} isSubmitting={isSubmitting} />}
-          {currentStep === 7 && (
+          {currentStep === 5 && <StepTechnician key="technician" onNext={next} onBack={back} />}
+          {currentStep === 6 && <StepPayment key="payment" onNext={next} onBack={back} />}
+          {currentStep === 7 && <StepNotes key="notes" onNext={handleSubmit} onBack={back} isSubmitting={isSubmitting} />}
+          {currentStep === 8 && (
             <StepSatisfaction
               key="satisfaction"
               onNext={next}
@@ -286,7 +292,7 @@ export function RegistrationFlow({ onClose }: Props) {
               customerName={data.full_name || 'Cliente'}
             />
           )}
-          {currentStep === 8 && <StepSuccess key="success" onNewRegistration={handleNewRegistration} onGoHome={handleGoHome} />}
+          {currentStep === 9 && <StepSuccess key="success" onNewRegistration={handleNewRegistration} onGoHome={handleGoHome} />}
         </AnimatePresence>
       </div>
     </div>

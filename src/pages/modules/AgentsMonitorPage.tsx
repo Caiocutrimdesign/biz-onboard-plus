@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import SuperLayout from '@/components/layout/SuperLayout';
+import DesignationAgentPanel from '@/components/agents/DesignationAgentPanel';
 
 interface Agent {
   id: string;
@@ -273,6 +274,9 @@ export default function AgentsMonitorPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Designation Agent Panel */}
+        <DesignationAgentPanel />
 
         {/* Filters */}
         <div className="flex gap-4 flex-wrap">
