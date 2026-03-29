@@ -155,10 +155,20 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors"
+              type="button"
+              onClick={() => {
+                console.log('Menu clicked, toggling...', !isMobileOpen);
+                setIsMobileOpen(!isMobileOpen);
+              }}
+              className="p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors cursor-pointer touch-manipulation"
+              aria-label="Abrir menu"
+              aria-expanded={isMobileOpen}
             >
-              <Menu className="h-6 w-6 text-gray-700" />
+              {isMobileOpen ? (
+                <X className="h-6 w-6 text-gray-700" />
+              ) : (
+                <Menu className="h-6 w-6 text-gray-700" />
+              )}
             </button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
