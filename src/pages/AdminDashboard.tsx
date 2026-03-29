@@ -13,29 +13,7 @@ import logo from '@/assets/logo-rastremix.png';
 import ClientsSection from '@/components/clients/ClientsSection';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration } from '@/types/customer';
 
-const MOCK_CUSTOMERS: CustomerRegistration[] = [
-  {
-    id: '1', full_name: 'Carlos Silva', phone: '(11) 99999-1111', cpf_cnpj: '123.456.789-00',
-    email: 'carlos@email.com', cep: '01001-000', street: 'Rua A', number: '100', neighborhood: 'Centro',
-    city: 'São Paulo', state: 'SP', vehicle_type: 'carro', plate: 'ABC-1234', brand: 'Volkswagen',
-    model: 'Gol', year: '2022', color: 'Prata', plan: 'completo', payment_method: 'pix',
-    status: 'novo_cadastro', created_at: '2026-03-28T10:00:00Z',
-  },
-  {
-    id: '2', full_name: 'Ana Oliveira', phone: '(21) 98888-2222', cpf_cnpj: '987.654.321-00',
-    email: 'ana@email.com', cep: '20040-020', street: 'Rua B', number: '200', neighborhood: 'Copacabana',
-    city: 'Rio de Janeiro', state: 'RJ', vehicle_type: 'moto', plate: 'DEF-5678', brand: 'Honda',
-    model: 'CG 160', year: '2024', color: 'Vermelha', plan: 'bloqueio', payment_method: 'cartao',
-    status: 'em_atendimento', created_at: '2026-03-27T14:30:00Z',
-  },
-  {
-    id: '3', full_name: 'Roberto Santos', phone: '(31) 97777-3333', cpf_cnpj: '11.222.333/0001-44',
-    email: 'roberto@empresa.com', cep: '30130-000', street: 'Av C', number: '300', neighborhood: 'Savassi',
-    city: 'Belo Horizonte', state: 'MG', vehicle_type: 'frota', plate: 'GHI-9012', brand: 'Fiat',
-    model: 'Strada', year: '2023', color: 'Branco', plan: 'frota', payment_method: 'boleto',
-    status: 'cliente_ativado', created_at: '2026-03-25T09:15:00Z',
-  },
-];
+const MOCK_CUSTOMERS: CustomerRegistration[] = [];
 
 type Module = 'dashboard' | 'clientes' | 'financeiro' | 'rastreamento' | 'config';
 
@@ -61,7 +39,7 @@ export default function AdminDashboard() {
       const localData = localStorage.getItem('rastremix_customers');
       if (localData) {
         const localCustomers = JSON.parse(localData);
-        setAllCustomers([...localCustomers, ...MOCK_CUSTOMERS]);
+        setAllCustomers([...localCustomers]);
       }
     } catch (error) {
       console.error('Erro ao carregar clientes:', error);

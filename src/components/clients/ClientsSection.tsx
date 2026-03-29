@@ -13,43 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerStatus } from '@/types/customer';
 
-const MOCK_CUSTOMERS: CustomerRegistration[] = [
-  {
-    id: '1', full_name: 'Carlos Silva', phone: '(11) 99999-1111', cpf_cnpj: '123.456.789-00',
-    email: 'carlos@email.com', cep: '01001-000', street: 'Rua A', number: '100', neighborhood: 'Centro',
-    city: 'São Paulo', state: 'SP', vehicle_type: 'carro', plate: 'ABC-1234', brand: 'Volkswagen',
-    model: 'Gol', year: '2022', color: 'Prata', plan: 'completo', payment_method: 'pix',
-    status: 'novo_cadastro', created_at: '2026-03-28T10:00:00Z',
-  },
-  {
-    id: '2', full_name: 'Ana Oliveira', phone: '(21) 98888-2222', cpf_cnpj: '987.654.321-00',
-    email: 'ana@email.com', cep: '20040-020', street: 'Rua B', number: '200', neighborhood: 'Copacabana',
-    city: 'Rio de Janeiro', state: 'RJ', vehicle_type: 'moto', plate: 'DEF-5678', brand: 'Honda',
-    model: 'CG 160', year: '2024', color: 'Vermelha', plan: 'bloqueio', payment_method: 'cartao',
-    status: 'em_atendimento', created_at: '2026-03-27T14:30:00Z',
-  },
-  {
-    id: '3', full_name: 'Roberto Santos', phone: '(31) 97777-3333', cpf_cnpj: '11.222.333/0001-44',
-    email: 'roberto@empresa.com', cep: '30130-000', street: 'Av C', number: '300', neighborhood: 'Savassi',
-    city: 'Belo Horizonte', state: 'MG', vehicle_type: 'frota', plate: 'GHI-9012', brand: 'Fiat',
-    model: 'Strada', year: '2023', color: 'Branco', plan: 'frota', payment_method: 'boleto',
-    status: 'cliente_ativado', created_at: '2026-03-25T09:15:00Z',
-  },
-  {
-    id: '4', full_name: 'Marina Costa', phone: '(19) 96666-4444', cpf_cnpj: '555.666.777-88',
-    email: 'marina.costa@gmail.com', cep: '13020-000', street: 'Rua D', number: '450', neighborhood: 'Cambui',
-    city: 'Campinas', state: 'SP', vehicle_type: 'carro', plate: 'JKL-3456', brand: 'Toyota',
-    model: 'Corolla', year: '2025', color: 'Preto', plan: 'completo', payment_method: 'pix',
-    status: 'cliente_ativado', created_at: '2026-03-24T11:00:00Z',
-  },
-  {
-    id: '5', full_name: 'Fernando Lima', phone: '(41) 95555-5555', cpf_cnpj: '222.333.444-55',
-    email: 'fernando.lima@outlook.com', cep: '80010-000', street: 'Av Brasil', number: '1200', neighborhood: 'Centro',
-    city: 'Curitiba', state: 'PR', vehicle_type: 'moto', plate: 'MNO-7890', brand: 'Yamaha',
-    model: 'Fazer', year: '2023', color: 'Azul', plan: 'basico', payment_method: 'cartao',
-    status: 'novo_cadastro', created_at: '2026-03-28T08:30:00Z',
-  },
-];
+const MOCK_CUSTOMERS: CustomerRegistration[] = [];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -280,7 +244,21 @@ const ClientCard = ({ customer, onView }: { customer: CustomerRegistration; onVi
   );
 };
 
-const DetailModal = ({ customer, open, onClose }: { customer: CustomerRegistration | null; open: boolean; onClose: () => void }) => {
+const DetailModal = ({ 
+  customer, 
+  open, 
+  onClose, 
+  onActivate,
+  onReject,
+  onEdit 
+}: { 
+  customer: CustomerRegistration | null; 
+  open: boolean; 
+  onClose: () => void;
+  onActivate?: (id: string) => void;
+  onReject?: (id: string) => void;
+  onEdit?: (customer: CustomerRegistration) => void;
+}) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl rounded-3xl border-none p-0 overflow-hidden bg-card shadow-2xl">
@@ -447,15 +425,26 @@ const DetailModal = ({ customer, open, onClose }: { customer: CustomerRegistrati
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Button className="flex-1 bg-gradient-brand h-14 rounded-2xl font-bold shadow-brand hover:shadow-xl transition-all group">
+              <Button 
+                onClick={() => customer && onActivate?.(customer.id)}
+                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 h-14 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all group"
+              >
                 <CheckCircle2 className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                 Ativar Cliente
               </Button>
-              <Button variant="outline" className="flex-1 h-14 rounded-2xl font-bold border-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive">
+              <Button 
+                onClick={() => customer && onReject?.(customer.id)}
+                variant="outline" 
+                className="flex-1 h-14 rounded-2xl font-bold border-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive"
+              >
                 <AlertCircle className="w-5 h-5 mr-2" />
                 Reprovar
               </Button>
-              <Button variant="ghost" className="h-14 rounded-2xl font-bold px-8 hover:bg-primary/5 hover:text-primary transition-colors">
+              <Button 
+                onClick={() => customer && onEdit?.(customer)}
+                variant="ghost" 
+                className="h-14 rounded-2xl font-bold px-8 hover:bg-primary/5 hover:text-primary transition-colors"
+              >
                 Editar
               </Button>
             </motion.div>
@@ -471,26 +460,66 @@ export default function ClientsSection() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRegistration | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [allCustomers, setAllCustomers] = useState<CustomerRegistration[]>(MOCK_CUSTOMERS);
+  const [allCustomers, setAllCustomers] = useState<CustomerRegistration[]>([]);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     loadCustomers();
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadCustomers();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const loadCustomers = async () => {
+  const loadCustomers = () => {
     try {
-      let localCustomers: CustomerRegistration[] = [];
-      
       const localData = localStorage.getItem('rastremix_customers');
       if (localData) {
-        localCustomers = JSON.parse(localData);
+        const customers = JSON.parse(localData);
+        setAllCustomers(customers);
+      } else {
+        setAllCustomers([]);
       }
-      
-      setAllCustomers([...localCustomers, ...MOCK_CUSTOMERS]);
     } catch (error) {
       console.error('Erro ao carregar clientes:', error);
-      setAllCustomers(MOCK_CUSTOMERS);
+      setAllCustomers([]);
     }
+  };
+
+  const saveCustomers = (customers: CustomerRegistration[]) => {
+    try {
+      localStorage.setItem('rastremix_customers', JSON.stringify(customers));
+      setAllCustomers(customers);
+    } catch (error) {
+      console.error('Erro ao salvar clientes:', error);
+    }
+  };
+
+  const handleActivate = (id: string) => {
+    const updated = allCustomers.map(c => 
+      c.id === id ? { ...c, status: 'cliente_ativado' as CustomerStatus } : c
+    );
+    saveCustomers(updated);
+    setDetailOpen(false);
+  };
+
+  const handleReject = (id: string) => {
+    const updated = allCustomers.map(c => 
+      c.id === id ? { ...c, status: 'cancelado' as CustomerStatus } : c
+    );
+    saveCustomers(updated);
+    setDetailOpen(false);
+  };
+
+  const handleEdit = (customer: CustomerRegistration) => {
+    setSelectedCustomer(customer);
+    setEditMode(true);
+    setDetailOpen(false);
   };
 
   const filteredCustomers = useMemo(() => {
@@ -701,6 +730,9 @@ export default function ClientsSection() {
         customer={selectedCustomer}
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
+        onActivate={handleActivate}
+        onReject={handleReject}
+        onEdit={handleEdit}
       />
     </div>
   );
