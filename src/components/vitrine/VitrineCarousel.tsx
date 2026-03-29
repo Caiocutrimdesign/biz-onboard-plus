@@ -183,14 +183,160 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
       {/* Background */}
       <div className="absolute inset-0">
         <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} transition-all duration-1000`} style={{ opacity: 0.95 }} />
+        
+        {/* Grid Pattern - GPS Map Style */}
         <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px',
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px',
         }} />
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-white/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl animate-pulse" />
+        
+        {/* Animated Radar Sweep - Slide 1 */}
+        {slide.id === 'welcome' && (
+          <>
+            <div className="absolute inset-0 flex items-center justify-end pr-20 overflow-hidden">
+              <div className="relative w-[600px] h-[600px]">
+                <div className="absolute inset-0 border-2 border-white/10 rounded-full animate-spin" style={{ animationDuration: '8s' }} />
+                <div className="absolute inset-8 border-2 border-white/15 rounded-full animate-spin" style={{ animationDuration: '6s', animationDirection: 'reverse' }} />
+                <div className="absolute inset-16 border-2 border-white/20 rounded-full animate-spin" style={{ animationDuration: '4s' }} />
+                <div className="absolute inset-24 border border-white/30 rounded-full animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 bg-green-400 rounded-full animate-ping shadow-lg shadow-green-400/50" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-1/4 right-1/4 w-4 h-4 bg-white/20 rounded-full animate-ping" />
+            <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-white/15 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+            <div className="absolute top-1/2 right-1/5 w-5 h-5 bg-white/10 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+          </>
+        )}
+        
+        {/* GPS Signal Waves - Slide 2 */}
+        {slide.id === 'tracking' && (
+          <>
+            <div className="absolute top-1/3 left-1/4">
+              <div className="relative">
+                <div className="w-4 h-4 bg-cyan-400 rounded-full shadow-lg shadow-cyan-400/50" />
+                <div className="absolute inset-0 w-4 h-4 bg-cyan-400 rounded-full animate-ping" />
+                <div className="absolute inset-0 w-8 h-8 border-2 border-cyan-400/50 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute inset-0 w-12 h-12 border border-cyan-400/30 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+                <div className="absolute inset-0 w-16 h-16 border border-cyan-400/20 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
+              </div>
+            </div>
+            <div className="absolute bottom-1/3 right-1/4">
+              <div className="relative">
+                <div className="w-3 h-3 bg-teal-400 rounded-full shadow-lg shadow-teal-400/50" />
+                <div className="absolute inset-0 w-6 h-6 border-2 border-teal-400/50 rounded-full animate-ping" />
+                <div className="absolute inset-0 w-10 h-10 border border-teal-400/30 rounded-full animate-ping" style={{ animationDelay: '0.7s' }} />
+              </div>
+            </div>
+            <div className="absolute top-1/2 right-1/3">
+              <div className="relative">
+                <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                <div className="absolute inset-0 w-4 h-4 border border-blue-400/40 rounded-full animate-ping" />
+              </div>
+            </div>
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-white/40 rounded-full"
+                style={{
+                  top: `${20 + i * 12}%`,
+                  left: `${10 + i * 8}%`,
+                  animation: `pulse ${2 + i * 0.3}s ease-in-out infinite`,
+                  animationDelay: `${i * 0.2}s`,
+                }}
+              />
+            ))}
+          </>
+        )}
+        
+        {/* Lock/Block Animation - Slide 3 */}
+        {slide.id === 'security' && (
+          <>
+            <div className="absolute top-1/4 right-1/4">
+              <div className="relative">
+                <div className="w-32 h-32 border-4 border-white/20 rounded-full" />
+                <div className="absolute inset-4 w-24 h-24 border-4 border-white/25 rounded-full animate-spin" style={{ animationDuration: '10s' }} />
+                <div className="absolute inset-8 w-16 h-16 border-2 border-white/30 rounded-full" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-6 h-6 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-1/4 left-1/3">
+              <div className="relative">
+                <div className="w-20 h-20 border-2 border-white/15 rounded-full" />
+                <div className="absolute inset-2 w-16 h-16 border-2 border-white/20 rounded-full animate-ping" />
+                <div className="absolute inset-4 w-12 h-12 bg-red-500/30 rounded-full" />
+              </div>
+            </div>
+            <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-red-400 rounded-full animate-ping" />
+            <div className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-white/20 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+          </>
+        )}
+        
+        {/* Data/Dashboard Lines - Slide 4 */}
+        {slide.id === 'analytics' && (
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  style={{
+                    top: `${15 + i * 10}%`,
+                    left: '-100%',
+                    width: '200%',
+                    animation: `slideRight ${4 + i * 0.5}s linear infinite`,
+                    animationDelay: `${i * 0.3}s`,
+                  }}
+                />
+              ))}
+            </div>
+            <div className="absolute top-1/4 right-1/4">
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-2 bg-green-400/50 rounded-full animate-pulse"
+                    style={{
+                      height: `${10 + i * 8}px`,
+                      animationDelay: `${i * 0.1}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="absolute bottom-1/3 right-1/3">
+              <div className="flex gap-2">
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-1 bg-white/30 rounded-full"
+                    style={{ animation: `pulse ${2 + i * 0.3}s ease-in-out infinite` }}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+        
+        {/* Glow Effects */}
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl animate-pulse" />
       </div>
+      
+      <style>{`
+        @keyframes slideRight {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
+        }
+      `}</style>
 
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-6">
