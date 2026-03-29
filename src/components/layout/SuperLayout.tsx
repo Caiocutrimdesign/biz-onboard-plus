@@ -181,21 +181,14 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
         </div>
       </div>
 
-      {/* Mobile Menu Overlay + Panel */}
-      <div
-        className={`fixed inset-0 z-[60] lg:hidden transition-opacity duration-300 ${
-          isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <div
-          className="absolute inset-0 bg-black/60"
-          onClick={() => setIsMobileOpen(false)}
-        />
-        <aside
-          className={`absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl transition-transform duration-300 ${
-            isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
+      {/* Mobile Menu */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setIsMobileOpen(false)}
+          />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl">
           {/* Header */}
           <div className="flex h-16 items-center justify-between px-4 bg-gradient-to-r from-orange-500 to-red-600">
             <div className="flex items-center gap-3">
@@ -266,7 +259,8 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
             </button>
           </div>
         </aside>
-      </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden pointer-events-auto">
