@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, MapPin, Zap, Phone, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import slideHero1 from '@/assets/slide-hero-1.jpg';
 import slideHero2 from '@/assets/slide-hero-2.jpg';
@@ -11,28 +11,24 @@ import { Logo3D } from '@/components/ui/Logo3D';
 const slides = [
   {
     image: slideHero1,
-    icon: Shield,
     title: 'Proteção Veicular',
     subtitle: 'com Tecnologia de Ponta',
     description: 'Seu veículo protegido 24 horas por dia com rastreamento inteligente e monitoramento em tempo real.',
   },
   {
     image: slideHero2,
-    icon: MapPin,
     title: 'Rastreamento',
     subtitle: 'em Tempo Real',
     description: 'Saiba onde seu veículo está a qualquer momento. Acompanhe pelo celular com precisão total.',
   },
   {
     image: slideHero3,
-    icon: Zap,
     title: 'Bloqueio e',
     subtitle: 'Monitoramento',
     description: 'Proteção para carro, moto e frota. Bloqueio remoto e alertas instantâneos de segurança.',
   },
   {
     image: slideHero4,
-    icon: Phone,
     title: 'Atendimento Ágil',
     subtitle: 'e Planos Acessíveis',
     description: 'Processo simples e rápido. Planos a partir de R$ 50/mês com instalação inclusa.',
@@ -91,9 +87,6 @@ export function VitrineCarousel({ onStartRegistration }: VitrineCarouselProps) {
       <div className="relative z-10 flex h-full items-center">
         <div className="mx-auto w-full max-w-7xl px-8 md:px-16">
           <div className="max-w-2xl">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/20 backdrop-blur-sm">
-              <slide.icon className="h-8 w-8 text-primary" />
-            </div>
             <h1 className="font-display text-5xl font-bold leading-tight text-white md:text-7xl">
               {slide.title}
               <br />
