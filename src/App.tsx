@@ -20,6 +20,7 @@ import DashboardPage from "./pages/modules/DashboardPage";
 import TECPage from "./pages/modules/TECPage";
 import ERPPage from "./pages/modules/ERPPage";
 import SHELLPage from "./pages/modules/SHELLPage";
+import AgentsMonitorPage from "./pages/modules/AgentsMonitorPage";
 
 const queryClient = new QueryClient();
 
@@ -151,6 +152,16 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['admin', 'user']}>
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Agents Monitor */}
+      <Route
+        path="/dashboard/agents-monitor"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AgentsMonitorPage />
           </ProtectedRoute>
         }
       />
