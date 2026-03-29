@@ -259,6 +259,21 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                 </Button>
               </div>
 
+              {/* Trust Badges */}
+              <div className="flex items-center gap-6 pt-4">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-white/60" />
+                  <span className="text-white/60 text-sm">Dados Protegidos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-white/60" />
+                  <span className="text-white/60 text-sm">Criptografia SSL</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-white/60" />
+                  <span className="text-white/60 text-sm">Certificado</span>
+                </div>
+              </div>
 
             </div>
 
