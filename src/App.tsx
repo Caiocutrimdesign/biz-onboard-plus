@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
 import { AgentProvider } from "@/agents/context/AgentContext";
 import { ProtectedRoute, GuestRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/lib/guardianAgent";
@@ -222,14 +223,16 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <AgentProvider autoStart={true}>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-          <GuardianDashboard />
-        </AgentProvider>
+        <DataProvider>
+          <AgentProvider autoStart={true}>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+            <GuardianDashboard />
+          </AgentProvider>
+        </DataProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

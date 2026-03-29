@@ -215,7 +215,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     migrateTecnicosToUsers();
     
     try {
-      console.log('Auth attempt:', { email: emailLower, passwordLength: password.length, passwordValue: password });
+      console.log('Auth attempt:', { email: emailLower, passwordLength: password.length });
+
+      if (isSupabaseConfigured() && supabase) {
+        const { data: crmUser, error: crmError } = await supabase
+          .from('crm_users')
+          .select('*')
+          .eq('email', emailLower)
+          .single();
+
+        if (crmUser && !crmError) {
+          console.log('Found user in crm_users table');
+          
+          if (crmUser.password === password || verifyPasswordHash(password, crmUser.password || '')) {
+            if (crmUser.active === false) {
+              setIsLoading(false);
+              return { success: false, error: 'Usuário inativo. Contacte o administrador.' };
+            }
+
+            const loggedInUser: User = {
+              id: crmUser.id,
+              email: crmUser.email,
+              name: crmUser.name,
+              role: crmUser.role || 'user',
+              phone: crmUser.phone,
+              active: crmUser.active ?? true,
+              created_at: crmUser.created_at,
+              last_login_at: new Date().toISOString(),
+              online: true,
+            };
+
+            await supabase
+              .from('crm_users')
+              .update({ last_login_at: loggedInUser.last_login_at, online: true })
+              .eq('id', crmUser.id);
+
+            const sessionData = {
+              user: loggedInUser,
+              timestamp: Date.now(),
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+            setUser(loggedInUser);
+            setIsLoading(false);
+            return { success: true, user: loggedInUser };
+          } else {
+            setIsLoading(false);
+            return { success: false, error: 'Senha incorreta' };
+          }
+        }
+      }
       
       if (emailLower === 'admin@rastremix.com' && password === 'Rastremix2024!') {
         console.log('Demo admin login success');
