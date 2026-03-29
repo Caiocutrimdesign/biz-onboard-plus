@@ -14,6 +14,21 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 const SESSION_KEY = 'biz_crm_session';
 const TECNICOS_KEY = 'rastremix_tecnicos';
+const USERS_KEY = 'rastremix_users';
+
+function simpleHash(password: string): string {
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    const char = password.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return 'hash_' + Math.abs(hash).toString(16) + '_' + Date.now().toString(16);
+}
+
+function verifyPassword(password: string, hash: string): boolean {
+  return simpleHash(password) === hash || password === hash;
+}
 
 interface TecnicoUser {
   id: string;
@@ -29,7 +44,29 @@ interface TecnicoUser {
 export function getTecnicos(): TecnicoUser[] {
   try {
     const data = localStorage.getItem(TECNICOS_KEY);
-    return data ? JSON.parse(data) : [];
+    const tecnicos: TecnicoUser[] = data ? JSON.parse(data) : [];
+    
+    const users = getUsers();
+    const userTecnicos = users
+      .filter(u => u.role === 'technician')
+      .map(u => ({
+        id: u.id.replace('user_', ''),
+        email: u.email,
+        name: u.name,
+        phone: u.phone || '',
+        cpf: u.cpf || '',
+        active: u.active ?? true,
+        created_at: u.created_at,
+      }));
+    
+    const merged = [...tecnicos];
+    userTecnicos.forEach(ut => {
+      if (!merged.find(t => t.email.toLowerCase() === ut.email.toLowerCase())) {
+        merged.push(ut);
+      }
+    });
+    
+    return merged;
   } catch {
     return [];
   }
@@ -59,6 +96,92 @@ export function findTecnicoByEmail(email: string): TecnicoUser | undefined {
   return getTecnicos().find(t => t.email.toLowerCase() === email.toLowerCase());
 }
 
+export function getUsers(): User[] {
+  try {
+    const data = localStorage.getItem(USERS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUser(user: User & { password?: string }) {
+  const users = getUsers();
+  const existingIndex = users.findIndex(u => u.id === user.id);
+  
+  const userData: User = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    active: user.active ?? true,
+    created_at: user.created_at || new Date().toISOString(),
+    last_login_at: user.last_login_at,
+    phone: user.phone,
+    cpf: user.cpf,
+    password_hash: user.password ? simpleHash(user.password) : user.password_hash,
+    must_change_password: user.must_change_password ?? false,
+    online: user.online ?? false,
+  };
+  
+  if (existingIndex >= 0) {
+    users[existingIndex] = userData;
+  } else {
+    users.push(userData);
+  }
+  
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+export function updateUser(id: string, data: Partial<User & { password?: string }>) {
+  const users = getUsers();
+  const index = users.findIndex(u => u.id === id);
+  if (index !== -1) {
+    users[index] = { ...users[index], ...data };
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+}
+
+export function deleteUser(id: string) {
+  const users = getUsers().filter(u => u.id !== id);
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+export function findUserByEmail(email: string): User | undefined {
+  return getUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+}
+
+export function findUserById(id: string): User | undefined {
+  return getUsers().find(u => u.id === id);
+}
+
+export function getTechnicians(): User[] {
+  return getUsers().filter(u => u.role === 'technician' && u.active !== false);
+}
+
+export function migrateTecnicosToUsers() {
+  const tecnicos = getTecnicos();
+  const users = getUsers();
+  
+  tecnicos.forEach(tecnico => {
+    const existingUser = users.find(u => u.email.toLowerCase() === tecnico.email.toLowerCase());
+    if (!existingUser) {
+      const userId = `user_${tecnico.id}`;
+      saveUser({
+        id: userId,
+        email: tecnico.email,
+        name: tecnico.name,
+        role: 'technician',
+        active: tecnico.active,
+        created_at: tecnico.created_at,
+        phone: tecnico.phone,
+        cpf: tecnico.cpf,
+        password: tecnico.password || 'Rastremix2024!',
+      });
+    }
+  });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     try {
@@ -81,10 +204,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const emailLower = credentials.email.toLowerCase().trim();
     const password = credentials.password;
     
+    migrateTecnicosToUsers();
+    
     try {
       if (emailLower === 'admin@rastremix.com' && password === 'Rastremix2024!') {
         const demoUser: User = {
-          id: 'demo-admin-001',
+          id: 'admin-001',
           email: 'admin@rastremix.com',
           name: 'Administrador',
           role: 'admin',
@@ -102,24 +227,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, user: demoUser };
       }
 
-      if (emailLower === 'tecnico@rastremix.com' && password === 'Rastremix2024!') {
-        const demoUser: User = {
-          id: 'demo-admin-001',
-          email: 'admin@rastremix.com',
-          name: 'Administrador',
-          role: 'admin',
-          created_at: new Date().toISOString(),
-          active: true,
+      const dbUser = findUserByEmail(emailLower);
+      if (dbUser) {
+        const storedHash = dbUser.password_hash || '';
+        const isValidPassword = password === storedHash || simpleHash(password) === storedHash;
+        
+        if (!isValidPassword) {
+          setIsLoading(false);
+          return { success: false, error: 'Senha incorreta' };
+        }
+        
+        if (dbUser.active === false) {
+          setIsLoading(false);
+          return { success: false, error: 'Usuário inativo. Contacte o administrador.' };
+        }
+        
+        const loggedInUser: User = {
+          ...dbUser,
+          last_login_at: new Date().toISOString(),
+          online: true,
         };
         
+        updateUser(dbUser.id, { last_login_at: loggedInUser.last_login_at, online: true });
+        
         const sessionData = {
-          user: demoUser,
+          user: loggedInUser,
           timestamp: Date.now(),
         };
         localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-        setUser(demoUser);
+        setUser(loggedInUser);
         setIsLoading(false);
-        return { success: true, user: demoUser };
+        return { success: true, user: loggedInUser };
       }
 
       const tecnico = findTecnicoByEmail(emailLower);

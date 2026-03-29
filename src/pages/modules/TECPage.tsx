@@ -4,18 +4,25 @@ import {
   Wrench, Plus, X, Check, Camera, Pen, FileText, 
   Clock, User, Phone, Car, MapPin, DollarSign, Package,
   ChevronLeft, Save, Loader2, Trash2, AlertCircle,
-  CheckCircle, MapPinned, Image, Shield, Star, ThumbsUp
+  CheckCircle, MapPinned, Image, Shield, Star, ThumbsUp,
+  ClipboardList, CheckSquare, Calendar
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAuth, getTecnicos } from '@/contexts/AuthContext';
 import SuperLayout from '@/components/layout/SuperLayout';
 import { tecService } from '@/lib/tecService';
+import { getAssignedServicesForTechnician, finishService as finishServiceCtx, updateService, getServicesByTechnician, startService, createService as createServiceCtx } from '@/contexts/ServiceContext';
 import type { Service, ServiceStatus, ServiceType, PhotoType, Technician } from '@/types/tec';
+import type { Service as AppService, ServiceStatus as AppServiceStatus } from '@/types/service';
+import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS } from '@/types/service';
+import TechnicianServicesPage from './TechnicianServicesPage';
 
-type TECView = 'home' | 'novo-cliente' | 'servico' | 'vendas' | 'finalizar';
+type TECView = 'home' | 'novo-cliente' | 'servico' | 'vendas' | 'finalizar' | 'meus-servicos' | 'servicos-designados' | 'novo-servico';
 type Client = {
   id: string;
   name: string;
@@ -349,6 +356,7 @@ export default function TECPage() {
             loading={loading} 
             onNewClient={startNewClient}
             userName={user?.name || 'Tecnico'}
+            goTo={goTo}
           />
         )}
         
@@ -392,6 +400,13 @@ export default function TECPage() {
             onBack={() => goTo('servico')}
           />
         )}
+
+        {view === 'meus-servicos' && (
+          <TechnicianServicesPage 
+            tecnicoId={user?.id || ''}
+            tecnicoName={user?.name || 'Técnico'}
+          />
+        )}
       </div>
     </SuperLayout>
   );
@@ -400,11 +415,12 @@ export default function TECPage() {
 // ============ HOME VIEW ============
 type FilterTab = 'todos' | 'pendente' | 'em_andamento' | 'concluido';
 
-function HomeView({ services, loading, onNewClient, userName }: {
+function HomeView({ services, loading, onNewClient, userName, goTo }: {
   services: Service[];
   loading: boolean;
   onNewClient: () => void;
   userName: string;
+  goTo: (view: TECView) => void;
 }) {
   const [filterTab, setFilterTab] = useState<FilterTab>('todos');
 
@@ -448,6 +464,14 @@ function HomeView({ services, loading, onNewClient, userName }: {
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Servico
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => goTo('meus-servicos')}
+            className="border-orange-500 text-orange-600 hover:bg-orange-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Meus Servicos
           </Button>
         </div>
       </div>
@@ -2116,5 +2140,183 @@ function StatusBadge({ status }: { status: ServiceStatus }) {
     <Badge className={config[status].className}>
       {config[status].label}
     </Badge>
+  );
+}
+
+// ============ MEUS SERVICOS VIEW ============
+function MeusServicosView({ services, loading, onBack }: {
+  services: Service[];
+  loading: boolean;
+  onBack: () => void;
+}) {
+  const [filterTab, setFilterTab] = useState<'todos' | 'pendente' | 'em_andamento' | 'concluido'>('todos');
+
+  const stats = {
+    today: services.filter(s => 
+      new Date(s.created_at).toDateString() === new Date().toDateString()
+    ).length,
+    pending: services.filter(s => s.status === 'pendente').length,
+    inProgress: services.filter(s => s.status === 'em_andamento').length,
+    completed: services.filter(s => s.status === 'concluido').length,
+    all: services.length,
+  };
+
+  const filteredServices = services.filter(service => {
+    if (filterTab === 'todos') return true;
+    return service.status === filterTab;
+  });
+
+  const filterTabs: { id: 'todos' | 'pendente' | 'em_andamento' | 'concluido'; label: string; count: number; color: string; activeBg: string }[] = [
+    { id: 'todos', label: 'Todos', count: stats.all, color: 'text-gray-500', activeBg: 'bg-gray-500' },
+    { id: 'pendente', label: 'Pendentes', count: stats.pending, color: 'text-yellow-600', activeBg: 'bg-yellow-500' },
+    { id: 'em_andamento', label: 'Em Andamento', count: stats.inProgress, color: 'text-blue-600', activeBg: 'bg-blue-500' },
+    { id: 'concluido', label: 'Finalizados', count: stats.completed, color: 'text-green-600', activeBg: 'bg-green-500' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" onClick={onBack}>
+          <ChevronLeft className="w-5 h-5" />
+        </Button>
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <FileText className="w-5 h-5 text-orange-500" />
+            Meus Servicos
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {stats.all} servico(s) atribuido(s)
+          </p>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-4 h-4 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold">{stats.pending}</p>
+              <p className="text-xs text-muted-foreground">Pendentes</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Wrench className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold">{stats.inProgress}</p>
+              <p className="text-xs text-muted-foreground">Em Andamento</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold">{stats.completed}</p>
+              <p className="text-xs text-muted-foreground">Finalizados</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold">{stats.today}</p>
+              <p className="text-xs text-muted-foreground">Hoje</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="bg-white rounded-xl border p-2">
+        <div className="flex gap-2 overflow-x-auto">
+          {filterTabs.map((tab) => {
+            const isActive = filterTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setFilterTab(tab.id)}
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all whitespace-nowrap text-sm
+                  ${isActive 
+                    ? `${tab.activeBg} text-white shadow-md` 
+                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                  }
+                `}
+              >
+                {isActive && <Check className="w-3 h-3" />}
+                <span>{tab.label}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${isActive ? 'bg-white/20' : 'bg-muted'}`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Services List */}
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+            </div>
+          ) : filteredServices.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-muted-foreground">
+                {filterTab === 'todos' ? 'Nenhum servico atribuido' : `Nenhum servico ${filterTab.replace('_', ' ')}`}
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {filteredServices.map((service) => (
+                <div key={service.id} className="p-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`
+                        w-10 h-10 rounded-lg flex items-center justify-center
+                        ${service.status === 'pendente' ? 'bg-yellow-100' : 
+                          service.status === 'em_andamento' ? 'bg-blue-100' : 'bg-green-100'}
+                      `}>
+                        <Car className={`w-5 h-5 ${
+                          service.status === 'pendente' ? 'text-yellow-600' : 
+                          service.status === 'em_andamento' ? 'text-blue-600' : 'text-green-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{service.client_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {service.vehicle} - {service.plate}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <StatusBadge status={service.status as ServiceStatus} />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(service.created_at).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -38,7 +38,11 @@ export function ProtectedRoute({
       }
 
       if (allowedRoles && !allowedRoles.includes(user.role)) {
-        navigate('/', { replace: true });
+        if (user.role === 'technician') {
+          navigate('/tec', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       }
     } catch (e) {
       localStorage.removeItem('biz_crm_session');
@@ -98,8 +102,13 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
       try {
         const session = JSON.parse(sessionData);
         if (session.user) {
-          const from = (location.state as any)?.from || '/admin';
-          navigate(from, { replace: true });
+          let redirectTo = '/admin';
+          if (session.user.role === 'technician') {
+            redirectTo = '/tec';
+          } else if (session.user.role === 'admin') {
+            redirectTo = '/admin';
+          }
+          navigate(redirectTo, { replace: true });
         }
       } catch (e) {
         localStorage.removeItem('biz_crm_session');

@@ -6,10 +6,14 @@ export interface User {
   avatar_url?: string;
   created_at: string;
   last_sign_in_at?: string;
+  last_login_at?: string;
   active?: boolean;
   phone?: string;
   department?: string;
   cpf?: string;
+  password_hash?: string;
+  must_change_password?: boolean;
+  online?: boolean;
 }
 
 export interface AuthState {

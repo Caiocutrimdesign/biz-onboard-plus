@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { useAuth, getTecnicos, saveTecnico, updateTecnico as updateTecnicoAuth, deleteTecnico as deleteTecnicoAuth, findTecnicoByEmail } from '@/contexts/AuthContext';
+import { useAuth, getTecnicos, saveTecnico, updateTecnico as updateTecnicoAuth, deleteTecnico as deleteTecnicoAuth, findTecnicoByEmail, saveUser, updateUser, deleteUser, getTechnicians } from '@/contexts/AuthContext';
 
 interface Tecnico {
   id: string;
@@ -144,6 +144,14 @@ export default function TechniciansPage() {
           updateData.password = formData.password.trim();
         }
         updateTecnicoAuth(editingTech.id, updateData);
+        updateUser(`user_${editingTech.id}`, {
+          name: formData.name,
+          email: formData.email.toLowerCase().trim(),
+          phone: formData.phone,
+          cpf: formData.cpf,
+          active: formData.active,
+          ...(formData.password ? { password: formData.password.trim() } : {}),
+        });
       } else {
         const newTecnico: Tecnico = {
           id: `tech-${Date.now()}`,
@@ -156,6 +164,20 @@ export default function TechniciansPage() {
           created_at: new Date().toISOString(),
         };
         saveTecnico(newTecnico);
+        
+        const userId = `user_${newTecnico.id}`;
+        saveUser({
+          id: userId,
+          email: newTecnico.email,
+          name: newTecnico.name,
+          role: 'technician',
+          phone: newTecnico.phone,
+          cpf: newTecnico.cpf,
+          password: newTecnico.password,
+          active: newTecnico.active,
+          created_at: newTecnico.created_at,
+        });
+        
         setSuccessData({ email: newTecnico.email, password: formData.password });
         setShowSuccessModal(true);
       }
@@ -174,12 +196,14 @@ export default function TechniciansPage() {
     const newStatus = !tech.active;
     console.log(`Toggling technician ${tech.name}: ${tech.active} -> ${newStatus}`);
     updateTecnicoAuth(tech.id, { active: newStatus });
+    updateUser(`user_${tech.id}`, { active: newStatus });
     loadTechnicians();
     console.log('After toggle, technicians:', getTecnicos().find(t => t.id === tech.id));
   };
 
   const handleDelete = (id: string) => {
     deleteTecnicoAuth(id);
+    deleteUser(`user_${id}`);
     setDeleteConfirm(null);
     loadTechnicians();
   };
