@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import CRMLayout from '@/components/crm/CRMLayout';
 import CRMDashboard from '@/components/crm/dashboard/CRMDashboard';
 import Pipeline from '@/components/crm/pipeline/Pipeline';
@@ -9,11 +9,11 @@ import CalendarView from '@/components/crm/calendar/CalendarView';
 import AnalyticsView from '@/components/crm/analytics/AnalyticsView';
 import FunnelsView from '@/components/crm/FunnelsView';
 import SettingsView from '@/components/crm/SettingsView';
+import { AgentPanel } from '@/components/agents/AgentPanel';
+import { CRMProvider, useCRMContext } from '@/contexts/CRMContext';
 
-type CRMLodule = 'dashboard' | 'leads' | 'pipeline' | 'automation' | 'email' | 'calendar' | 'analytics' | 'funnels' | 'settings';
-
-export default function CRMPage() {
-  const [activeModule, setActiveModule] = useState<CRMLodule>('dashboard');
+function CRMContent() {
+  const { activeModule } = useCRMContext();
 
   const renderModule = () => {
     switch (activeModule) {
@@ -33,6 +33,8 @@ export default function CRMPage() {
         return <AnalyticsView />;
       case 'funnels':
         return <FunnelsView />;
+      case 'agents':
+        return <AgentPanel />;
       case 'settings':
         return <SettingsView />;
       default:
@@ -44,5 +46,13 @@ export default function CRMPage() {
     <CRMLayout>
       {renderModule()}
     </CRMLayout>
+  );
+}
+
+export default function CRMPage() {
+  return (
+    <CRMProvider>
+      <CRMContent />
+    </CRMProvider>
   );
 }

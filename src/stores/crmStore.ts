@@ -47,10 +47,8 @@ interface CRMStore {
   calculateAnalytics: () => Analytics;
 }
 
-const mockUsers: User[] = [
-  { id: '1', name: 'Carlos Silva', email: 'carlos@empresa.com', role: 'admin', phone: '(11) 99999-1111', active: true, createdAt: new Date() },
-  { id: '2', name: 'Ana Oliveira', email: 'ana@empresa.com', role: 'manager', phone: '(11) 98888-2222', active: true, createdAt: new Date() },
-  { id: '3', name: 'Pedro Santos', email: 'pedro@empresa.com', role: 'user', phone: '(11) 97777-3333', active: true, createdAt: new Date() },
+const defaultUsers: User[] = [
+  { id: 'demo-1', name: 'Administrador', email: 'admin@rastremix.com', role: 'admin', phone: '', active: true, createdAt: new Date() },
 ];
 
 const mockTags: Tag[] = [
@@ -144,12 +142,12 @@ export const useCRMStore = create<CRMStore>()(
       leads: mockLeads,
       pipelines: [defaultPipeline],
       deals: [],
-      users: mockUsers,
+      users: defaultUsers,
       tags: mockTags,
       automations: [],
       emailCampaigns: [],
       appointments: [],
-      currentUser: mockUsers[0],
+      currentUser: null,
       analytics: mockAnalytics,
 
       setCurrentUser: (user) => set({ currentUser: user }),

@@ -3,14 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Users, Target, Zap, Mail, Calendar, 
   BarChart3, GitBranch, Settings, Bell, Menu, X,
-  ChevronRight, LogOut, Search, Plus, ChevronDown
+  ChevronRight, LogOut, Search, Plus, ChevronDown, Bot
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useCRMStore } from '@/stores/crmStore';
+import { useAgents } from '@/agents/context/AgentContext';
 
-type CRMLodule = 'dashboard' | 'leads' | 'pipeline' | 'automation' | 'email' | 'calendar' | 'analytics' | 'funnels' | 'settings';
+type CRMLodule = 'dashboard' | 'leads' | 'pipeline' | 'automation' | 'email' | 'calendar' | 'analytics' | 'funnels' | 'agents' | 'settings';
 
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-500' },
@@ -21,6 +22,7 @@ const modules = [
   { id: 'calendar', label: 'Agendamentos', icon: Calendar, color: 'text-orange-500' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, color: 'text-cyan-500' },
   { id: 'funnels', label: 'Funis', icon: GitBranch, color: 'text-indigo-500' },
+  { id: 'agents', label: 'Agentes', icon: Bot, color: 'text-violet-500' },
   { id: 'settings', label: 'Configurações', icon: Settings, color: 'text-gray-500' },
 ];
 
@@ -29,6 +31,14 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentUser, leads } = useCRMStore();
+  
+  let runningAgents = 0;
+  try {
+    const { agents } = useAgents();
+    runningAgents = Object.values(agents).filter(a => a.status === 'running').length;
+  } catch {
+    runningAgents = 0;
+  }
 
   const pendingLeads = leads.filter(l => l.status === 'novo' || l.status === 'contatado').length;
 
@@ -72,6 +82,9 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
                   <span className="flex-1 text-left">{mod.label}</span>
                   {mod.id === 'leads' && pendingLeads > 0 && (
                     <Badge className="bg-white/20 text-white text-xs">{pendingLeads}</Badge>
+                  )}
+                  {mod.id === 'agents' && runningAgents > 0 && (
+                    <Badge className="bg-green-500/80 text-white text-xs animate-pulse">{runningAgents}</Badge>
                   )}
                   {activeModule === mod.id && <ChevronRight className="h-4 w-4 opacity-50" />}
                 </>
