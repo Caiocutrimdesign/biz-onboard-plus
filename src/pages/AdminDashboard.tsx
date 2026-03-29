@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   LogOut, LayoutDashboard, Users, Car, DollarSign, Settings, Bell, 
   Menu, ChevronRight, TrendingUp, ShieldCheck, Phone, Mail, Calendar,
@@ -34,11 +34,19 @@ const navItems: NavItem[] = [
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, logout } = useAuth();
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [allCustomers, setAllCustomers] = useState<any[]>([]);
   const [birthdays, setBirthdays] = useState<any[]>([]);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['dashboard', 'clientes', 'veiculos', 'financeiro', 'agendamentos', 'config'].includes(tab)) {
+      setActiveModule(tab as Module);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadData();
