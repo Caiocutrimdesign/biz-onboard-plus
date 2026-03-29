@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useCRMStore } from '@/stores/crmStore';
-import { useAgents } from '@/agents/context/AgentContext';
 
 type CRMLodule = 'dashboard' | 'leads' | 'pipeline' | 'automation' | 'email' | 'calendar' | 'analytics' | 'funnels' | 'satisfaction' | 'users' | 'agents' | 'settings';
 
@@ -35,13 +34,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentUser, leads } = useCRMStore();
   
-  let runningAgents = 0;
-  try {
-    const { agents } = useAgents();
-    runningAgents = Object.values(agents).filter(a => a.status === 'running').length;
-  } catch {
-    runningAgents = 0;
-  }
+  const runningAgents = 0;
 
   const pendingLeads = leads.filter(l => l.status === 'novo' || l.status === 'contatado').length;
 

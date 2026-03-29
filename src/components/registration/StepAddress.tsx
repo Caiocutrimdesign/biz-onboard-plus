@@ -7,6 +7,12 @@ import { useRegistrationStore } from '@/store/registrationStore';
 
 interface Props { onNext: () => void; onBack: () => void; }
 
+function formatCEP(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length <= 5) return digits;
+  return digits.replace(/(\d{5})(\d{3})/, '$1-$2');
+}
+
 export function StepAddress({ onNext, onBack }: Props) {
   const { data, updateData } = useRegistrationStore();
   const canProceed = data.cep && data.street && data.number && data.neighborhood && data.city && data.state;
@@ -22,7 +28,7 @@ export function StepAddress({ onNext, onBack }: Props) {
       </div>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div><Label>CEP *</Label><Input placeholder="00000-000" value={data.cep || ''} onChange={(e) => updateData({ cep: e.target.value })} className="mt-1 h-12 text-base" /></div>
+          <div><Label>CEP *</Label><Input placeholder="00000-000" value={data.cep || ''} onChange={(e) => updateData({ cep: formatCEP(e.target.value) })} className="mt-1 h-12 text-base" maxLength={9} /></div>
           <div><Label>Número *</Label><Input placeholder="123" value={data.number || ''} onChange={(e) => updateData({ number: e.target.value })} className="mt-1 h-12 text-base" /></div>
         </div>
         <div><Label>Rua *</Label><Input placeholder="Rua das Flores" value={data.street || ''} onChange={(e) => updateData({ street: e.target.value })} className="mt-1 h-12 text-base" /></div>

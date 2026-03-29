@@ -7,6 +7,24 @@ import { useRegistrationStore } from '@/store/registrationStore';
 
 interface Props { onNext: () => void; onBack: () => void; }
 
+function formatCPF_CNPJ(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length <= 11) {
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, '$1.$2.$3-$4').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  } else {
+    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g, '$1.$2.$3/$4-$5').replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  }
+}
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length <= 10) {
+    return digits.replace(/(\d{2})(\d{4})(\d{4})/g, '($1) $2-$3');
+  } else {
+    return digits.replace(/(\d{2})(\d{5})(\d{4})/g, '($1) $2-$3');
+  }
+}
+
 export function StepPersonalData({ onNext, onBack }: Props) {
   const { data, updateData } = useRegistrationStore();
 
@@ -36,11 +54,11 @@ export function StepPersonalData({ onNext, onBack }: Props) {
         </div>
         <div>
           <Label htmlFor="phone">Telefone / WhatsApp *</Label>
-          <Input id="phone" placeholder="(11) 99999-9999" value={data.phone || ''} onChange={(e) => updateData({ phone: e.target.value })} className="mt-1 h-12 text-base" />
+          <Input id="phone" placeholder="(11) 99999-9999" value={data.phone || ''} onChange={(e) => updateData({ phone: formatPhone(e.target.value) })} className="mt-1 h-12 text-base" />
         </div>
         <div>
           <Label htmlFor="cpf_cnpj">CPF ou CNPJ *</Label>
-          <Input id="cpf_cnpj" placeholder="000.000.000-00" value={data.cpf_cnpj || ''} onChange={(e) => updateData({ cpf_cnpj: e.target.value })} className="mt-1 h-12 text-base" />
+          <Input id="cpf_cnpj" placeholder="000.000.000-00" value={data.cpf_cnpj || ''} onChange={(e) => updateData({ cpf_cnpj: formatCPF_CNPJ(e.target.value) })} className="mt-1 h-12 text-base" maxLength={18} />
         </div>
         <div>
           <Label htmlFor="email">E-mail *</Label>
