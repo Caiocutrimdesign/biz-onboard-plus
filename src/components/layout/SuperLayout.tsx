@@ -17,8 +17,6 @@ interface SuperLayoutProps {
 
 const tecMenuItems = [
   { id: 'home', label: 'Inicio', icon: LayoutDashboard, path: '/tec', color: 'text-orange-500' },
-  { id: 'erp', label: 'ERP', icon: Building2, path: '/erp', color: 'text-green-500' },
-  { id: 'shell', label: 'SHELL', icon: ShoppingCart, path: '/shell', color: 'text-pink-500' },
 ];
 
 const fullMenuItems = [
