@@ -133,13 +133,17 @@ export default function TechniciansPage() {
 
     try {
       if (editingTech) {
-        updateTecnicoAuth(editingTech.id, {
+        const updateData: any = {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
           cpf: formData.cpf,
           active: formData.active,
-        });
+        };
+        if (formData.password) {
+          updateData.password = formData.password.trim();
+        }
+        updateTecnicoAuth(editingTech.id, updateData);
       } else {
         const newTecnico: Tecnico = {
           id: `tech-${Date.now()}`,
@@ -349,43 +353,43 @@ export default function TechniciansPage() {
               </div>
             </div>
 
-            {!editingTech && (
-              <>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Senha</label>
-                  <div className="relative">
-                    <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder="Mínimo 6 caracteres"
-                      className="pl-10 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {editingTech ? 'Nova Senha (deixe em branco para manter)' : 'Senha'}
+              </label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder={editingTech ? 'Digite nova senha para alterar' : 'Mínimo 6 caracteres'}
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Confirmar senha</label>
-                  <div className="relative">
-                    <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      placeholder="Confirme a senha"
-                      className="pl-10"
-                    />
-                  </div>
+            {!editingTech && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Confirmar senha</label>
+                <div className="relative">
+                  <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    placeholder="Confirme a senha"
+                    className="pl-10"
+                  />
                 </div>
-              </>
+              </div>
             )}
 
             <div className="space-y-2">
