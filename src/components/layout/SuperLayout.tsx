@@ -186,17 +186,21 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Overlay */}
-          <div 
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setIsMobileOpen(false)}
-          />
-          
-          {/* Menu Panel */}
-          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl animate-slide-in">
+      {/* Mobile Menu Overlay + Panel */}
+      <div
+        className={`fixed inset-0 z-[60] lg:hidden transition-opacity duration-300 ${
+          isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div
+          className="absolute inset-0 bg-black/60"
+          onClick={() => setIsMobileOpen(false)}
+        />
+        <aside
+          className={`absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl transition-transform duration-300 ${
+            isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
           {/* Header */}
           <div className="flex h-16 items-center justify-between px-4 bg-gradient-to-r from-orange-500 to-red-600">
             <div className="flex items-center gap-3">
@@ -214,7 +218,7 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
               <X className="h-6 w-6 text-white" />
             </button>
           </div>
-          
+
           {/* User Info */}
           <div className="p-4 bg-gray-50 border-b">
             <div className="flex items-center gap-3">
@@ -227,7 +231,7 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
               </div>
             </div>
           </div>
-          
+
           {/* Menu Items */}
           <nav className="p-3 space-y-1 overflow-y-auto">
             {menuItems.map((item) => {
@@ -240,8 +244,8 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
                   onClick={() => setIsMobileOpen(false)}
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium
-                    ${active 
-                      ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white' 
+                    ${active
+                      ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                     }
                   `}
@@ -252,7 +256,7 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
               );
             })}
           </nav>
-          
+
           {/* Logout */}
           <div className="absolute bottom-0 left-0 right-0 p-3 border-t bg-white">
             <button
@@ -267,8 +271,7 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
             </button>
           </div>
         </aside>
-        </div>
-      )}
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
