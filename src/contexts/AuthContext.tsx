@@ -26,6 +26,14 @@ function simpleHash(password: string): string {
   return 'hash_' + Math.abs(hash).toString(16);
 }
 
+function verifyPasswordHash(password: string, storedHash: string): boolean {
+  if (!storedHash) return false;
+  if (storedHash.startsWith('hash_')) {
+    return simpleHash(password) === storedHash;
+  }
+  return password === storedHash;
+}
+
 function verifyPassword(password: string, hash: string): boolean {
   return simpleHash(password) === hash || password === hash;
 }
@@ -230,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const dbUser = findUserByEmail(emailLower);
       if (dbUser) {
         const storedHash = dbUser.password_hash || '';
-        const isValidPassword = password === storedHash || simpleHash(password) === storedHash;
+        const isValidPassword = verifyPasswordHash(password, storedHash);
         
         if (!isValidPassword) {
           setIsLoading(false);
@@ -261,44 +269,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const tecnico = findTecnicoByEmail(emailLower);
-      console.log('=== TECHNICIAN LOGIN DEBUG ===');
-      console.log('Email entered:', emailLower);
-      console.log('Password entered:', password);
-      console.log('Technician found:', tecnico);
       if (tecnico) {
         const storedPwd = (tecnico.password || '').trim();
         const enteredPwd = password.trim();
-        console.log('Stored password:', storedPwd);
-        console.log('Entered password (trimmed):', enteredPwd);
-        console.log('Passwords match:', storedPwd === enteredPwd);
-        console.log('Technician active:', tecnico.active);
+        
         if (storedPwd !== enteredPwd) {
           setIsLoading(false);
           return { success: false, error: 'Senha incorreta' };
         }
-        console.log('Technician active status:', tecnico.active);
+        
         if (!tecnico.active) {
           setIsLoading(false);
           return { success: false, error: 'Técnico inativo. Contacte o administrador.' };
         }
-        const techUser: User = {
-          id: tecnico.id,
-          email: tecnico.email,
-          name: tecnico.name,
-          role: 'technician',
-          created_at: tecnico.created_at,
-          active: tecnico.active,
-          phone: tecnico.phone,
-          cpf: tecnico.cpf,
-        };
+        
+        let userForSession = dbUser;
+        if (!userForSession) {
+          userForSession = {
+            id: tecnico.id,
+            email: tecnico.email,
+            name: tecnico.name,
+            role: 'technician' as const,
+            active: tecnico.active,
+            created_at: tecnico.created_at,
+            phone: tecnico.phone,
+            cpf: tecnico.cpf,
+          };
+          const userId = `user_${tecnico.id}`;
+          saveUser({
+            id: userId,
+            email: tecnico.email,
+            name: tecnico.name,
+            role: 'technician',
+            active: tecnico.active,
+            phone: tecnico.phone,
+            cpf: tecnico.cpf,
+            password: tecnico.password,
+            created_at: tecnico.created_at,
+          });
+        }
+        
         const sessionData = {
-          user: techUser,
+          user: userForSession,
           timestamp: Date.now(),
         };
         localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-        setUser(techUser);
+        setUser(userForSession);
         setIsLoading(false);
-        return { success: true, user: techUser };
+        return { success: true, user: userForSession };
       }
 
       if (isSupabaseConfigured() && supabase) {
