@@ -2220,17 +2220,22 @@ function FinalizeView({ service, onSave, onBack }: {
 }
 
 // ============ STATUS BADGE ============
-function StatusBadge({ status }: { status: ServiceStatus }) {
-  const config: Record<ServiceStatus, { label: string; className: string }> = {
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, { label: string; className: string }> = {
     pendente: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800' },
     em_andamento: { label: 'Em Andamento', className: 'bg-blue-100 text-blue-800' },
-    concluido: { label: 'Concluido', className: 'bg-green-100 text-green-800' },
+    concluido: { label: 'Concluído', className: 'bg-green-100 text-green-800' },
+    finalizado: { label: 'Finalizado', className: 'bg-green-100 text-green-800' },
+    designado: { label: 'Designado', className: 'bg-indigo-100 text-indigo-800' },
     cancelado: { label: 'Cancelado', className: 'bg-red-100 text-red-800' },
   };
 
+  const fallback = { label: status || 'Desconhecido', className: 'bg-gray-100 text-gray-800' };
+  const entry = config[status] || fallback;
+
   return (
-    <Badge className={config[status].className}>
-      {config[status].label}
+    <Badge className={entry.className}>
+      {entry.label}
     </Badge>
   );
 }
