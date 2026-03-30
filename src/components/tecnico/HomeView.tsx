@@ -99,7 +99,7 @@ export function HomeView({ services, loading, onNewClient, userName, goTo }: Hom
           className="h-24 text-lg font-bold gap-3 rounded-2xl border-2 hover:bg-gray-50 transition-all"
           onClick={() => goTo('meus-servicos')}
         >
-          <Wrench className="w-6 h-6 text-orange-500" />
+          <Wrench className="w-6 h-6" />
           Agenda de Serviços
         </Button>
       </div>

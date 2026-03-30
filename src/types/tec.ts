@@ -80,3 +80,12 @@ export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
   retirada: 'Retirada',
   suporte: 'Suporte',
 };
+
+export const STATUS_CONFIG: Record<ServiceStatus, { label: string; bgColor: string; icon: string }> = {
+  pendente: { label: 'Pendente', bgColor: 'bg-yellow-100 text-yellow-800', icon: 'clock' },
+  designado: { label: 'Designado', bgColor: 'bg-purple-100 text-purple-800', icon: 'user' },
+  em_andamento: { label: 'Em Andamento', bgColor: 'bg-blue-100 text-blue-800', icon: 'package' },
+  concluido: { label: 'Concluído', bgColor: 'bg-green-100 text-green-800', icon: 'check' },
+  finalizado: { label: 'Finalizado', bgColor: 'bg-green-100 text-green-800', icon: 'check' },
+  cancelado: { label: 'Cancelado', bgColor: 'bg-red-100 text-red-800', icon: 'x' },
+};

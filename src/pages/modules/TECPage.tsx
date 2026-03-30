@@ -27,6 +27,7 @@ import { ClientFormView } from '@/components/tecnico/ClientFormView';
 import { SalesView } from '@/components/tecnico/SalesView';
 import { ServiceView } from '@/components/tecnico/ServiceView';
 import { FinalizeView } from '@/components/tecnico/FinalizeView';
+import { ServicesListView } from '@/components/tecnico/ServicesListView';
 import { StatusBadge } from '@/components/tecnico/StatusBadge';
 
 import type { Service, ServiceStatus, PhotoType, Technician } from '@/types/tec';
@@ -301,6 +302,16 @@ export default function TECPage() {
                 onBack={() => goTo('servico')}
                 onSave={handleFinalizeService}
                 onUploadPhoto={handleUploadPhoto}
+              />
+            )}
+
+            {(view === 'meus-servicos' || view === 'servicos-designados') && (
+              <ServicesListView 
+                services={services}
+                loading={loading}
+                onBack={() => goTo('home')}
+                goTo={goTo}
+                filter={view === 'servicos-designados' ? 'pending' : 'all'}
               />
             )}
           </motion.div>
