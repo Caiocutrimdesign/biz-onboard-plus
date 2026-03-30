@@ -63,17 +63,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
+        const userMetadata = session.user.user_metadata;
         const userProfile = await getUserProfile(session.user.id);
+        
         if (userProfile) {
           setUser({ ...userProfile, email: session.user.email || userProfile.email });
         } else {
+          // Fallback to metadata to bypass RLS recursion issues
+          const role = userMetadata?.tipo || userMetadata?.role || 'tecnico';
+          const name = userMetadata?.nome || userMetadata?.name || session.user.email?.split('@')[0] || 'Usuário';
+          
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
-            tipo: 'tecnico', 
-            role: 'tecnico',
+            name: name,
+            tipo: role as any, 
+            role: role as any,
             created_at: session.user.created_at,
+            active: true
           });
         }
       } else {
@@ -191,8 +198,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (authError) {
         console.log("❌ Erro no signIn:", authError.message);
-        alert("Erro ao entrar: " + authError.message);
-        throw authError;
+        
+        let customMessage = authError.message;
+        if (authError.message.includes('Email not confirmed')) {
+          customMessage = "E-mail não confirmado. Por favor, verifique sua caixa de entrada ou confirme o usuário no Dashboard do Supabase.";
+        } else if (authError.message.includes('Invalid login credentials')) {
+          customMessage = "Email ou senha incorretos.";
+        }
+        
+        toast.error(customMessage);
+        throw new Error(customMessage);
       }
 
       if (!authData.user) throw new Error('Usuário não encontrado');
@@ -200,14 +215,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userProfile = await getUserProfile(authData.user.id);
       
       if (!userProfile) {
-        console.log("⚠️ Perfil não encontrado, usando dados básicos da sessão.");
+        console.log("⚠️ Perfil não encontrado, usando dados do metadados.");
+        const metadata = authData.user.user_metadata;
+        const role = metadata?.tipo || metadata?.role || 'tecnico';
+        const name = metadata?.nome || metadata?.name || credentials.email.split('@')[0];
+
         const fallbackUser: User = {
           id: authData.user.id,
           email: authData.user.email || credentials.email,
-          name: authData.user.user_metadata?.nome || credentials.email.split('@')[0],
-          tipo: 'tecnico',
-          role: 'tecnico',
+          name: name,
+          tipo: role as any,
+          role: role as any,
           created_at: authData.user.created_at,
+          active: true
         };
         setUser(fallbackUser);
         return { success: true, user: fallbackUser };
