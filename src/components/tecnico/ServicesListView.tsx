@@ -1,15 +1,16 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, Calendar, Search, Clock, CheckCircle, 
   Wrench, Phone, MapPin, Loader2, Package, Car,
-  RefreshCw, LogOut
+  RefreshCw, LogOut, Play, Eye, MessageSquare, User,
+  ChevronDown, ChevronUp, MapPinned, CalendarClock, ClipboardCheck
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Service, SERVICE_TYPE_LABELS, STATUS_CONFIG } from '@/types/tec';
+import { Service, STATUS_CONFIG } from '@/types/tec';
 import { TECView } from './TecTypes';
 import { crmService } from '@/lib/crmService';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +26,228 @@ interface ServicesListViewProps {
 
 type TabType = 'todos' | 'pendente' | 'em_andamento' | 'concluido';
 
+const STATUS_COLORS = {
+  pendente: {
+    bg: 'bg-yellow-50 border-yellow-200',
+    icon: 'bg-yellow-100 text-yellow-600',
+    progress: 'bg-yellow-500',
+    badge: 'bg-yellow-100 text-yellow-800 border-yellow-300'
+  },
+  em_andamento: {
+    bg: 'bg-blue-50 border-blue-200',
+    icon: 'bg-blue-100 text-blue-600',
+    progress: 'bg-blue-500',
+    badge: 'bg-blue-100 text-blue-800 border-blue-300'
+  },
+  concluido: {
+    bg: 'bg-green-50 border-green-200',
+    icon: 'bg-green-100 text-green-600',
+    progress: 'bg-green-500',
+    badge: 'bg-green-100 text-green-800 border-green-300'
+  },
+  designado: {
+    bg: 'bg-purple-50 border-purple-200',
+    icon: 'bg-purple-100 text-purple-600',
+    progress: 'bg-purple-500',
+    badge: 'bg-purple-100 text-purple-800 border-purple-300'
+  }
+};
+
+function ServiceCard({ service, onClick, onAction }: { 
+  service: Service; 
+  onClick: () => void;
+  onAction: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const colors = STATUS_COLORS[service.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.pendente;
+  
+  const getActionButton = () => {
+    switch (service.status) {
+      case 'pendente':
+        return (
+          <Button 
+            size="sm" 
+            className="bg-orange-500 hover:bg-orange-600 text-white gap-1"
+            onClick={(e) => { e.stopPropagation(); onAction(); }}
+          >
+            <Play className="w-4 h-4" />
+            Iniciar
+          </Button>
+        );
+      case 'em_andamento':
+        return (
+          <Button 
+            size="sm" 
+            className="bg-blue-500 hover:bg-blue-600 text-white gap-1"
+            onClick={(e) => { e.stopPropagation(); onAction(); }}
+          >
+            <ClipboardCheck className="w-4 h-4" />
+            Continuar
+          </Button>
+        );
+      case 'concluido':
+        return (
+          <Button 
+            size="sm" 
+            variant="outline"
+            className="gap-1"
+            onClick={(e) => { e.stopPropagation(); onClick(); }}
+          >
+            <Eye className="w-4 h-4" />
+            Ver Detalhes
+          </Button>
+        );
+      default:
+        return (
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={(e) => { e.stopPropagation(); onClick(); }}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+        );
+    }
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="mb-3"
+    >
+      <Card className={`${colors.bg} border-2 transition-all hover:shadow-lg cursor-pointer overflow-hidden`}
+        onClick={onClick}
+      >
+        {/* Progress Bar */}
+        <div className="h-1 bg-gray-200">
+          <motion.div 
+            className={`h-full ${colors.progress}`}
+            initial={{ width: 0 }}
+            animate={{ 
+              width: service.status === 'concluido' ? '100%' : 
+                     service.status === 'em_andamento' ? '60%' : 
+                     service.status === 'designado' ? '30%' : '10%'
+            }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+
+        <CardContent className="p-4">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className={`w-14 h-14 rounded-2xl ${colors.icon} flex items-center justify-center flex-shrink-0`}>
+                <Wrench className="w-7 h-7" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-lg truncate">{service.client_name || 'Cliente'}</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                  <Phone className="w-4 h-4" />
+                  <span>{service.client_phone || 'Sem telefone'}</span>
+                </div>
+              </div>
+            </div>
+            <Badge className={`${colors.badge} border font-semibold px-3 py-1`}>
+              {STATUS_CONFIG[service.status as keyof typeof STATUS_CONFIG]?.label || service.status}
+            </Badge>
+          </div>
+
+          {/* Vehicle Info */}
+          {(service.vehicle || service.plate) && (
+            <div className={`mt-3 p-3 rounded-xl ${colors.icon} bg-opacity-20`}>
+              <div className="flex items-center gap-3">
+                <Car className="w-5 h-5" />
+                <div>
+                  <p className="font-semibold">{service.vehicle || 'Veículo não informado'}</p>
+                  {service.plate && (
+                    <p className="text-sm font-mono bg-white px-2 py-0.5 rounded mt-1 inline-block">
+                      {service.plate}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Expandable Details */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+            className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-500 hover:text-gray-700 mt-2"
+          >
+            {expanded ? 'Menos detalhes' : 'Mais detalhes'}
+            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-2 pt-2 border-t">
+                  {service.client_address && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <MapPin className="w-4 h-4 mt-0.5 text-gray-500" />
+                      <span className="text-gray-600">{service.client_address}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-sm">
+                    <CalendarClock className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-600">
+                      Agendado: {formatDate(service.scheduled_date)}
+                    </span>
+                  </div>
+                  {service.technician_name && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <span className="text-gray-600">Técnico: {service.technician_name}</span>
+                    </div>
+                  )}
+                  {service.observations && (
+                    <div className="bg-white/50 p-2 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">Observações:</p>
+                      <p className="text-sm">{service.observations}</p>
+                    </div>
+                  )}
+                  {service.completed_date && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Concluído em: {formatDate(service.completed_date)}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between mt-4 pt-3 border-t">
+            <span className="text-xs text-gray-500">
+              {formatDate(service.created_at)}
+            </span>
+            {getActionButton()}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
 export function ServicesListView({ services, loading, onBack, goTo, onSelectService, filter = 'all' }: ServicesListViewProps) {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -33,15 +256,12 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [initialized, setInitialized] = useState(false);
 
-  // Use services from props if available, otherwise load from DB
   useEffect(() => {
     if (!initialized) {
-      // Use props services immediately if available
       if (services && services.length > 0) {
         setAllServices(services);
         setInitialized(true);
       } else {
-        // Load from DB if props are empty
         loadAllServices();
         setInitialized(true);
       }
@@ -52,7 +272,6 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
     setLocalLoading(true);
     try {
       const data = await crmService.getServicos();
-      console.log('ServicesListView: Loaded', data.length, 'services');
       setAllServices(data as any as Service[]);
     } catch (error) {
       console.error('Error loading services:', error);
@@ -109,7 +328,6 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
   }), [displayServices]);
 
   const handleServiceClick = (service: Service) => {
-    console.log('Service clicked:', service);
     if (onSelectService) {
       onSelectService(service);
       goTo('servico');
@@ -118,180 +336,131 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const config = STATUS_CONFIG[status] || STATUS_CONFIG.pendente;
-    return (
-      <Badge className={`${config.bgColor} text-xs`}>
-        {config.label}
-      </Badge>
-    );
-  };
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  const handleServiceAction = (service: Service) => {
+    if (onSelectService) {
+      onSelectService(service);
+      goTo('servico');
+    } else if (goTo) {
+      goTo('servico');
+    }
   };
 
   const isLoading = loading || localLoading;
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header with Back Button */}
-      <div className="flex items-center gap-3 md:gap-4">
-        <Button variant="ghost" size="icon" onClick={handleBack} className="h-10 w-10">
-          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-lg md:text-xl font-bold">Agenda de Serviços</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Controle de todos os serviços</p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleRefresh}
-            className="h-10 w-10"
-          >
-            <RefreshCw className={`w-4 h-4 ${localLoading ? 'animate-spin' : ''}`} />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleExit}
-            className="h-10 w-10 text-red-500 hover:text-red-600"
-            title="Sair"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
+        <div className="max-w-2xl mx-auto p-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={handleBack} className="h-10 w-10 rounded-full">
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold">Agenda de Serviços</h1>
+              <p className="text-sm text-gray-500">{stats.todos} serviços no total</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" onClick={handleRefresh} className="h-10 w-10">
+                <RefreshCw className={`w-5 h-5 ${localLoading ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleExit} className="h-10 w-10 text-red-500">
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats - Responsive Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-        {tabs.map((tab) => {
-          const count = stats[tab.id as keyof typeof stats] || 0;
-          return (
-            <Card 
+      {/* Content */}
+      <div className="max-w-2xl mx-auto p-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-4 gap-2 mb-4">
+          {tabs.map((tab) => {
+            const count = stats[tab.id as keyof typeof stats] || 0;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`p-3 rounded-xl text-center transition-all ${
+                  isActive 
+                    ? 'bg-orange-500 text-white shadow-lg' 
+                    : 'bg-white border hover:border-orange-300'
+                }`}
+              >
+                <p className="text-2xl font-bold">{count}</p>
+                <p className={`text-xs ${isActive ? 'text-orange-100' : 'text-gray-500'}`}>{tab.label}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Input
+            placeholder="Buscar por cliente, placa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-12 h-12 rounded-xl bg-white border shadow-sm"
+          />
+        </div>
+
+        {/* Quick Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+          {tabs.map((tab) => (
+            <button
               key={tab.id}
-              className={`cursor-pointer transition-all ${activeTab === tab.id ? 'border-orange-500 bg-orange-50' : ''}`}
               onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+                activeTab === tab.id 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-white border hover:border-orange-300'
+              }`}
             >
-              <CardContent className="p-2 md:p-3 flex items-center gap-2 md:gap-3">
-                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
-                  activeTab === tab.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  <tab.icon className="w-4 h-4 md:w-5 md:h-5" />
-                </div>
-                <div>
-                  <p className="text-lg md:text-xl font-bold">{count}</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">{tab.label}</p>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar cliente, telefone ou placa..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 h-11 md:h-12 rounded-xl text-sm md:text-base"
-        />
-      </div>
-
-      {/* Tabs - Horizontal Scroll on Mobile */}
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-        {tabs.map((tab) => (
-          <Button
-            key={tab.id}
-            variant={activeTab === tab.id ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActiveTab(tab.id)}
-            className={`gap-1 md:gap-2 whitespace-nowrap ${activeTab === tab.id ? 'bg-orange-500' : ''} text-xs md:text-sm`}
-          >
-            <tab.icon className="w-3 h-3 md:w-4 md:h-4" />
-            <span className="hidden xs:inline">{tab.label}</span>
-            <Badge variant="secondary" className="ml-1 text-[10px] px-1.5">
-              {stats[tab.id as keyof typeof stats] || 0}
-            </Badge>
-          </Button>
-        ))}
-      </div>
-
-      {/* Services List - Responsive Cards */}
-      {isLoading ? (
-        <div className="text-center py-12 md:py-20">
-          <Loader2 className="w-10 h-10 md:w-12 md:h-12 mx-auto animate-spin text-orange-500" />
-          <p className="mt-4 text-sm md:text-base text-muted-foreground">Carregando serviços...</p>
-        </div>
-      ) : filteredServices.length === 0 ? (
-        <div className="text-center py-12 md:py-20 text-muted-foreground">
-          <Wrench className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-30" />
-          <p className="text-sm md:text-base">Nenhum serviço encontrado</p>
-          <p className="text-xs md:text-sm mt-2">Serviços aparecerão aqui quando criados</p>
-        </div>
-      ) : (
-        <div className="space-y-2 md:space-y-3">
-          {filteredServices.map((service, index) => (
-            <motion.div
-              key={service.id || index}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-card border rounded-lg md:rounded-xl p-3 md:p-4 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between gap-2 md:gap-4">
-                <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
-                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    service.status === 'concluido' ? 'bg-green-100' :
-                    service.status === 'em_andamento' ? 'bg-blue-100' :
-                    service.status === 'pendente' ? 'bg-yellow-100' : 'bg-gray-100'
-                  }`}>
-                    <Wrench className={`w-5 h-5 md:w-6 md:h-6 ${
-                      service.status === 'concluido' ? 'text-green-600' :
-                      service.status === 'em_andamento' ? 'text-blue-600' :
-                      service.status === 'pendente' ? 'text-yellow-600' : 'text-gray-600'
-                    }`} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold md:font-bold truncate text-sm md:text-base">{service.client_name}</p>
-                    <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground mt-0.5">
-                      <Phone className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{service.client_phone || 'Sem telefone'}</span>
-                    </div>
-                    {(service.vehicle || service.plate) && (
-                      <div className="flex items-center gap-1 text-xs md:text-sm text-orange-600 mt-0.5">
-                        <Car className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">
-                          {service.vehicle && `${service.vehicle}`}
-                          {service.vehicle && service.plate && ' • '}
-                          {service.plate && service.plate}
-                        </span>
-                      </div>
-                    )}
-                    {service.observations && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1 hidden md:block">
-                        {service.observations}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1 md:gap-2 flex-shrink-0">
-                  {getStatusBadge(service.status)}
-                  <span className="text-[10px] md:text-xs text-muted-foreground">
-                    {formatDate(service.completed_date || service.scheduled_date)}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
+              <tab.icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{tab.label}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                activeTab === tab.id ? 'bg-orange-400' : 'bg-gray-100'
+              }`}>
+                {stats[tab.id as keyof typeof stats] || 0}
+              </span>
+            </button>
           ))}
         </div>
-      )}
+
+        {/* Services List */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 animate-spin text-orange-500" />
+            <p className="mt-4 text-gray-500">Carregando serviços...</p>
+          </div>
+        ) : filteredServices.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Wrench className="w-12 h-12 text-gray-300" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700">Nenhum serviço encontrado</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              {search ? 'Tente buscar por outro termo' : 'Serviços aparecerão aqui quando criados'}
+            </p>
+          </div>
+        ) : (
+          <div className="pb-20">
+            <AnimatePresence mode="popLayout">
+              {filteredServices.map((service) => (
+                <ServiceCard 
+                  key={service.id || Math.random()} 
+                  service={service as Service}
+                  onClick={() => handleServiceClick(service as Service)}
+                  onAction={() => handleServiceAction(service as Service)}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

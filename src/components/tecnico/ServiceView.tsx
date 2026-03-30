@@ -6,8 +6,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Service, PhotoType } from '@/types/tec';
-import { SERVICE_TYPE_LABELS } from '@/types/service';
+import { Service, PhotoType, ServicePhoto } from '@/types/tec';
 import { StatusBadge } from './StatusBadge';
 
 interface ServiceViewProps {
@@ -38,30 +37,30 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
     try {
       const url = await onUploadPhoto(file, currentPhotoType);
       
-      if (url) {
-        const photos = service.photos || [];
-        onUpdate({
-          photos: [...photos, {
+        if (url) {
+          const photos: ServicePhoto[] = (service.photos as ServicePhoto[]) || [];
+          const newPhoto: ServicePhoto = {
             id: `photo_${Date.now()}`,
             service_id: service.id || '',
             url,
             type: currentPhotoType,
             created_at: new Date().toISOString()
-          }]
-        });
+          };
+          onUpdate({
+            photos: [...photos, newPhoto]
+          });
+        }
+      } catch (error) {
+        console.error('Error uploading photo:', error);
+      } finally {
+        setUploading(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-    } finally {
-      setUploading(null);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
   };
 
-  const photosByType = (type: PhotoType) => (service.photos || []).filter(p => p.type === type);
+  const photosByType = (type: PhotoType) => (service.photos as ServicePhoto[] || []).filter(p => p.type === type);
 
   return (
     <div className="space-y-6 pb-20">
@@ -71,7 +70,7 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
         </Button>
         <div>
           <h1 className="text-xl font-bold">Execução do Serviço</h1>
-          <p className="text-sm text-muted-foreground">{service.client_name}</p>
+          <p className="text-sm text-muted-foreground">{service.client_name || 'Cliente'}</p>
         </div>
       </div>
 
@@ -83,13 +82,13 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
                 <Wrench className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <h3 className="font-bold">{SERVICE_TYPE_LABELS[service.type!] || service.type}</h3>
-                <StatusBadge status={service.status!} />
+                <h3 className="font-bold">Serviço</h3>
+                <StatusBadge status={service.status || 'pendente'} />
               </div>
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase text-muted-foreground">Placa</p>
-              <p className="font-bold text-orange-600">{service.plate}</p>
+              <p className="font-bold text-orange-600">{service.plate || '-'}</p>
             </div>
           </div>
 
@@ -135,7 +134,7 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
                 <img src={photo.url} alt="Antes" className="w-full h-full object-cover" />
                 <button 
                   className="absolute top-1 right-1 p-1 bg-red-500/80 rounded-full text-white"
-                  onClick={() => onUpdate({ photos: service.photos?.filter(p => p.id !== photo.id) })}
+                  onClick={() => onUpdate({ photos: (service.photos as ServicePhoto[])?.filter(p => (p as ServicePhoto).id !== photo.id) })}
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
@@ -170,7 +169,7 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
                 <img src={photo.url} alt="Durante" className="w-full h-full object-cover" />
                 <button 
                   className="absolute top-1 right-1 p-1 bg-red-500/80 rounded-full text-white"
-                  onClick={() => onUpdate({ photos: service.photos?.filter(p => p.id !== photo.id) })}
+                  onClick={() => onUpdate({ photos: (service.photos as ServicePhoto[])?.filter(p => (p as ServicePhoto).id !== photo.id) })}
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
