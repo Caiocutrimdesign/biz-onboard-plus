@@ -41,6 +41,7 @@ export interface UnifiedTecnico {
   name: string;
   phone: string;
   cpf: string;
+  password?: string;
   active: boolean;
   created_at: string;
 }
