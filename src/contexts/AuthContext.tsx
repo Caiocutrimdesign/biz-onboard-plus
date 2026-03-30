@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq('email', emailLower)
           .single();
 
-        if (crmUser && !crmError) {
+        if (crmUser && !crmError && crmUser.password) {
           if (crmUser.password === password) {
             if (crmUser.active === false) {
               setIsLoading(false);
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               id: crmUser.id,
               email: crmUser.email,
               name: crmUser.name,
-              role: crmUser.role || 'user',
+              role: (crmUser.role as any) || 'user',
               phone: crmUser.phone,
               active: crmUser.active ?? true,
               created_at: crmUser.created_at,

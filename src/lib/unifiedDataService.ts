@@ -318,18 +318,35 @@ class UnifiedDataService {
       // 1. If it's a NEW technician, create in Supabase Auth first
       if (!tecnicoId && tecnico.email && tecnico.password) {
         console.log("🚀 Criando usuário no Supabase Auth...");
-        const { data, error: authError } = await supabase.auth.signUp({
-          email: tecnico.email.trim().toLowerCase(),
-          password: tecnico.password.trim(),
-        });
+        try {
+          const { data, error: authError } = await supabase.auth.signUp({
+            email: tecnico.email.trim().toLowerCase(),
+            password: tecnico.password.trim(),
+          });
 
-        if (authError) {
-          console.error("❌ Erro ao criar login no Auth:", authError.message);
-          throw authError;
-        }
-
-        if (data.user) {
-          tecnicoId = data.user.id;
+          if (authError) {
+            if (authError.message.includes("already registered") || authError.status === 422) {
+              console.log("ℹ️ Usuário já existe no Auth, tentando vincular pelo e-mail...");
+              // Try to find the existing user by email to get the ID
+              const { data: existingUser } = await supabase
+                .from('crm_users')
+                .select('id')
+                .eq('email', tecnico.email.trim().toLowerCase())
+                .single();
+              
+              if (existingUser) {
+                tecnicoId = existingUser.id;
+              }
+            } else {
+              console.error("❌ Erro ao criar login no Auth:", authError.message);
+              throw authError;
+            }
+          } else if (data.user) {
+            tecnicoId = data.user.id;
+          }
+        } catch (err: any) {
+          console.error("❌ Exceção ao criar usuário:", err);
+          // If it fails but we have an existing user in crm_users, we might still want to proceed
         }
       }
 

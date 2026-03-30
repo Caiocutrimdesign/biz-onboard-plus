@@ -654,6 +654,8 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
     descricao: '',
     data_agendamento: '',
     tecnico_id: 'sem_tecnico',
+    vehicle: '',
+    plate: '',
   });
 
   const handleSubmit = async (e?: React.MouseEvent) => {
@@ -671,7 +673,6 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
       const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined;
       
       const serviceData = {
-        client_id: `cliente_${Date.now()}`,
         client_name: form.cliente_name,
         client_phone: form.cliente_phone,
         client_address: form.cliente_address,
@@ -681,6 +682,8 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
         technician_id: tecnicoId,
         technician_name: tech?.name,
         status: tecnicoId ? ('designado' as any) : ('pendente' as any),
+        vehicle: form.vehicle,
+        plate: form.plate,
       };
 
       console.log("📋 Dados do serviço:", serviceData);
@@ -823,6 +826,8 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
     data_agendamento: '',
     tecnico_id: '',
     tecnico_name: '',
+    vehicle: '',
+    plate: '',
   });
 
   useEffect(() => {
@@ -837,6 +842,8 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
         data_agendamento: service.data_agendamento ? service.data_agendamento.split('T')[0] : '',
         tecnico_id: service.tecnico_id || 'sem_tecnico',
         tecnico_name: service.tecnico_name || '',
+        vehicle: service.vehicle || '',
+        plate: service.plate || '',
       });
     }
   }, [service]);
@@ -861,6 +868,8 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
         status: form.status as any,
         observations: form.descricao,
         scheduled_date: form.data_agendamento || undefined,
+        vehicle: form.vehicle,
+        plate: form.plate,
       };
 
       console.log("📋 Novos dados:", updateData);
@@ -980,6 +989,24 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
               onChange={(e) => setForm({...form, descricao: e.target.value})}
               placeholder="Descrição do serviço..."
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Veículo *</Label>
+              <Input 
+                value={form.vehicle}
+                onChange={(e) => setForm({...form, vehicle: e.target.value})}
+                placeholder="Ex: Corolla"
+              />
+            </div>
+            <div>
+              <Label>Placa *</Label>
+              <Input 
+                value={form.plate}
+                onChange={(e) => setForm({...form, plate: e.target.value})}
+                placeholder="ABC-1234"
+              />
+            </div>
           </div>
         </div>
         <DialogFooter>
