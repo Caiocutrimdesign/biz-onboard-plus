@@ -656,35 +656,54 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
     tecnico_id: 'sem_tecnico',
   });
 
-  const handleSubmit = async () => {
-    if (!form.cliente_name || !form.cliente_phone) return;
+  const handleSubmit = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     
-    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
-    const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined;
+    console.log("🚀 Iniciando criação de serviço...");
     
-    await addServico({
-      client_id: `cliente_${Date.now()}`,
-      client_name: form.cliente_name,
-      client_phone: form.cliente_phone,
-      client_address: form.cliente_address,
-      type: form.tipo_servico,
-      observations: form.descricao,
-      scheduled_date: form.data_agendamento || undefined,
-      technician_id: tecnicoId,
-      technician_name: tech?.name,
-      status: tecnicoId ? 'designado' : 'pendente',
-    });
+    if (!form.cliente_name || !form.cliente_phone) {
+      console.warn("⚠️ Campos obrigatórios faltando:", { name: form.cliente_name, phone: form.cliente_phone });
+      return;
+    }
     
-    setForm({
-      cliente_name: '',
-      cliente_phone: '',
-      cliente_address: '',
-      tipo_servico: 'instalacao',
-      descricao: '',
-      data_agendamento: '',
-      tecnico_id: '',
-    });
-    onCreated();
+    try {
+      const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
+      const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined;
+      
+      const serviceData = {
+        client_id: `cliente_${Date.now()}`,
+        client_name: form.cliente_name,
+        client_phone: form.cliente_phone,
+        client_address: form.cliente_address,
+        type: form.tipo_servico,
+        observations: form.descricao,
+        scheduled_date: form.data_agendamento || undefined,
+        technician_id: tecnicoId,
+        technician_name: tech?.name,
+        status: tecnicoId ? ('designado' as any) : ('pendente' as any),
+      };
+
+      console.log("📋 Dados do serviço:", serviceData);
+      
+      await addServico(serviceData);
+      
+      console.log("✅ Serviço criado com sucesso!");
+      
+      setForm({
+        cliente_name: '',
+        cliente_phone: '',
+        cliente_address: '',
+        tipo_servico: 'instalacao',
+        descricao: '',
+        data_agendamento: '',
+        tecnico_id: 'sem_tecnico',
+      });
+      
+      onCreated();
+    } catch (err) {
+      console.error("❌ Erro ao criar serviço:", err);
+      alert("Erro ao criar serviço. Verifique o console para mais detalhes.");
+    }
   };
 
   return (
@@ -821,37 +840,40 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
     }
   }, [service]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!form.cliente_name || !form.cliente_phone || !service) return;
     
-    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
+    console.log("🚀 Atualizando serviço:", service.id);
     
-    await updateServico(service.id, {
-      client_id: service.cliente_id,
-      client_name: form.cliente_name,
-      client_phone: form.cliente_phone,
-      client_address: form.cliente_address,
-      type: form.tipo_servico,
-      technician_id: form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined,
-      technician_name: tech?.name,
-      status: form.status as any,
-      observations: form.descricao,
-      scheduled_date: form.data_agendamento || undefined,
-    });
-    
-    setForm({
-      cliente_name: '',
-      cliente_phone: '',
-      cliente_address: '',
-      tipo_servico: 'instalacao',
-      status: 'pendente',
-      descricao: '',
-      data_agendamento: '',
-      tecnico_id: '',
-      tecnico_name: '',
-    });
-    onUpdated();
-    onOpenChange(false);
+    try {
+      const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
+      
+      const updateData = {
+        client_id: service.cliente_id,
+        client_name: form.cliente_name,
+        client_phone: form.cliente_phone,
+        client_address: form.cliente_address,
+        type: form.tipo_servico,
+        technician_id: form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined,
+        technician_name: tech?.name,
+        status: form.status as any,
+        observations: form.descricao,
+        scheduled_date: form.data_agendamento || undefined,
+      };
+
+      console.log("📋 Novos dados:", updateData);
+      
+      await updateServico(service.id, updateData);
+      
+      console.log("✅ Serviço atualizado com sucesso!");
+      
+      onUpdated();
+      onOpenChange(false);
+    } catch (err) {
+      console.error("❌ Erro ao atualizar serviço:", err);
+      alert("Erro ao atualizar serviço. Verifique o console para mais detalhes.");
+    }
   };
 
   return (
