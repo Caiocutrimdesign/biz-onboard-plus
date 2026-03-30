@@ -68,6 +68,8 @@ export interface Service {
   checklist?: ChecklistItem[];
   localizacao_inicio?: string;
   localizacao_fim?: string;
+  vehicle?: string;
+  plate?: string;
 }
 
 export interface ServiceHistory {

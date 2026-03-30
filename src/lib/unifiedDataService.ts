@@ -54,10 +54,10 @@ export interface UnifiedService {
   client_name: string;
   client_phone: string;
   client_address?: string;
-  technician_id: string;
+  technician_id?: string;
   technician_name?: string;
-  vehicle: string;
-  plate: string;
+  vehicle?: string;
+  plate?: string;
   type: string;
   status: UnifiedServiceStatus;
   observations?: string;

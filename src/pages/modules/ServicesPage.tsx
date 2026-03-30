@@ -700,6 +700,8 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
         descricao: '',
         data_agendamento: '',
         tecnico_id: 'sem_tecnico',
+        vehicle: '',
+        plate: '',
       });
       
       onCreated();
@@ -791,6 +793,24 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Veículo *</Label>
+              <Input 
+                value={form.vehicle}
+                onChange={(e) => setForm({...form, vehicle: e.target.value})}
+                placeholder="Ex: Corolla"
+              />
+            </div>
+            <div>
+              <Label>Placa *</Label>
+              <Input 
+                value={form.plate}
+                onChange={(e) => setForm({...form, plate: e.target.value})}
+                placeholder="ABC-1234"
+              />
+            </div>
           </div>
         </div>
         <DialogFooter>
