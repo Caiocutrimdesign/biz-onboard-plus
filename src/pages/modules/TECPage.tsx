@@ -174,24 +174,56 @@ export default function TECPage() {
   };
 
   const handleStartService = async () => {
-    if (!currentService.id) return;
     try {
-      console.log('TECPage: Starting service', currentService.id);
+      console.log('TECPage: Starting service');
+      console.log('TECPage: currentService:', currentService);
       
-      // Update in database
       const { supabase } = await import('@/lib/supabaseClient');
-      const { error } = await supabase
-        .from('tec_services')
-        .update({ status: 'em_andamento' })
-        .eq('id', currentService.id);
       
-      if (error) throw error;
-      
-      setCurrentService(prev => ({ ...prev, status: 'em_andamento' }));
-      toast.success('Serviço iniciado! Continue com as fotos.');
+      // If service already has an ID (created by Admin), just update
+      if (currentService.id) {
+        const { error } = await supabase
+          .from('tec_services')
+          .update({ status: 'em_andamento' })
+          .eq('id', currentService.id);
+        
+        if (error) throw error;
+        
+        setCurrentService(prev => ({ ...prev, status: 'em_andamento' }));
+        toast.success('Serviço iniciado! Continue com as fotos.');
+      } else {
+        // Service doesn't have ID yet (created by technician), need to insert first
+        const serviceData = {
+          client_name: currentService.client_name || currentClient?.name || 'Cliente',
+          client_phone: currentService.client_phone || currentClient?.phone || null,
+          client_address: currentService.client_address || currentClient?.address || null,
+          observations: currentService.observations || null,
+          technician_id: user?.id || null,
+          technician_name: (user as any)?.full_name || user?.name || null,
+          vehicle: currentService.vehicle || currentClient?.vehicleModel || null,
+          plate: currentService.plate || currentClient?.plate || null,
+          status: 'em_andamento',
+          scheduled_date: new Date().toISOString(),
+        };
+        
+        console.log('TECPage: Inserting new service:', serviceData);
+        
+        const { data, error } = await supabase
+          .from('tec_services')
+          .insert([serviceData])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        console.log('TECPage: Service inserted with ID:', data.id);
+        
+        setCurrentService(prev => ({ ...prev, id: data.id, status: 'em_andamento' }));
+        toast.success('Serviço iniciado! Continue com as fotos.');
+      }
     } catch (error: any) {
-      console.error('TECPage: Error starting service', error);
-      toast.error('Erro ao iniciar serviço');
+      console.error('TECPage: Error starting service:', error);
+      toast.error('Erro ao iniciar serviço: ' + error.message);
     }
   };
 
