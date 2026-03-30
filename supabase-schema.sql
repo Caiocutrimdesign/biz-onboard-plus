@@ -1,8 +1,79 @@
 -- ============================================
--- CRM TABLES FOR BIZ CRM PLUS
+-- BIZ CRM PLUS - SUPABASE SCHEMA
+-- Updated: 30/03/2026
 -- ============================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ============================================
+-- STORAGE BUCKETS
+-- ============================================
+
+-- Create storage bucket for TEC photos
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'tec-photos',
+  'tec-photos',
+  true,
+  10485760, -- 10MB
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = true,
+  file_size_limit = 10485760;
+
+-- Create storage bucket for customer documents
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'customer-docs',
+  'customer-docs',
+  true,
+  5242880, -- 5MB
+  ARRAY['image/jpeg', 'image/png', 'application/pdf']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = true,
+  file_size_limit = 5242880;
+
+-- ============================================
+-- STORAGE POLICIES
+-- ============================================
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Public can upload to tec-photos" ON storage.objects;
+DROP POLICY IF EXISTS "Public can view tec-photos" ON storage.objects;
+DROP POLICY IF EXISTS "Public can upload to customer-docs" ON storage.objects;
+DROP POLICY IF EXISTS "Public can view customer-docs" ON storage.objects;
+
+-- TEC Photos policies
+CREATE POLICY "Public can upload to tec-photos"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'tec-photos');
+
+CREATE POLICY "Public can view tec-photos"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'tec-photos');
+
+CREATE POLICY "Public can update tec-photos"
+ON storage.objects FOR UPDATE
+USING (bucket_id = 'tec-photos')
+WITH CHECK (bucket_id = 'tec-photos');
+
+CREATE POLICY "Public can delete tec-photos"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'tec-photos');
+
+-- Customer Docs policies
+CREATE POLICY "Public can upload to customer-docs"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'customer-docs');
+
+CREATE POLICY "Public can view customer-docs"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'customer-docs');
+
+-- Enable RLS on storage.objects
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 CREATE TABLE IF NOT EXISTS crm_users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
