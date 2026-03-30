@@ -10,6 +10,7 @@ export interface Tecnico {
   email: string;
   tipo: string;
   phone?: string;
+  active?: boolean;
 }
 
 interface DataContextValue {
