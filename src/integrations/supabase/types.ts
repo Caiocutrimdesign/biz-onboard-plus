@@ -300,6 +300,174 @@ export type Database = {
         }
         Relationships: []
       }
+      tec_service_photos: {
+        Row: {
+          created_at: string | null
+          id: string
+          service_id: string
+          type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          service_id: string
+          type: string
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          service_id?: string
+          type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tec_service_photos_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "tec_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tec_service_signatures: {
+        Row: {
+          created_at: string | null
+          id: string
+          service_id: string
+          signature_url: string
+          signed_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          service_id: string
+          signature_url: string
+          signed_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          service_id?: string
+          signature_url?: string
+          signed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tec_service_signatures_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "tec_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tec_services: {
+        Row: {
+          client_address: string | null
+          client_id: string | null
+          client_name: string
+          client_phone: string | null
+          completed_date: string | null
+          created_at: string | null
+          id: string
+          observations: string | null
+          plate: string
+          scheduled_date: string | null
+          service_type: string
+          signature: string | null
+          status: string
+          technician_id: string
+          technician_name: string | null
+          updated_at: string | null
+          vehicle: string
+        }
+        Insert: {
+          client_address?: string | null
+          client_id?: string | null
+          client_name: string
+          client_phone?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string
+          observations?: string | null
+          plate: string
+          scheduled_date?: string | null
+          service_type?: string
+          signature?: string | null
+          status?: string
+          technician_id: string
+          technician_name?: string | null
+          updated_at?: string | null
+          vehicle: string
+        }
+        Update: {
+          client_address?: string | null
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string
+          observations?: string | null
+          plate?: string
+          scheduled_date?: string | null
+          service_type?: string
+          signature?: string | null
+          status?: string
+          technician_id?: string
+          technician_name?: string | null
+          updated_at?: string | null
+          vehicle?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tec_services_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tec_technicians: {
+        Row: {
+          active: boolean | null
+          avatar_url: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          avatar_url?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          avatar_url?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
