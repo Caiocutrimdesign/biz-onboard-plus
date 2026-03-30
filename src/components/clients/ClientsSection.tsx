@@ -12,8 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerStatus } from '@/types/customer';
-import { customerService } from '@/lib/customerService';
-import { getTecnicos } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import type { Technician } from '@/types/tec';
 
 const WESALES_KEY = 'wesales_api_key';
@@ -44,72 +43,43 @@ function getWhatsAppLink(customer: CustomerRegistration): string {
 }
 
 export default function ClientsSection() {
+  const { customers: allCustomers, tecnicos, isLoading: loading, refreshCustomers, saveCustomer, updateCustomerStatus, deleteCustomer } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [allCustomers, setAllCustomers] = useState<CustomerRegistration[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRegistration | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<CustomerRegistration>>({});
-  const [loading, setLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
   const [syncingWeSales, setSyncingWeSales] = useState<string | null>(null);
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loadingTechnicians, setLoadingTechnicians] = useState(false);
 
-  useEffect(() => {
-    loadCustomers();
-    loadTechnicians();
-  }, []);
-
-  const loadCustomers = async () => {
-    setLoading(true);
-    try {
-      const customers = await customerService.getAllCustomers();
-      setAllCustomers(customers);
-    } catch (e) {
-      console.error('Erro ao carregar clientes:', e);
-    }
-    setLoading(false);
-  };
-
-  const loadTechnicians = async () => {
-    setLoadingTechnicians(true);
-    try {
-      const tecnicos = getTecnicos();
-      const techs: Technician[] = tecnicos.map(t => ({
-        id: t.id,
-        name: t.name,
-        email: t.email,
-        phone: t.phone || '',
-        cpf: t.cpf || '',
-        status: (t.active ? 'active' : 'inactive') as 'active' | 'inactive',
-        created_at: t.created_at || new Date().toISOString(),
-      }));
-      setTechnicians(techs);
-    } catch (e) {
-      console.error('Erro ao carregar técnicos:', e);
-    }
-    setLoadingTechnicians(false);
-  };
+  const technicians: Technician[] = tecnicos.map(t => ({
+    id: t.id,
+    name: t.name,
+    email: t.email,
+    phone: t.phone || '',
+    cpf: t.cpf || '',
+    status: (t.active ? 'active' : 'inactive') as 'active' | 'inactive',
+    created_at: t.created_at || new Date().toISOString(),
+  }));
 
   const handleAssignTechnician = async (customerId: string, technicianId: string) => {
     const technician = technicians.find(t => t.id === technicianId);
     
+    const customer = allCustomers.find(c => c.id === customerId);
+    if (!customer) return;
+
     const updatedCustomer = {
-      ...allCustomers.find(c => c.id === customerId),
+      ...customer,
       technician_id: technicianId,
       technician_name: technician?.name || '',
-    } as CustomerRegistration;
+    };
 
-    customerService.saveLocalCustomer(updatedCustomer);
-
-    setAllCustomers(prev => prev.map(c => 
-      c.id === customerId ? updatedCustomer : c
-    ));
+    await saveCustomer(updatedCustomer);
 
     if (selectedCustomer?.id === customerId) {
-      setSelectedCustomer(updatedCustomer);
+      setSelectedCustomer(updatedCustomer as CustomerRegistration);
     }
   };
 
@@ -127,16 +97,11 @@ export default function ClientsSection() {
     localStorage.setItem('status_change_logs', JSON.stringify(logs.slice(0, 100)));
   };
 
-  const updateCustomerStatus = (id: string, newStatus: CustomerStatus, previousStatus: string) => {
+  const handleStatusChange = (id: string, newStatus: CustomerStatus, previousStatus: string) => {
     setLoadingStatus(id);
-    setTimeout(() => {
+    setTimeout(async () => {
       logStatusChange(id, previousStatus, newStatus);
-      customerService.updateCustomerStatus(id, newStatus);
-      
-      const updated = allCustomers.map(c => 
-        c.id === id ? { ...c, status: newStatus } : c
-      );
-      setAllCustomers(updated);
+      await updateCustomerStatus(id, newStatus);
       
       if (selectedCustomer?.id === id) {
         setSelectedCustomer({ ...selectedCustomer, status: newStatus });
@@ -146,26 +111,22 @@ export default function ClientsSection() {
   };
 
   const handleActivate = (id: string, previousStatus: string) => {
-    updateCustomerStatus(id, 'active', previousStatus);
+    handleStatusChange(id, 'active', previousStatus);
   };
 
   const handleInactivate = (id: string, previousStatus: string) => {
-    updateCustomerStatus(id, 'inactive', previousStatus);
+    handleStatusChange(id, 'inactive', previousStatus);
   };
 
   const handleDisable = (id: string, previousStatus: string) => {
-    updateCustomerStatus(id, 'disabled', previousStatus);
+    handleStatusChange(id, 'disabled', previousStatus);
   };
 
   const handleReject = (id: string) => {
     const customer = allCustomers.find(c => c.id === id);
     if (customer && confirm('Tem certeza que deseja cancelar este cliente?')) {
       logStatusChange(id, customer.status, 'cancelado');
-      customerService.updateCustomerStatus(id, 'cancelado');
-      const updated = allCustomers.map(c => 
-        c.id === id ? { ...c, status: 'cancelado' as CustomerStatus } : c
-      );
-      setAllCustomers(updated);
+      handleStatusChange(id, 'cancelado', customer.status);
       setIsViewOpen(false);
     }
   };
@@ -176,7 +137,7 @@ export default function ClientsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editForm.id) return;
     
     const customer = allCustomers.find(c => c.id === editForm.id);
@@ -184,12 +145,8 @@ export default function ClientsSection() {
       logStatusChange(editForm.id!, customer.status, editForm.status || customer.status);
     }
 
-    customerService.saveLocalCustomer(editForm as CustomerRegistration);
+    await saveCustomer(editForm as any);
     
-    const updated = allCustomers.map(c => 
-      c.id === editForm.id ? { ...c, ...editForm } as CustomerRegistration : c
-    );
-    setAllCustomers(updated);
     setIsEditOpen(false);
     setEditForm({});
   };
@@ -202,23 +159,13 @@ export default function ClientsSection() {
     }
 
     setSyncingWeSales(customer.id);
-    
-    const result = await customerService.syncToWeSales(customer);
-    
-    if (result.success) {
-      alert(`✅ ${result.message}`);
-    } else {
-      alert(`❌ ${result.message}`);
-    }
-    
+    alert('Sincronização com WeSales disponível em breve.');
     setSyncingWeSales(null);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este cliente?')) {
-      customerService.deleteCustomer(id);
-      const updated = allCustomers.filter(c => c.id !== id);
-      setAllCustomers(updated);
+      await deleteCustomer(id);
       setIsEditOpen(false);
       setIsViewOpen(false);
     }
@@ -260,7 +207,7 @@ export default function ClientsSection() {
             <p className="text-white/70">Gerencie todos os clientes cadastrados</p>
           </div>
           <Button 
-            onClick={loadCustomers}
+            onClick={refreshCustomers}
             variant="outline"
             className="bg-white/20 hover:bg-white/30 text-white border-white/30"
             size="sm"

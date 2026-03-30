@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   LogOut, LayoutDashboard, Users, Car, DollarSign, Settings, Bell, 
@@ -15,6 +15,7 @@ import logo from '@/assets/logo-rastremix.png';
 import ClientsSection from '@/components/clients/ClientsSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo3D } from '@/components/ui/Logo3D';
+import { useData } from '@/contexts/DataContext';
 
 type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'config' | 'tecnicos' | 'servicos';
 
@@ -40,11 +41,10 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, logout } = useAuth();
+  const { customers: allCustomers, isLoading } = useData();
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [allCustomers, setAllCustomers] = useState<any[]>([]);
-  const [birthdays, setBirthdays] = useState<any[]>([]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -53,39 +53,24 @@ export default function AdminDashboard() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const birthdays = useMemo(() => {
+    const today = new Date();
+    const todayMonth = today.getMonth();
+    const todayDay = today.getDate();
+    
+    return allCustomers.filter((c: any) => {
+      if (!c.birth_date) return false;
+      const birth = new Date(c.birth_date);
+      return birth.getMonth() === todayMonth && birth.getDate() === todayDay;
+    });
+  }, [allCustomers]);
 
-  const loadData = () => {
-    try {
-      const data = localStorage.getItem('rastremix_customers');
-      if (data) {
-        const customers = JSON.parse(data);
-        setAllCustomers(customers);
-        
-        const today = new Date();
-        const todayMonth = today.getMonth();
-        const todayDay = today.getDate();
-        
-        const todayBirthdays = customers.filter((c: any) => {
-          if (!c.birth_date) return false;
-          const birth = new Date(c.birth_date);
-          return birth.getMonth() === todayMonth && birth.getDate() === todayDay;
-        });
-        setBirthdays(todayBirthdays);
-      }
-    } catch (e) {
-      console.error('Erro ao carregar dados:', e);
-    }
-  };
-
-  const stats = {
+  const stats = useMemo(() => ({
     total: allCustomers.length,
-    active: allCustomers.filter((c: any) => c.status === 'cliente_ativado').length,
-    pending: allCustomers.filter((c: any) => c.status === 'novo_cadastro').length,
-    inProgress: allCustomers.filter((c: any) => c.status === 'em_atendimento').length,
-  };
+    active: allCustomers.filter((c: any) => c.status === 'cliente_ativado' || c.status === 'active' || c.status === 'ativo').length,
+    pending: allCustomers.filter((c: any) => c.status === 'novo_cadastro' || c.status === 'novo' || c.status === 'pendente').length,
+    inProgress: allCustomers.filter((c: any) => c.status === 'em_atendimento' || c.status === 'em_andamento').length,
+  }), [allCustomers]);
 
   const handleLogout = async () => {
     await logout();

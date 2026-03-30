@@ -21,6 +21,7 @@ import type { Service, ServiceStatus, ServiceType, PhotoType, Technician } from 
 import type { Service as AppService, ServiceStatus as AppServiceStatus } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS } from '@/types/service';
 import TechnicianServicesPage from './TechnicianServicesPage';
+import { useData } from '@/contexts/DataContext';
 
 type TECView = 'home' | 'novo-cliente' | 'servico' | 'vendas' | 'finalizar' | 'meus-servicos' | 'servicos-designados' | 'novo-servico';
 type Client = {
@@ -106,6 +107,7 @@ const PRODUCTS: Product[] = [
 
 export default function TECPage() {
   const { user } = useAuth();
+  const { customers, saveCustomer } = useData();
   const [view, setView] = useState<TECView>('home');
   const [services, setServices] = useState<Service[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -292,41 +294,41 @@ export default function TECPage() {
           // Save to localStorage
           localStorage.setItem(`tec_satisfaction_${newService.id}`, JSON.stringify(satisfactionData));
           
-          // Also save to rastremix_customers for CRM visibility
+          // Also save to customers via DataContext for CRM visibility
           const customerData = {
             id: currentService.client_id || currentClient?.id,
             full_name: currentService.client_name || currentClient?.name,
             phone: currentService.client_phone || currentClient?.phone,
             email: currentClient?.email || '',
-            address: currentService.client_address || '',
-            vehicle: currentService.vehicle || '',
+            street: currentService.client_address || '',
+            vehicle_type: currentService.vehicle || '',
             plate: currentService.plate || '',
             plan: cart.length > 0 ? cart[0].name : '',
-            status: 'active' as const,
+            status: 'active' as any,
             brand: currentClient?.vehicleBrand || '',
             model: currentClient?.vehicleModel || '',
             created_at: new Date().toISOString(),
           };
           
-          // Save to customer registrations
-          const clientRegistrations = JSON.parse(localStorage.getItem('rastremix_customers') || '[]');
-          const clientIndex = clientRegistrations.findIndex((c: any) => 
+          // Check if customer already exists
+          const existingCustomer = customers.find((c: any) => 
             c.id === customerData.id || 
             c.phone === customerData.phone ||
             c.full_name === customerData.full_name
           );
           
-          if (clientIndex >= 0) {
-            clientRegistrations[clientIndex].satisfaction = satisfactionData;
-            clientRegistrations[clientIndex].tec_service_id = newService.id;
-            localStorage.setItem('rastremix_customers', JSON.stringify(clientRegistrations));
+          if (existingCustomer) {
+            await saveCustomer({
+              ...existingCustomer,
+              satisfaction: satisfactionData,
+              tec_service_id: newService.id,
+            });
           } else {
-            clientRegistrations.push({
+            await saveCustomer({
               ...customerData,
               satisfaction: satisfactionData,
               tec_service_id: newService.id,
             });
-            localStorage.setItem('rastremix_customers', JSON.stringify(clientRegistrations));
           }
         } catch (e) {
           console.error('Error saving satisfaction:', e);

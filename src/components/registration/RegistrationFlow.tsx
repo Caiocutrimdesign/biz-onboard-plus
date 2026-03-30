@@ -17,6 +17,7 @@ import { useRegistrationStore } from '@/store/registrationStore';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { sendWelcomeEmail } from '@/lib/emailService';
 import { generateWhatsAppLink, generateSatisfactionLink } from '@/lib/whatsappService';
+import { useData } from '@/contexts/DataContext';
 
 const TOTAL_STEPS = 10;
 const IDLE_TIMEOUT = 120000;
@@ -26,6 +27,7 @@ interface Props {
 }
 
 interface CustomerData {
+  id?: string;
   full_name: string;
   phone: string;
   cpf_cnpj?: string;
@@ -52,6 +54,7 @@ interface CustomerData {
 
 export function RegistrationFlow({ onClose }: Props) {
   const { currentStep, setStep, reset, data } = useRegistrationStore();
+  const { saveCustomer } = useData();
   const idleTimer = useRef<ReturnType<typeof setTimeout>>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,14 +87,12 @@ export function RegistrationFlow({ onClose }: Props) {
     setStep(Math.max(currentStep - 1, 0));
   };
 
-  const saveToLocalStorage = (customerData: CustomerData) => {
-    const existing = JSON.parse(localStorage.getItem('rastremix_customers') || '[]');
-    existing.push({
+  const saveCustomerData = async (customerData: CustomerData) => {
+    await saveCustomer({
       ...customerData,
-      id: `local-${Date.now()}`,
-      synced: false,
+      id: customerData.id || `local-${Date.now()}`,
+      status: 'novo_cadastro' as any,
     });
-    localStorage.setItem('rastremix_customers', JSON.stringify(existing));
   };
 
   const handleSubmit = async () => {
@@ -170,7 +171,7 @@ export function RegistrationFlow({ onClose }: Props) {
         }
       } else {
         console.warn('⚠️ Supabase não configurado, salvando localmente...');
-        saveToLocalStorage(customerData);
+        await saveCustomerData(customerData);
         console.log('✅ Cadastro salvo localmente!');
         
         if (data.email) {
@@ -212,7 +213,7 @@ export function RegistrationFlow({ onClose }: Props) {
         created_at: new Date().toISOString(),
       };
       
-      saveToLocalStorage(customerData);
+      await saveCustomerData(customerData);
       
       console.log('✅ Cadastro salvo localmente como fallback!');
       

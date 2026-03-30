@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import SuperLayout from '@/components/layout/SuperLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 
 type PersonType = 'cliente' | 'funcionario';
 
@@ -42,6 +43,7 @@ const DEFAULT_MESSAGE = `Ola {nome}! \n\nA {empresa} parabeniza voce pelos seus 
 
 export default function BirthdaysPage() {
   const { user } = useAuth();
+  const { customers } = useData();
   const [people, setPeople] = useState<BirthdayPerson[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -52,17 +54,16 @@ export default function BirthdaysPage() {
 
   useEffect(() => {
     loadBirthdays();
-  }, []);
+  }, [customers]);
 
   const loadBirthdays = () => {
     setLoading(true);
     
-    // Load from localStorage
-    const clients = JSON.parse(localStorage.getItem('customer_registrations') || '[]');
+    // Load from DataContext customers
     const sentMessages = JSON.parse(localStorage.getItem('birthday_messages_sent') || '{}');
     
-    // Combine clients
-    const birthdayPeople: BirthdayPerson[] = clients
+    // Combine clients from DataContext
+    const birthdayPeople: BirthdayPerson[] = (customers || [])
       .filter((c: any) => c.birthdate || c.nascimento)
       .map((c: any) => ({
         id: c.id || `client_${c.phone}`,

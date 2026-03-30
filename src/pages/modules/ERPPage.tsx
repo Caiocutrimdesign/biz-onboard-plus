@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Building2, Package, Truck, DollarSign, Calendar,
@@ -9,42 +9,23 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import SuperLayout from '@/components/layout/SuperLayout';
-
-interface ERPData {
-  tec: any[];
-  customers: any[];
-}
+import { useData } from '@/contexts/DataContext';
 
 export default function ERPPage() {
-  const [services, setServices] = useState<ERPData>({ tec: [], customers: [] });
+  const { customers, services: servicesData } = useData();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = () => {
-    try {
-      const tecServices = localStorage.getItem('tec_services');
-      const customers = localStorage.getItem('rastremix_customers');
-      setServices({
-        tec: tecServices ? JSON.parse(tecServices) : [],
-        customers: customers ? JSON.parse(customers) : [],
-      });
-    } catch (e) {
-      setServices({ tec: [], customers: [] });
-    }
-  };
-
-  const allServices = [...(services.tec || []), ...(services.customers || [])];
+  const allServices = useMemo(() => {
+    return [...(servicesData || []), ...(customers || [])];
+  }, [servicesData, customers]);
   
-  const stats = {
+  const stats = useMemo(() => ({
     totalRevenue: allServices.reduce((acc: number, s: any) => acc + (s.value || 0), 0),
-    servicesCompleted: (services.tec || []).filter((s: any) => s.status === 'concluido').length,
-    clientsTotal: (services.customers || []).length,
-    pendingServices: (services.tec || []).filter((s: any) => s.status === 'pendente').length,
-  };
+    servicesCompleted: (servicesData || []).filter((s: any) => s.status === 'concluido').length,
+    clientsTotal: (customers || []).length,
+    pendingServices: (servicesData || []).filter((s: any) => s.status === 'pendente').length,
+  }), [allServices, servicesData, customers]);
 
   const filteredServices = allServices.filter((s: any) => {
     const matchSearch = !search || 
