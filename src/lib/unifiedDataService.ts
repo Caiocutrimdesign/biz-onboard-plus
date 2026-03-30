@@ -1,11 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import type { CustomerRegistration, CustomerStatus } from '@/types/customer';
-import type { Technician } from '@/types/tec';
-import type { Service } from '@/types/tec';
-
-const CUSTOMERS_KEY = 'rastremix_customers';
-const TECNICOS_KEY = 'rastremix_tecnicos';
-const SERVICES_KEY = 'tec_services';
+import type { CustomerStatus } from '@/types/customer';
 
 export interface UnifiedCustomer {
   id: string;
@@ -31,6 +25,12 @@ export interface UnifiedCustomer {
   payment_method?: string;
   status: CustomerStatus;
   notes?: string;
+  satisfaction?: {
+    rating: number;
+    comment?: string;
+    created_at: string;
+  };
+  tec_service_id?: string;
   created_at: string;
   updated_at?: string;
 }
@@ -45,6 +45,8 @@ export interface UnifiedTecnico {
   created_at: string;
 }
 
+export type UnifiedServiceStatus = 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
+
 export interface UnifiedService {
   id: string;
   client_id?: string;
@@ -56,7 +58,7 @@ export interface UnifiedService {
   vehicle: string;
   plate: string;
   type: string;
-  status: string;
+  status: UnifiedServiceStatus;
   observations?: string;
   signature?: string;
   scheduled_date?: string;
@@ -65,9 +67,21 @@ export interface UnifiedService {
   updated_at?: string;
 }
 
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 class UnifiedDataService {
   private subscribers: Map<string, Set<(data: any) => void>> = new Map();
   private cache: Map<string, any> = new Map();
+  private isFetching: Map<string, boolean> = new Map();
 
   subscribe(collection: string, callback: (data: any) => void) {
     if (!this.subscribers.has(collection)) {
@@ -82,16 +96,26 @@ class UnifiedDataService {
     this.subscribers.get(collection)?.forEach(cb => cb(data));
   }
 
-  async getCustomers(): Promise<UnifiedCustomer[]> {
-    if (isSupabaseConfigured() && supabase) {
-      try {
+  async getCustomers(forceRefresh = false): Promise<UnifiedCustomer[]> {
+    if (this.isFetching.get('customers')) {
+      return this.cache.get('customers') || [];
+    }
+
+    if (!forceRefresh && this.cache.has('customers')) {
+      return this.cache.get('customers');
+    }
+
+    this.isFetching.set('customers', true);
+
+    try {
+      if (isSupabaseConfigured() && supabase) {
         const { data, error } = await supabase
           .from('customers')
           .select('*')
           .order('created_at', { ascending: false });
 
         if (!error && data) {
-          const customers = data.map((c: any) => ({
+          const customers: UnifiedCustomer[] = data.map((c: any) => ({
             id: c.id,
             full_name: c.full_name,
             phone: c.phone,
@@ -118,30 +142,25 @@ class UnifiedDataService {
             updated_at: c.updated_at,
           }));
           this.notify('customers', customers);
+          this.isFetching.set('customers', false);
           return customers;
         }
-      } catch (e) {
-        console.error('Error fetching customers from Supabase:', e);
       }
+    } catch (e) {
+      console.error('Error fetching customers from Supabase:', e);
     }
 
-    const local = this.getLocalCustomers();
-    this.notify('customers', local);
-    return local;
-  }
-
-  getLocalCustomers(): UnifiedCustomer[] {
-    try {
-      const data = localStorage.getItem(CUSTOMERS_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
+    this.isFetching.set('customers', false);
+    this.notify('customers', []);
+    return [];
   }
 
   async saveCustomer(customer: Partial<UnifiedCustomer>): Promise<UnifiedCustomer> {
+    const customerId = customer.id || generateUUID();
+    const now = new Date().toISOString();
+
     const newCustomer: UnifiedCustomer = {
-      id: customer.id || `cust_${Date.now()}`,
+      id: customerId,
       full_name: customer.full_name || '',
       phone: customer.phone || '',
       cpf_cnpj: customer.cpf_cnpj,
@@ -163,8 +182,10 @@ class UnifiedDataService {
       plan: customer.plan,
       payment_method: customer.payment_method,
       status: customer.status || 'novo_cadastro',
-      created_at: customer.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      satisfaction: customer.satisfaction,
+      tec_service_id: customer.tec_service_id,
+      created_at: customer.created_at || now,
+      updated_at: now,
     };
 
     if (isSupabaseConfigured() && supabase) {
@@ -193,6 +214,8 @@ class UnifiedDataService {
           plan: newCustomer.plan,
           payment_method: newCustomer.payment_method,
           status: newCustomer.status,
+          satisfaction: newCustomer.satisfaction,
+          tec_service_id: newCustomer.tec_service_id,
           created_at: newCustomer.created_at,
           updated_at: newCustomer.updated_at,
         })
@@ -201,62 +224,69 @@ class UnifiedDataService {
 
       if (error) {
         console.error('Error saving to Supabase:', error);
-      } else if (data) {
-        const customers = await this.getCustomers();
-        return { ...newCustomer, id: data.id };
+        throw error;
       }
+
+      await this.getCustomers(true);
+      return { ...newCustomer, id: data?.id || customerId };
     }
 
-    const localCustomers = this.getLocalCustomers();
-    const index = localCustomers.findIndex(c => c.id === newCustomer.id);
-    if (index >= 0) {
-      localCustomers[index] = newCustomer;
-    } else {
-      localCustomers.unshift(newCustomer);
-    }
-    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(localCustomers));
-    this.notify('customers', localCustomers);
-    return newCustomer;
+    throw new Error('Supabase not configured');
   }
 
   async updateCustomerStatus(id: string, status: CustomerStatus): Promise<void> {
+    const now = new Date().toISOString();
+
     if (isSupabaseConfigured() && supabase) {
       const { error } = await supabase
         .from('customers')
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({ status, updated_at: now })
         .eq('id', id);
 
       if (error) {
         console.error('Error updating status in Supabase:', error);
+        throw error;
       }
-    }
 
-    const customers = await this.getCustomers();
-    const updated = customers.map(c => c.id === id ? { ...c, status, updated_at: new Date().toISOString() } : c);
-    this.notify('customers', updated);
+      await this.getCustomers(true);
+    } else {
+      throw new Error('Supabase not configured');
+    }
   }
 
   async deleteCustomer(id: string): Promise<void> {
     if (isSupabaseConfigured() && supabase) {
-      await supabase.from('customers').delete().eq('id', id);
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (error) {
+        console.error('Error deleting customer:', error);
+        throw error;
+      }
+      await this.getCustomers(true);
+    } else {
+      throw new Error('Supabase not configured');
     }
-
-    const customers = await this.getCustomers();
-    const filtered = customers.filter(c => c.id !== id);
-    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(filtered));
-    this.notify('customers', filtered);
   }
 
-  async getTecnicos(): Promise<UnifiedTecnico[]> {
-    if (isSupabaseConfigured() && supabase) {
-      try {
+  async getTecnicos(forceRefresh = false): Promise<UnifiedTecnico[]> {
+    if (this.isFetching.get('tecnicos')) {
+      return this.cache.get('tecnicos') || [];
+    }
+
+    if (!forceRefresh && this.cache.has('tecnicos')) {
+      return this.cache.get('tecnicos');
+    }
+
+    this.isFetching.set('tecnicos', true);
+
+    try {
+      if (isSupabaseConfigured() && supabase) {
         const { data, error } = await supabase
           .from('tec_technicians')
           .select('*')
           .order('name');
 
         if (!error && data) {
-          const tecnicos = data.map((t: any) => ({
+          const tecnicos: UnifiedTecnico[] = data.map((t: any) => ({
             id: t.id,
             email: t.email,
             name: t.name,
@@ -266,84 +296,93 @@ class UnifiedDataService {
             created_at: t.created_at,
           }));
           this.notify('tecnicos', tecnicos);
+          this.isFetching.set('tecnicos', false);
           return tecnicos;
         }
-      } catch (e) {
-        console.error('Error fetching tecnicos from Supabase:', e);
       }
+    } catch (e) {
+      console.error('Error fetching tecnicos from Supabase:', e);
     }
 
-    const local = this.getLocalTecnicos();
-    this.notify('tecnicos', local);
-    return local;
-  }
-
-  getLocalTecnicos(): UnifiedTecnico[] {
-    try {
-      const data = localStorage.getItem(TECNICOS_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
+    this.isFetching.set('tecnicos', false);
+    this.notify('tecnicos', []);
+    return [];
   }
 
   async saveTecnico(tecnico: Partial<UnifiedTecnico>): Promise<UnifiedTecnico> {
+    const tecnicoId = tecnico.id || generateUUID();
+    const now = new Date().toISOString();
+
     const newTecnico: UnifiedTecnico = {
-      id: tecnico.id || `tech_${Date.now()}`,
+      id: tecnicoId,
       email: tecnico.email || '',
       name: tecnico.name || '',
       phone: tecnico.phone || '',
       cpf: tecnico.cpf || '',
       active: tecnico.active ?? true,
-      created_at: tecnico.created_at || new Date().toISOString(),
+      created_at: tecnico.created_at || now,
     };
 
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('tec_technicians')
-        .upsert(newTecnico)
+        .upsert({
+          id: newTecnico.id,
+          email: newTecnico.email,
+          name: newTecnico.name,
+          phone: newTecnico.phone,
+          cpf: newTecnico.cpf,
+          active: newTecnico.active,
+          created_at: newTecnico.created_at,
+        })
         .select()
         .single();
 
-      if (!error && data) {
-        const tecnicos = await this.getTecnicos();
-        return { ...newTecnico, id: data.id };
+      if (error) {
+        console.error('Error saving tecnico:', error);
+        throw error;
       }
+
+      await this.getTecnicos(true);
+      return { ...newTecnico, id: data?.id || tecnicoId };
     }
 
-    const local = this.getLocalTecnicos();
-    const index = local.findIndex(t => t.id === newTecnico.id);
-    if (index >= 0) {
-      local[index] = newTecnico;
-    } else {
-      local.push(newTecnico);
-    }
-    localStorage.setItem(TECNICOS_KEY, JSON.stringify(local));
-    this.notify('tecnicos', local);
-    return newTecnico;
+    throw new Error('Supabase not configured');
   }
 
   async deleteTecnico(id: string): Promise<void> {
     if (isSupabaseConfigured() && supabase) {
-      await supabase.from('tec_technicians').delete().eq('id', id);
+      const { error } = await supabase.from('tec_technicians').delete().eq('id', id);
+      if (error) {
+        console.error('Error deleting tecnico:', error);
+        throw error;
+      }
+      await this.getTecnicos(true);
+    } else {
+      throw new Error('Supabase not configured');
     }
-
-    const tecnicos = await this.getTecnicos();
-    const filtered = tecnicos.filter(t => t.id !== id);
-    localStorage.setItem(TECNICOS_KEY, JSON.stringify(filtered));
-    this.notify('tecnicos', filtered);
   }
 
-  async getServices(): Promise<UnifiedService[]> {
-    if (isSupabaseConfigured() && supabase) {
-      try {
+  async getServices(forceRefresh = false): Promise<UnifiedService[]> {
+    if (this.isFetching.get('services')) {
+      return this.cache.get('services') || [];
+    }
+
+    if (!forceRefresh && this.cache.has('services')) {
+      return this.cache.get('services');
+    }
+
+    this.isFetching.set('services', true);
+
+    try {
+      if (isSupabaseConfigured() && supabase) {
         const { data, error } = await supabase
           .from('tec_services')
           .select('*')
           .order('created_at', { ascending: false });
 
         if (!error && data) {
-          const services = data.map((s: any) => ({
+          const services: UnifiedService[] = data.map((s: any) => ({
             id: s.id,
             client_id: s.client_id,
             client_name: s.client_name,
@@ -354,7 +393,7 @@ class UnifiedDataService {
             vehicle: s.vehicle,
             plate: s.plate,
             type: s.service_type,
-            status: s.status,
+            status: s.status || 'pendente',
             observations: s.observations,
             signature: s.signature,
             scheduled_date: s.scheduled_date,
@@ -363,30 +402,25 @@ class UnifiedDataService {
             updated_at: s.updated_at,
           }));
           this.notify('services', services);
+          this.isFetching.set('services', false);
           return services;
         }
-      } catch (e) {
-        console.error('Error fetching services from Supabase:', e);
       }
+    } catch (e) {
+      console.error('Error fetching services from Supabase:', e);
     }
 
-    const local = this.getLocalServices();
-    this.notify('services', local);
-    return local;
-  }
-
-  getLocalServices(): UnifiedService[] {
-    try {
-      const data = localStorage.getItem(SERVICES_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
+    this.isFetching.set('services', false);
+    this.notify('services', []);
+    return [];
   }
 
   async saveService(service: Partial<UnifiedService>): Promise<UnifiedService> {
+    const serviceId = service.id || generateUUID();
+    const now = new Date().toISOString();
+
     const newService: UnifiedService = {
-      id: service.id || `svc_${Date.now()}`,
+      id: serviceId,
       client_id: service.client_id,
       client_name: service.client_name || '',
       client_phone: service.client_phone || '',
@@ -401,8 +435,8 @@ class UnifiedDataService {
       signature: service.signature,
       scheduled_date: service.scheduled_date,
       completed_date: service.completed_date,
-      created_at: service.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: service.created_at || now,
+      updated_at: now,
     };
 
     if (isSupabaseConfigured() && supabase) {
@@ -430,22 +464,41 @@ class UnifiedDataService {
         .select()
         .single();
 
-      if (!error && data) {
-        const services = await this.getServices();
-        return { ...newService, id: data.id };
+      if (error) {
+        console.error('Error saving service:', error);
+        throw error;
       }
+
+      await this.getServices(true);
+      return { ...newService, id: data?.id || serviceId };
     }
 
-    const local = this.getLocalServices();
-    const index = local.findIndex(s => s.id === newService.id);
-    if (index >= 0) {
-      local[index] = newService;
-    } else {
-      local.unshift(newService);
+    throw new Error('Supabase not configured');
+  }
+
+  async updateServiceStatus(id: string, status: UnifiedService['status']): Promise<void> {
+    const now = new Date().toISOString();
+    const updates: any = { status, updated_at: now };
+
+    if (status === 'finalizado') {
+      updates.completed_date = now;
     }
-    localStorage.setItem(SERVICES_KEY, JSON.stringify(local));
-    this.notify('services', local);
-    return newService;
+
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase
+        .from('tec_services')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating service status:', error);
+        throw error;
+      }
+
+      await this.getServices(true);
+    } else {
+      throw new Error('Supabase not configured');
+    }
   }
 
   subscribeToRealtime() {
@@ -454,21 +507,21 @@ class UnifiedDataService {
     const customersChannel = supabase
       .channel('customers-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => {
-        this.getCustomers();
+        this.getCustomers(true);
       })
       .subscribe();
 
     const tecnicosChannel = supabase
       .channel('tecnicos-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tec_technicians' }, () => {
-        this.getTecnicos();
+        this.getTecnicos(true);
       })
       .subscribe();
 
     const servicesChannel = supabase
       .channel('services-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tec_services' }, () => {
-        this.getServices();
+        this.getServices(true);
       })
       .subscribe();
 
@@ -479,113 +532,12 @@ class UnifiedDataService {
     };
   }
 
-  async migrateLocalToSupabase(): Promise<{ customers: number; tecnicos: number; services: number }> {
-    const results = { customers: 0, tecnicos: 0, services: 0 };
-
-    if (!isSupabaseConfigured() || !supabase) {
-      console.log('Supabase not configured, skipping migration');
-      return results;
-    }
-
-    try {
-      const localCustomers = this.getLocalCustomers();
-      if (localCustomers.length > 0) {
-        console.log(`Migrating ${localCustomers.length} customers to Supabase...`);
-        
-        const { data: existingCustomers } = await supabase
-          .from('customers')
-          .select('id');
-        
-        const existingIds = new Set(existingCustomers?.map(c => c.id) || []);
-        const toMigrate = localCustomers.filter(c => !existingIds.has(c.id));
-        
-        if (toMigrate.length > 0) {
-          const { error } = await supabase.from('customers').insert(toMigrate);
-          if (error) {
-            console.error('Error migrating customers:', error);
-          } else {
-            results.customers = toMigrate.length;
-            console.log(`Migrated ${toMigrate.length} customers`);
-          }
-        }
-      }
-
-      const localTecnicos = this.getLocalTecnicos();
-      if (localTecnicos.length > 0) {
-        console.log(`Migrating ${localTecnicos.length} tecnicos to Supabase...`);
-        
-        const { data: existingTecnicos } = await supabase
-          .from('tec_technicians')
-          .select('id');
-        
-        const existingIds = new Set(existingTecnicos?.map(t => t.id) || []);
-        const toMigrate = localTecnicos.filter(t => !existingIds.has(t.id));
-        
-        if (toMigrate.length > 0) {
-          const { error } = await supabase.from('tec_technicians').insert(toMigrate);
-          if (error) {
-            console.error('Error migrating tecnicos:', error);
-          } else {
-            results.tecnicos = toMigrate.length;
-            console.log(`Migrated ${toMigrate.length} tecnicos`);
-          }
-        }
-      }
-
-      const localServices = this.getLocalServices();
-      if (localServices.length > 0) {
-        console.log(`Migrating ${localServices.length} services to Supabase...`);
-        
-        const { data: existingServices } = await supabase
-          .from('tec_services')
-          .select('id');
-        
-        const existingIds = new Set(existingServices?.map(s => s.id) || []);
-        const toMigrate = localServices.filter(s => !existingIds.has(s.id));
-        
-        if (toMigrate.length > 0) {
-          const servicesToInsert = toMigrate.map(s => ({
-            id: s.id,
-            client_id: s.client_id,
-            client_name: s.client_name,
-            client_phone: s.client_phone,
-            client_address: s.client_address,
-            technician_id: s.technician_id,
-            technician_name: s.technician_name,
-            vehicle: s.vehicle,
-            plate: s.plate,
-            service_type: s.type,
-            status: s.status,
-            observations: s.observations,
-            signature: s.signature,
-            scheduled_date: s.scheduled_date,
-            completed_date: s.completed_date,
-            created_at: s.created_at,
-            updated_at: s.updated_at,
-          }));
-          
-          const { error } = await supabase.from('tec_services').insert(servicesToInsert);
-          if (error) {
-            console.error('Error migrating services:', error);
-          } else {
-            results.services = toMigrate.length;
-            console.log(`Migrated ${toMigrate.length} services`);
-          }
-        }
-      }
-
-      await this.refreshAll();
-    } catch (e) {
-      console.error('Migration error:', e);
-    }
-
-    return results;
-  }
-
   async refreshAll() {
-    await this.getCustomers();
-    await this.getTecnicos();
-    await this.getServices();
+    await Promise.all([
+      this.getCustomers(true),
+      this.getTecnicos(true),
+      this.getServices(true)
+    ]);
   }
 }
 

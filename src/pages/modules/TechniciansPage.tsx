@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { useAuth, getTecnicos, saveTecnico, updateTecnico as updateTecnicoAuth, deleteTecnico as deleteTecnicoAuth, findTecnicoByEmail, saveUser, updateUser, deleteUser, getTechnicians } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { unifiedDataService, type UnifiedTecnico } from '@/lib/unifiedDataService';
 
 interface Tecnico {
   id: string;
@@ -51,11 +52,19 @@ export default function TechniciansPage() {
     loadTechnicians();
   }, []);
 
-  const loadTechnicians = () => {
+  const loadTechnicians = async () => {
     setLoading(true);
     try {
-      const data = getTecnicos();
-      setTechnicians(data);
+      const data = await unifiedDataService.getTecnicos();
+      setTechnicians(data.map((t: UnifiedTecnico) => ({
+        id: t.id,
+        name: t.name,
+        email: t.email,
+        phone: t.phone,
+        cpf: t.cpf,
+        active: t.active,
+        created_at: t.created_at,
+      })));
     } catch (e) {
       console.error('Error loading technicians:', e);
     }
@@ -115,7 +124,7 @@ export default function TechniciansPage() {
         return false;
       }
 
-      const existingTech = findTecnicoByEmail(formData.email);
+      const existingTech = technicians.find(t => t.email.toLowerCase() === formData.email.toLowerCase());
       if (existingTech) {
         setFormError('Email já está cadastrado');
         return false;
@@ -133,49 +142,21 @@ export default function TechniciansPage() {
 
     try {
       if (editingTech) {
-        const updateData: any = {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          cpf: formData.cpf,
-          active: formData.active,
-        };
-        if (formData.password) {
-          updateData.password = formData.password.trim();
-        }
-        updateTecnicoAuth(editingTech.id, updateData);
-        updateUser(`user_${editingTech.id}`, {
+        await unifiedDataService.saveTecnico({
+          id: editingTech.id,
           name: formData.name,
           email: formData.email.toLowerCase().trim(),
           phone: formData.phone,
           cpf: formData.cpf,
           active: formData.active,
-          ...(formData.password ? { password: formData.password.trim() } : {}),
         });
       } else {
-        const newTecnico: Tecnico = {
-          id: `tech-${Date.now()}`,
+        const newTecnico = await unifiedDataService.saveTecnico({
           name: formData.name,
           email: formData.email.toLowerCase().trim(),
           phone: formData.phone,
           cpf: formData.cpf,
-          password: formData.password.trim(),
           active: formData.active,
-          created_at: new Date().toISOString(),
-        };
-        saveTecnico(newTecnico);
-        
-        const userId = `user_${newTecnico.id}`;
-        saveUser({
-          id: userId,
-          email: newTecnico.email,
-          name: newTecnico.name,
-          role: 'technician',
-          phone: newTecnico.phone,
-          cpf: newTecnico.cpf,
-          password: newTecnico.password,
-          active: newTecnico.active,
-          created_at: newTecnico.created_at,
         });
         
         setSuccessData({ email: newTecnico.email, password: formData.password });
@@ -192,18 +173,21 @@ export default function TechniciansPage() {
     setSaving(false);
   };
 
-  const handleToggleActive = (tech: Tecnico) => {
+  const handleToggleActive = async (tech: Tecnico) => {
     const newStatus = !tech.active;
-    console.log(`Toggling technician ${tech.name}: ${tech.active} -> ${newStatus}`);
-    updateTecnicoAuth(tech.id, { active: newStatus });
-    updateUser(`user_${tech.id}`, { active: newStatus });
+    await unifiedDataService.saveTecnico({
+      id: tech.id,
+      name: tech.name,
+      email: tech.email,
+      phone: tech.phone,
+      cpf: tech.cpf,
+      active: newStatus,
+    });
     loadTechnicians();
-    console.log('After toggle, technicians:', getTecnicos().find(t => t.id === tech.id));
   };
 
-  const handleDelete = (id: string) => {
-    deleteTecnicoAuth(id);
-    deleteUser(`user_${id}`);
+  const handleDelete = async (id: string) => {
+    await unifiedDataService.deleteTecnico(id);
     setDeleteConfirm(null);
     loadTechnicians();
   };

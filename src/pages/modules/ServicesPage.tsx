@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { useServices } from '@/contexts/ServiceContext';
 import type { Service, ServiceStatus, ServiceType } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS, SERVICE_STATUS_ORDER } from '@/types/service';
-import { getTecnicos } from '@/contexts/AuthContext';
+import { unifiedDataService } from '@/lib/unifiedDataService';
 import { customerService } from '@/lib/customerService';
 
 type TabType = 'todos' | 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
@@ -39,8 +39,8 @@ export default function ServicesPage() {
     loadData();
   }, []);
 
-  const loadData = () => {
-    const tecnicos = getTecnicos();
+  const loadData = async () => {
+    const tecnicos = await unifiedDataService.getTecnicos();
     setTechnicians(tecnicos);
     loadServices();
   };

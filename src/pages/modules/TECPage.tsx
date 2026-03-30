@@ -13,9 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { useAuth, getTecnicos } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import SuperLayout from '@/components/layout/SuperLayout';
 import { tecService } from '@/lib/tecService';
+import { unifiedDataService } from '@/lib/unifiedDataService';
 import { getAssignedServicesForTechnician, finishService as finishServiceCtx, updateService, getServicesByTechnician, startService, createService as createServiceCtx } from '@/contexts/ServiceContext';
 import type { Service, ServiceStatus, ServiceType, PhotoType, Technician } from '@/types/tec';
 import type { Service as AppService, ServiceStatus as AppServiceStatus } from '@/types/service';
@@ -142,7 +143,7 @@ export default function TECPage() {
         filteredServices = servicesData.filter((s: Service) => s.technician_id === userId);
       }
       
-      const tecnicosFromStorage = getTecnicos();
+      const tecnicosFromStorage = await unifiedDataService.getTecnicos();
       console.log('Técnicos do storage:', tecnicosFromStorage);
       
       const registeredTecnicos = tecnicosFromStorage.map(t => ({
