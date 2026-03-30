@@ -21,6 +21,7 @@ import PlansPage from "./pages/crm/PlansPage";
 import LearningPage from "./pages/crm/LearningPage";
 
 import DashboardPage from "./pages/modules/DashboardPage";
+import EmpresaPage from "./pages/modules/EmpresaPage";
 import TECPage from "./pages/modules/TECPage";
 import ERPPage from "./pages/modules/ERPPage";
 import SHELLPage from "./pages/modules/SHELLPage";
@@ -70,6 +71,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/empresa"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'tecnico']}>
+              <EmpresaPage />
             </ProtectedRoute>
           }
         />
