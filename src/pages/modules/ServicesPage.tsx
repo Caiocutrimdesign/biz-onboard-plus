@@ -700,9 +700,10 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
       });
       
       onCreated();
-    } catch (err) {
+    } catch (err: any) {
       console.error("❌ Erro ao criar serviço:", err);
-      alert("Erro ao criar serviço. Verifique o console para mais detalhes.");
+      const errorMessage = err.message || "Erro desconhecido";
+      alert(`Erro ao criar serviço: ${errorMessage}. Verifique o console para mais detalhes.`);
     }
   };
 
@@ -870,9 +871,10 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
       
       onUpdated();
       onOpenChange(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("❌ Erro ao atualizar serviço:", err);
-      alert("Erro ao atualizar serviço. Verifique o console para mais detalhes.");
+      const errorMessage = err.message || "Erro desconhecido";
+      alert(`Erro ao atualizar serviço: ${errorMessage}. Verifique o console para mais detalhes.`);
     }
   };
 
