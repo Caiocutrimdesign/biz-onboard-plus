@@ -95,10 +95,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // Real-time subscriptions
       const customerSub = crmService.subscribeToChanges('customers', refreshCustomers);
       const serviceSub = crmService.subscribeToChanges('tec_services', refreshServices);
+      const tecnicoSub = crmService.subscribeToChanges('profiles', refreshTecnicos);
 
       return () => {
         customerSub.unsubscribe();
         serviceSub.unsubscribe();
+        tecnicoSub.unsubscribe();
       };
     }
   }, [user, refreshAll, refreshCustomers, refreshServices]);

@@ -435,7 +435,7 @@ class CRMService {
   }
 
   // REAL-TIME SUBSCRIPTION
-  subscribeToChanges(table: 'customers' | 'tec_services', callback: () => void) {
+  subscribeToChanges(table: 'customers' | 'tec_services' | 'profiles', callback: () => void) {
     return supabase
       .channel(`${table}-changes`)
       .on(
