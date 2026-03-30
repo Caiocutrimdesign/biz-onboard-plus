@@ -190,35 +190,54 @@ export default function TECPage() {
   const handleFinalizeService = async (obs: string, signature: string) => {
     try {
       setLoading(true);
-      console.log('TECPage: Finalizing service', currentService.id);
+      console.log('TECPage: Finalizing service');
       
-      // Save to database via CRM service directly
-      const result = await crmService.createServico({
-        client_id: currentService.client_id || '',
-        client_name: currentService.client_name || '',
-        client_phone: currentService.client_phone || '',
-        client_address: currentService.client_address || '',
-        type: currentService.type || 'suporte',
+      // Collect photos URLs from current service
+      const photosUrls = (currentService.photos || []).map((p: any) => p.url);
+      
+      // Create service record with only existing columns in the database
+      const serviceData = {
+        client_name: currentService.client_name || currentClient?.name || 'Cliente',
+        client_phone: currentService.client_phone || currentClient?.phone || null,
+        client_address: currentService.client_address || currentClient?.address || null,
+        observations: obs || currentService.observations || null,
+        signature: signature || null,
+        photos: photosUrls.length > 0 ? JSON.stringify(photosUrls) : null,
+        technician_id: user?.id || null,
+        technician_name: (user as any)?.full_name || user?.name || null,
+        vehicle: currentService.vehicle || currentClient?.vehicleModel || null,
+        plate: currentService.plate || currentClient?.plate || null,
         status: 'concluido',
-        observations: obs,
-        signature: signature,
-        technician_id: user?.id || '',
-        technician_name: user?.name || '',
-        vehicle: currentService.vehicle || '',
-        plate: currentService.plate || '',
-        scheduled_date: new Date().toISOString(),
-      });
-
-      console.log('TECPage: Service save result:', result);
-
-      if (!result.success) throw new Error(result.error || 'Erro ao salvar serviço');
+        completed_date: new Date().toISOString(),
+      };
+      
+      console.log('TECPage: Service data to save:', serviceData);
+      
+      // Save directly to Supabase without using crmService wrapper
+      const { supabase } = await import('@/lib/supabaseClient');
+      
+      const { data, error } = await supabase
+        .from('tec_services')
+        .insert([serviceData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('TECPage: Supabase error:', error);
+        throw new Error(error.message || 'Erro ao salvar no banco');
+      }
+      
+      console.log('TECPage: Service saved successfully:', data);
 
       toast.success('Atendimento concluído com sucesso!');
       loadData();
+      
+      // Reset current service
+      setCurrentService({});
       goTo('home');
     } catch (error: any) {
-      console.error('TECPage: Error finalizing service', error);
-      toast.error(error.message || 'Erro ao finalizar serviço');
+      console.error('TECPage: Error finalizing service:', error);
+      toast.error(error.message || 'Erro ao finalizar atendimento');
     } finally {
       setLoading(false);
     }
