@@ -344,8 +344,47 @@ class UnifiedDataService {
         throw error;
       }
 
+      const finalId = data?.id || tecnicoId;
+
+      // Sync with crm_users so the technician can login
+      if (tecnico.password) {
+        // New technician or password update — upsert crm_users with password
+        await supabase
+          .from('crm_users')
+          .upsert({
+            id: finalId,
+            email: newTecnico.email,
+            name: newTecnico.name,
+            phone: newTecnico.phone,
+            password: tecnico.password,
+            role: 'technician',
+            active: newTecnico.active,
+            created_at: newTecnico.created_at,
+          }, { onConflict: 'id' });
+      } else if (tecnico.id) {
+        // Editing without password change — update other fields only
+        const { data: existing } = await supabase
+          .from('crm_users')
+          .select('id')
+          .eq('id', tecnico.id)
+          .single();
+
+        if (existing) {
+          await supabase
+            .from('crm_users')
+            .update({
+              email: newTecnico.email,
+              name: newTecnico.name,
+              phone: newTecnico.phone,
+              active: newTecnico.active,
+              role: 'technician',
+            })
+            .eq('id', tecnico.id);
+        }
+      }
+
       await this.getTecnicos(true);
-      return { ...newTecnico, id: data?.id || tecnicoId };
+      return { ...newTecnico, id: finalId };
     }
 
     throw new Error('Supabase not configured');
