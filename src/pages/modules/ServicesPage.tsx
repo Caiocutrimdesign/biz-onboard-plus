@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useData } from '@/contexts/DataContext';
-import { type Servico } from '@/lib/crmService';
+import { type Servico, crmService } from '@/lib/crmService';
 import type { Service, ServiceStatus, ServiceType } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS, SERVICE_STATUS_ORDER } from '@/types/service';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ type TabType = 'todos' | 'pendente' | 'designado' | 'em_andamento' | 'finalizado
 
 export default function ServicesPage() {
   const navigate = useNavigate();
-  const { servicos, tecnicos, isLoading: loading, refreshServices, addServico, updateServico, deleteServico } = useData();
+  const { servicos, tecnicos: contextTecnicos, isLoading: loading, refreshServices, addServico, updateServico, deleteServico } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [techFilter, setTechFilter] = useState<string>('all');
@@ -36,6 +36,23 @@ export default function ServicesPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [serviceHistory, setServiceHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('todos');
+  const [technicians, setTechnicians] = useState<any[]>([]);
+
+  // Load technicians directly
+  useEffect(() => {
+    loadTechnicians();
+  }, []);
+
+  const loadTechnicians = async () => {
+    try {
+      const data = await crmService.getTecnicos();
+      console.log('ServicesPage: Loaded technicians:', data.length);
+      setTechnicians(data || []);
+    } catch (error) {
+      console.error('Error loading technicians:', error);
+      setTechnicians(contextTecnicos || []);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -78,7 +95,7 @@ export default function ServicesPage() {
   }));
   
   const safeServices = services;
-  const safeTechnicians = tecnicos || [];
+  const safeTechnicians = technicians.length > 0 ? technicians : (contextTecnicos || []);
 
   const filteredServices = safeServices.filter(s => {
     const matchesSearch = !search || 
@@ -634,7 +651,7 @@ export default function ServicesPage() {
       <CreateServiceDialog 
         open={showCreate} 
         onOpenChange={setShowCreate}
-        technicians={tecnicos}
+        technicians={safeTechnicians}
         onCreated={() => {
           setShowCreate(false);
           loadData(); // Refresh services list
@@ -646,7 +663,7 @@ export default function ServicesPage() {
         open={showEdit}
         onOpenChange={setShowEdit}
         service={selectedService}
-        technicians={tecnicos}
+        technicians={safeTechnicians}
         onUpdated={() => {
           loadData();
         }}

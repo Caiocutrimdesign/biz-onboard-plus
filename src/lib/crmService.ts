@@ -230,13 +230,50 @@ class CRMService {
   // TECHNICIANS (Profiles table)
   async getTecnicos() {
     try {
-      const { data, error } = await supabase
+      // Try profiles table first
+      let { data, error } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('tipo', 'tecnico');
+        .select('*');
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.warn('Profiles table error, trying crm_users:', error.message);
+        // Fallback to crm_users
+        const { data: crmData, error: crmError } = await supabase
+          .from('crm_users')
+          .select('*');
+        
+        if (crmError) throw crmError;
+        
+        // Filter for tecnicos and format data
+        const tecnicos = (crmData || []).filter((u: any) => 
+          u.tipo === 'tecnico' || u.role === 'tecnico'
+        ).map((u: any) => ({
+          id: u.id,
+          name: u.name || u.full_name || u.nome || u.email,
+          nome: u.nome || u.name || u.full_name || u.email,
+          email: u.email,
+          tipo: u.tipo || u.role,
+          phone: u.phone || u.telefone,
+        }));
+        
+        console.log('CRM Tecnicos loaded:', tecnicos.length);
+        return tecnicos;
+      }
+
+      // Filter for tecnicos from profiles
+      const tecnicos = (data || []).filter((p: any) => 
+        p.tipo === 'tecnico' || p.role === 'tecnico'
+      ).map((p: any) => ({
+        id: p.id,
+        name: p.name || p.full_name || p.nome || p.email,
+        nome: p.nome || p.name || p.full_name || p.email,
+        email: p.email,
+        tipo: p.tipo || p.role,
+        phone: p.phone || p.telefone,
+      }));
+
+      console.log('Profiles Tecnicos loaded:', tecnicos.length);
+      return tecnicos;
     } catch (error: any) {
       console.error('Error fetching tecnicos:', error.message);
       return [];

@@ -46,7 +46,7 @@ function getWhatsAppLink(customer: CustomerRegistration): string {
 }
 
 export default function ClientsSection() {
-  const { customers: allCustomers, tecnicos, isLoading: loading, refreshCustomers, saveCustomer, deleteCustomer } = useData();
+  const { customers: allCustomers, tecnicos: contextTecnicos, isLoading: loading, refreshCustomers, saveCustomer, deleteCustomer } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
@@ -55,8 +55,23 @@ export default function ClientsSection() {
   const [editForm, setEditForm] = useState<Partial<any>>({});
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
   const [syncingWeSales, setSyncingWeSales] = useState<string | null>(null);
+  const [technicians, setTechnicians] = useState<any[]>([]);
 
-  const technicians = tecnicos;
+  // Load technicians from crmService directly
+  useEffect(() => {
+    loadTechnicians();
+  }, []);
+
+  const loadTechnicians = async () => {
+    try {
+      const data = await crmService.getTecnicos();
+      console.log('ClientsSection: Loaded technicians:', data.length, data);
+      setTechnicians(data || []);
+    } catch (error) {
+      console.error('Error loading technicians:', error);
+      setTechnicians(contextTecnicos || []);
+    }
+  };
 
   const handleAssignTechnician = async (customerId: string, technicianId: string) => {
     const technician = technicians.find(t => t.id === technicianId);
