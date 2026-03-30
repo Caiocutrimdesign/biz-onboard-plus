@@ -25,24 +25,22 @@ export interface Technician {
 }
 
 export interface Service {
-  id: string;
-  client_id?: string;
+  id?: string;
   client_name: string;
   client_phone?: string;
   client_address?: string;
-  technician_id: string;
+  technician_id?: string;
   technician_name?: string;
-  vehicle: string;
-  plate: string;
-  type: ServiceType;
+  vehicle?: string;
+  plate?: string;
   status: ServiceStatus;
-  photos: ServicePhoto[];
+  photos?: ServicePhoto[] | string[];
   signature?: string;
   observations?: string;
   scheduled_date?: string;
   completed_date?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface TECAgent {

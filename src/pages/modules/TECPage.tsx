@@ -146,12 +146,9 @@ export default function TECPage() {
     console.log('TECPage: Products confirmed', products);
     const mainProduct = products[0];
     setCurrentService({
-      id: `svc_${Date.now()}`,
-      client_id: currentClient?.id,
       client_name: currentClient?.name || '',
       client_phone: currentClient?.phone || '',
       client_address: currentClient?.address || '',
-      type: mainProduct?.category === 'gps_plus' ? 'instalacao' : 'suporte',
       status: 'pendente',
       vehicle: currentClient?.vehicleModel || '',
       plate: currentClient?.plate || '',
