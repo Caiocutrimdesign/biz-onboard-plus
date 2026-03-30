@@ -53,7 +53,7 @@ interface CustomerData {
 }
 
 export function RegistrationFlow({ onClose }: Props) {
-  const { currentStep, setStep, reset, data } = useRegistrationStore();
+  const { currentStep, setStep, reset, data, updateData } = useRegistrationStore();
   const { saveCustomer } = useData();
   const idleTimer = useRef<ReturnType<typeof setTimeout>>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,12 +95,26 @@ export function RegistrationFlow({ onClose }: Props) {
     });
   };
 
+  const generateUUID = (): string => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
       setError(null);
       
+      const customerId = generateUUID();
+      
       const customerData: CustomerData = {
+        id: customerId,
         full_name: data.full_name || 'Cliente',
         phone: data.phone || '',
         cpf_cnpj: data.cpf_cnpj || '',

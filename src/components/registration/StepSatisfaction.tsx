@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Star, ThumbsUp, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { useRegistrationStore } from '@/store/registrationStore';
 
 interface Props {
   onNext: () => void;
@@ -11,6 +14,47 @@ interface Props {
 }
 
 export function StepSatisfaction({ onNext, onBack, onWhatsApp, customerName }: Props) {
+  const [rating, setRating] = useState<number | null>(null);
+  const { data } = useRegistrationStore();
+
+  const handleRating = async (value: number) => {
+    setRating(value);
+    
+    if (isSupabaseConfigured() && supabase && data?.phone) {
+      try {
+        const phoneClean = data.phone.replace(/\D/g, '');
+        const { data: customers } = await supabase
+          .from('customers')
+          .select('id')
+          .ilike('phone', `%${phoneClean}%`)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (customers && customers.length > 0) {
+          await supabase
+            .from('customers')
+            .update({
+              satisfaction: {
+                rating: value,
+                comment: '',
+                created_at: new Date().toISOString(),
+              },
+            })
+            .eq('id', customers[0].id);
+          console.log('✅ Avaliação salva:', value);
+        }
+      } catch (e) {
+        console.error('Erro ao salvar avaliação:', e);
+      }
+    }
+  };
+
+  const ratings = [
+    { value: 5, emoji: '😊', label: 'Ótimo', color: 'bg-green-100 hover:bg-green-200' },
+    { value: 3, emoji: '😐', label: 'Regular', color: 'bg-yellow-100 hover:bg-yellow-200' },
+    { value: 1, emoji: '😞', label: 'Ruim', color: 'bg-red-100 hover:bg-red-200' },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -38,14 +82,13 @@ export function StepSatisfaction({ onNext, onBack, onWhatsApp, customerName }: P
         </p>
         
         <div className="grid grid-cols-3 gap-3 mb-4">
-          {[
-            { emoji: '😊', label: 'Ótimo', color: 'bg-green-100 hover:bg-green-200' },
-            { emoji: '😐', label: 'Regular', color: 'bg-yellow-100 hover:bg-yellow-200' },
-            { emoji: '😞', label: 'Ruim', color: 'bg-red-100 hover:bg-red-200' },
-          ].map((item) => (
+          {ratings.map((item) => (
             <button
               key={item.label}
-              className={`p-4 rounded-xl ${item.color} text-center transition-all`}
+              onClick={() => handleRating(item.value)}
+              className={`p-4 rounded-xl ${item.color} text-center transition-all ${
+                rating === item.value ? 'ring-2 ring-primary ring-offset-2' : ''
+              }`}
             >
               <span className="text-3xl mb-1 block">{item.emoji}</span>
               <span className="text-sm font-medium">{item.label}</span>

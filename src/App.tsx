@@ -1,4 +1,4 @@
-// Lovable Sync - Updated
+// Lovable Sync - With Error Boundary
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -30,189 +30,201 @@ import CRMAgentsPage from "./pages/modules/CRMAgentsPage";
 
 const queryClient = new QueryClient();
 
+function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  try {
+    return <>{children}</>;
+  } catch (e: any) {
+    console.error("ErrorBoundary caught:", e);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Algo deu errado</h1>
+          <p className="text-muted-foreground">{e.message}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded"
+          >
+            Recarregar
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Index />} />
-      <Route path="/planos" element={<PlansPage />} />
-      <Route path="/aprenda" element={<LearningPage />} />
-      
-      {/* Auth Routes */}
-      <Route
-        path="/admin/login"
-        element={
-          <GuestRoute>
-            <AdminLogin />
-          </GuestRoute>
-        }
-      />
-      
-      {/* Protected Routes - Unified Platform */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/planos" element={<PlansPage />} />
+        <Route path="/aprenda" element={<LearningPage />} />
+        
+        <Route
+          path="/admin/login"
+          element={
+            <GuestRoute>
+              <AdminLogin />
+            </GuestRoute>
+          }
+        />
+        
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard/satisfaction"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user']}>
-            <UsersPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard/satisfaction"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard/analytics"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user']}>
-            <UsersPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard/analytics"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard/calendar"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user']}>
-            <UsersPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard/calendar"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard/users"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <UsersPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard/users"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard/agents"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <UsersPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard/agents"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard/settings"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user']}>
-            <UsersPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard/settings"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* CRM Module */}
-      <Route
-        path="/crm"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
-            <CRMPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* CRM Management Routes */}
-      <Route
-        path="/crm/tecnicos"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <TechniciansPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      <Route
-        path="/crm/agentes"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <CRMAgentsPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/crm"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
+              <CRMPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/crm/tecnicos"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <TechniciansPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/crm/agentes"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <CRMAgentsPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/crm/aniversariantes"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user']}>
-            <BirthdaysPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* TEC Module */}
-      <Route
-        path="/tec"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user', 'employee', 'technician']}>
-            <TECPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* TEC Admin Panel */}
-      <Route
-        path="/tec/admin"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <TECAdminPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* ERP Module */}
-      <Route
-        path="/erp"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user']}>
-            <ERPPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* SHELL Module */}
-      <Route
-        path="/shell"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
-            <SHELLPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* Legacy Admin Routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRoles={['admin', 'user']}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/crm/aniversariantes"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <BirthdaysPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/tec"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user', 'employee', 'technician']}>
+              <TECPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/tec/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <TECAdminPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/erp"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <ERPPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/shell"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
+              <SHELLPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Agents Monitor */}
-      <Route
-        path="/dashboard/agents-monitor"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AgentsMonitorPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* 404 */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route
+          path="/dashboard/agents-monitor"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AgentsMonitorPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
 
