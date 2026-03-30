@@ -1,4 +1,4 @@
-// Updated for Lovable
+// Updated for Lovable - Force sync
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
