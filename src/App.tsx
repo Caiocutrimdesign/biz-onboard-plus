@@ -1,4 +1,4 @@
-// Lovable Sync - Version 2.0 - 2026-03-30 10:57
+// Lovable Sync - Version 2.1 - 2026-03-30 11:45
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
