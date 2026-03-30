@@ -46,7 +46,7 @@ export interface Service {
   id: string;
   cliente_id: string;
   cliente_name: string;
-  cliente_phone: string;
+  cliente_phone?: string;
   cliente_address?: string;
   tecnico_id?: string;
   tecnico_name?: string;

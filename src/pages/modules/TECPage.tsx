@@ -43,6 +43,8 @@ type Client = {
   vehicleColor?: string;
   plate?: string;
   renavam?: string;
+  technician_id?: string;
+  technician_name?: string;
 };
 
 type Product = {
@@ -226,6 +228,9 @@ export default function TECPage() {
       vehicleColor: '',
       plate: '',
       renavam: '',
+      // @ts-ignore
+      technician_id: '',
+      technician_name: '',
     });
     setCurrentService({});
     setCart([]);
@@ -305,7 +310,11 @@ export default function TECPage() {
            color: currentClient.vehicleColor,
            plate: currentClient.plate,
            renavam: currentClient.renavam,
-           status: 'active'
+           status: 'active',
+           // @ts-ignore
+           technician_id: (currentClient as any).technician_id || null,
+           // @ts-ignore
+           technician_name: (currentClient as any).technician_name || null
          });
          
          if (clientSuccess && newClient) {
@@ -428,6 +437,7 @@ export default function TECPage() {
             client={currentClient}
             onSave={saveClient}
             onBack={() => goTo('home')}
+            technicians={technicians}
           />
         )}
         
@@ -770,12 +780,13 @@ function ServiceCard({ service }: { service: Service }) {
 }
 
 // ============ CLIENT FORM VIEW ============
-function ClientFormView({ client, onSave, onBack }: {
+function ClientFormView({ client, onSave, onBack, technicians }: {
   client: Client | null;
   onSave: (client: Client) => void;
   onBack: () => void;
+  technicians: Technician[];
 }) {
-  const [form, setForm] = useState<Client>(client || {
+  const [form, setForm] = useState<Client & { technician_id?: string; technician_name?: string }>(client || {
     id: `client_${Date.now()}`,
     name: '',
     phone: '',
@@ -793,6 +804,8 @@ function ClientFormView({ client, onSave, onBack }: {
     vehicleColor: '',
     plate: '',
     renavam: '',
+    technician_id: '',
+    technician_name: '',
   });
   const [step, setStep] = useState(1);
 
@@ -856,6 +869,30 @@ function ClientFormView({ client, onSave, onBack }: {
                       className="pl-10"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block text-orange-600 font-bold">Responsável pelo Cadastro / Atendimento</label>
+                  <Select 
+                    value={(form as any).technician_id || ''} 
+                    onValueChange={(val) => {
+                      const tec = technicians.find(t => t.id === val);
+                      setForm({ ...form, technician_id: val, technician_name: tec?.name || '' });
+                    }}
+                  >
+                    <SelectTrigger className="border-orange-200">
+                      <SelectValue placeholder="Selecione um técnico (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum (Venda Direta)</SelectItem>
+                      {technicians.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground mt-1 italic">
+                    Escolha quem será o responsável por este cliente ou deixe vazio para venda direta.
+                  </p>
                 </div>
 
                 <div>

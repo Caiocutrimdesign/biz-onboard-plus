@@ -66,7 +66,7 @@ export interface CustomerRegistration {
   year?: string;
   color?: string;
   renavam?: string;
-  chassi?: string;
+  chassis?: string;
   vehicle?: string;
   // Plan
   plan?: string;
