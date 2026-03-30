@@ -103,71 +103,73 @@ export function RegistrationFlow({ onClose }: Props) {
       setIsSubmitting(true);
       setError(null);
       
-      const customerId = generateUUID();
-      
+      // Only pass fields that exist in the customers table
       const customerData = {
-        id: customerId,
         full_name: data.full_name || 'Cliente',
         phone: data.phone || '',
-        cpf_cnpj: data.cpf_cnpj || '',
-        email: data.email || '',
-        cep: data.cep || '',
-        street: data.street || '',
-        number: data.number || '',
-        neighborhood: data.neighborhood || '',
-        city: data.city || '',
-        state: data.state || '',
-        vehicle_type: data.vehicle_type || '',
-        plate: data.plate || '',
-        brand: data.brand || '',
-        model: data.model || '',
-        year: data.year || '',
-        color: data.color || '',
-        plan: data.plan || '',
-        payment_method: data.payment_method || '',
-        technician_id: data.technician_id || '',
-        technician_name: data.technician_name || '',
-        status: 'novo_cadastro' as any,
-        created_at: new Date().toISOString(),
+        cpf_cnpj: data.cpf_cnpj || null,
+        email: data.email || null,
+        cep: data.cep || null,
+        street: data.street || null,
+        number: data.number || null,
+        neighborhood: data.neighborhood || null,
+        city: data.city || null,
+        state: data.state || null,
+        vehicle_type: data.vehicle_type || null,
+        plate: data.plate || null,
+        brand: data.brand || null,
+        model: data.model || null,
+        year: data.year || null,
+        color: data.color || null,
+        plan: data.plan || null,
+        payment_method: data.payment_method || null,
+        technician_id: data.technician_id || null,
+        technician_name: data.technician_name || null,
+        status: 'novo_cadastro',
       };
 
-      // 1. Save to Unified Data Service (handles Supabase + Local cache + Dashboard refresh)
+      console.log('📝 Dados do cliente:', customerData);
+
+      // 1. Save to customers table
       console.log('⏳ Salvando cadastro principal...');
       const saveResult = await saveCustomer(customerData);
       
+      console.log('📋 Resultado do saveCustomer:', saveResult);
+      
       if (!saveResult.success) {
-        console.warn('⚠️ saveCustomer returned error:', saveResult.error);
-        // Don't block, continue anyway - the customer might be saved
+        console.error('❌ Erro ao salvar cliente:', saveResult.error);
+        setError('Erro ao salvar: ' + (saveResult.error || 'Erro desconhecido'));
+      } else {
+        console.log('✅ Cadastro principal salvo com sucesso!');
       }
-      console.log('✅ Cadastro principal salvo com sucesso!');
 
       // 2. Create CRM Lead in Supabase (non-blocking)
       if (isSupabaseConfigured() && supabase) {
-        console.log('⏳ Criando lead no CRM...');
-        const leadData = {
-          name: data.full_name || 'Cliente',
-          email: data.email || null,
-          phone: data.phone || '',
-          company: null,
-          document: data.cpf_cnpj || null,
-          address: data.street ? `${data.street}, ${data.number}` : null,
-          city: data.city || null,
-          state: data.state || null,
-          status: 'novo' as const,
-          source: 'website' as const,
-          priority: 'media' as const,
-          value: 0,
-          tags: ['Novo Cadastro'],
-          notes: `Veículo: ${data.brand || ''} ${data.model || ''} (${data.plate || ''})\nPlano: ${data.plan || ''}\nForma de pagamento: ${data.payment_method || ''}`,
-          owner_id: null,
-          pipeline_id: 'default',
-          stage_id: 'stage-1',
-        };
-
         try {
+          console.log('⏳ Criando lead no CRM...');
+          const leadData = {
+            name: data.full_name || 'Cliente',
+            email: data.email || null,
+            phone: data.phone || '',
+            company: null,
+            document: data.cpf_cnpj || null,
+            address: data.street ? `${data.street}, ${data.number}` : null,
+            city: data.city || null,
+            state: data.state || null,
+            status: 'novo',
+            source: 'website',
+            priority: 'media',
+            value: 0,
+            tags: ['Novo Cadastro'],
+            notes: `Veículo: ${data.brand || ''} ${data.model || ''} (${data.plate || ''})\nPlano: ${data.plan || ''}\nForma de pagamento: ${data.payment_method || ''}`,
+            owner_id: null,
+            pipeline_id: 'default',
+            stage_id: 'stage-1',
+          };
+
           const { error: leadError } = await supabase.from('leads').insert(leadData);
           if (leadError) {
-            console.warn('⚠️ Erro ao criar lead no CRM (não crítico):', leadError);
+            console.warn('⚠️ Erro ao criar lead (não crítico):', leadError);
           } else {
             console.log('✅ Lead criado no CRM com sucesso!');
           }
@@ -176,28 +178,12 @@ export function RegistrationFlow({ onClose }: Props) {
         }
       }
 
-      // 3. Send Emails (non-blocking)
-      if (data.email) {
-        try {
-          console.log('📧 Enviando email de boas-vindas...');
-          await sendWelcomeEmail({
-            to: data.email,
-            customerName: data.full_name || 'Cliente',
-            plan: data.plan,
-            vehicle: data.brand && data.model ? `${data.brand} ${data.model}` : undefined,
-            plate: data.plate,
-          });
-          console.log('✅ Email enviado!');
-        } catch (emailErr) {
-          console.warn('⚠️ Erro ao enviar email (não crítico):', emailErr);
-        }
-      }
-
-      // Always go to next step on success
+      // Always go to next step
       next();
     } catch (err: any) {
       console.error('❌ Erro no salvamento:', err);
-      // Still proceed to success step - the main save was attempted
+      setError('Erro: ' + (err.message || 'Erro desconhecido'));
+      // Still proceed to next step
       next();
     } finally {
       setIsSubmitting(false);
