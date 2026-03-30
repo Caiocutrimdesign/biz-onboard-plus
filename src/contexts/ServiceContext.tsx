@@ -73,6 +73,8 @@ export async function createService(data: {
   data_agendamento?: string;
   tecnico_id?: string;
   tecnico_name?: string;
+  vehicle?: string;
+  plate?: string;
   criado_por: 'admin' | 'tecnico';
 }): Promise<Service> {
   const res = await crmService.createServico({
@@ -86,8 +88,8 @@ export async function createService(data: {
     status: data.tecnico_id ? 'designado' : 'pendente',
     observations: data.descricao,
     scheduled_date: data.data_agendamento || null,
-    vehicle: '',
-    plate: '',
+    vehicle: data.vehicle || '',
+    plate: data.plate || '',
   });
 
   if (!res.success) throw new Error(res.error);

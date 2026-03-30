@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Users, UserPlus, Search, Edit2, Trash2,
   Shield, Eye, EyeOff, CheckCircle, XCircle, Loader2,
-  AlertCircle, Mail, Phone, User, Wrench, Copy, Check
+  AlertCircle, Mail, Phone, User, Wrench, Copy, Check, ArrowLeft
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 
 export default function TechniciansPage() {
+  const navigate = useNavigate();
   const { cadastrarUsuario } = useAuth();
   const { tecnicos, isLoading: loading, updateTecnico, deleteTecnico } = useData();
   const [search, setSearch] = useState('');
@@ -188,12 +190,21 @@ export default function TechniciansPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="w-7 h-7 text-purple-500" />
-            Técnicos
-          </h1>
-          <p className="text-muted-foreground">Gerencie técnicos e instaladores</p>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => navigate('/admin')}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Users className="w-7 h-7 text-purple-500" />
+              Técnicos
+            </h1>
+            <p className="text-muted-foreground">Gerencie técnicos e instaladores</p>
+          </div>
         </div>
         <Button onClick={openNewModal} className="bg-purple-500 hover:bg-purple-600">
           <UserPlus className="w-4 h-4 mr-2" />

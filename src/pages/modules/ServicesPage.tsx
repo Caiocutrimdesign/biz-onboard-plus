@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Wrench, Search, Filter, User, Calendar, CheckCircle, 
   Clock, XCircle, ChevronRight, Loader2, RefreshCw, 
   History, UserPlus, Eye, Plus, Phone, MapPin, ArrowRightCircle,
-  Image, FileText, Pencil, Trash2
+  Image, FileText, Pencil, Trash2, ArrowLeft, Car
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS, SERV
 type TabType = 'todos' | 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
 
 export default function ServicesPage() {
+  const navigate = useNavigate();
   const { servicos, tecnicos, isLoading: loading, refreshServices, addServico, updateServico, deleteServico } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -168,13 +170,23 @@ export default function ServicesPage() {
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-            <Wrench className="w-5 h-5 md:w-7 md:h-7 text-orange-500" />
-            <span className="hidden sm:inline">Serviços</span>
-            <span className="sm:hidden">OS</span>
-          </h1>
-          <p className="text-muted-foreground text-sm">Gerencie todos os serviços</p>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => navigate('/admin')}
+            className="h-10 w-10"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+              <Wrench className="w-5 h-5 md:w-7 md:h-7 text-orange-500" />
+              <span className="hidden sm:inline">Serviços</span>
+              <span className="sm:hidden">OS</span>
+            </h1>
+            <p className="text-muted-foreground text-sm">Gerencie todos os serviços</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowCreate(true)} className="bg-orange-500 hover:bg-orange-600 h-9 md:h-10">
@@ -634,34 +646,70 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
   technicians: any[];
   onCreated: () => void;
 }) {
-  const { addServico } = useData();
+  const { addServico, saveCustomer } = useData();
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     cliente_name: '',
     cliente_phone: '',
+    cliente_email: '',
+    cliente_cpf: '',
     cliente_address: '',
+    cliente_city: '',
+    cliente_state: '',
     tipo_servico: 'instalacao' as ServiceType,
     descricao: '',
     data_agendamento: '',
     tecnico_id: 'sem_tecnico',
     vehicle: '',
     plate: '',
+    vehicle_brand: '',
+    vehicle_model: '',
+    vehicle_color: '',
   });
 
   const handleSubmit = async (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     
-    console.log("🚀 Iniciando criação de serviço...");
+    console.log("🚀 Iniciando criação de serviço e cliente...");
     
     if (!form.cliente_name || !form.cliente_phone) {
       console.warn("⚠️ Campos obrigatórios faltando:", { name: form.cliente_name, phone: form.cliente_phone });
+      alert("Nome e telefone do cliente são obrigatórios!");
       return;
     }
     
+    setSaving(true);
+    
     try {
+      // 1. Criar o cliente primeiro
+      const clienteResult = await saveCustomer({
+        full_name: form.cliente_name,
+        phone: form.cliente_phone,
+        email: form.cliente_email || null,
+        cpf_cnpj: form.cliente_cpf || null,
+        street: form.cliente_address || null,
+        city: form.cliente_city || null,
+        state: form.cliente_state || null,
+        brand: form.vehicle_brand || null,
+        model: form.vehicle_model || null,
+        color: form.vehicle_color || null,
+        plate: form.plate || null,
+        status: 'novo_cadastro',
+      });
+
+      if (!clienteResult?.success) {
+        throw new Error(clienteResult?.error || "Erro ao cadastrar cliente");
+      }
+
+      const clienteId = clienteResult.data?.id;
+      console.log("✅ Cliente criado:", clienteId);
+
+      // 2. Criar o serviço com o cliente_id
       const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
       const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined;
       
       const serviceData = {
+        client_id: clienteId,
         client_name: form.cliente_name,
         client_phone: form.cliente_phone,
         client_address: form.cliente_address,
@@ -671,7 +719,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
         technician_id: tecnicoId,
         technician_name: tech?.nome,
         status: tecnicoId ? ('designado' as any) : ('pendente' as any),
-        vehicle: form.vehicle,
+        vehicle: `${form.vehicle_brand} ${form.vehicle_model}`.trim() || form.vehicle,
         plate: form.plate,
       };
 
@@ -681,58 +729,171 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
       
       console.log("✅ Serviço criado com sucesso!");
       
+      alert("Cliente e Serviço cadastrados com sucesso!");
+      
       setForm({
         cliente_name: '',
         cliente_phone: '',
+        cliente_email: '',
+        cliente_cpf: '',
         cliente_address: '',
+        cliente_city: '',
+        cliente_state: '',
         tipo_servico: 'instalacao',
         descricao: '',
         data_agendamento: '',
         tecnico_id: 'sem_tecnico',
         vehicle: '',
         plate: '',
+        vehicle_brand: '',
+        vehicle_model: '',
+        vehicle_color: '',
       });
       
       onCreated();
     } catch (err: any) {
-      console.error("❌ Erro ao criar serviço:", err);
+      console.error("❌ Erro ao criar:", err);
       const errorMessage = err.message || "Erro desconhecido";
-      alert(`Erro ao criar serviço: ${errorMessage}. Verifique o console para mais detalhes.`);
+      alert(`Erro: ${errorMessage}. Verifique o console para mais detalhes.`);
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Serviço</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            Novo Serviço + Cliente
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">Cadastra cliente e serviço ao mesmo tempo</p>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
-            <Label>Nome do Cliente *</Label>
-            <Input 
-              value={form.cliente_name}
-              onChange={(e) => setForm({...form, cliente_name: e.target.value})}
-              placeholder="Nome completo"
-            />
+          {/* Cliente Info */}
+          <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+            <p className="text-sm font-medium text-orange-800 mb-3 flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Dados do Cliente
+            </p>
           </div>
-          <div>
-            <Label>Telefone *</Label>
-            <Input 
-              value={form.cliente_phone}
-              onChange={(e) => setForm({...form, cliente_phone: e.target.value})}
-              placeholder="(00) 00000-0000"
-            />
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <Label>Nome do Cliente *</Label>
+              <Input 
+                value={form.cliente_name}
+                onChange={(e) => setForm({...form, cliente_name: e.target.value})}
+                placeholder="Nome completo"
+              />
+            </div>
+            <div>
+              <Label>Telefone *</Label>
+              <Input 
+                value={form.cliente_phone}
+                onChange={(e) => setForm({...form, cliente_phone: e.target.value})}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input 
+                value={form.cliente_email}
+                onChange={(e) => setForm({...form, cliente_email: e.target.value})}
+                placeholder="email@exemplo.com"
+                type="email"
+              />
+            </div>
+            <div>
+              <Label>CPF</Label>
+              <Input 
+                value={form.cliente_cpf}
+                onChange={(e) => setForm({...form, cliente_cpf: e.target.value})}
+                placeholder="000.000.000-00"
+              />
+            </div>
+            <div className="col-span-2">
+              <Label>Endereço</Label>
+              <Input 
+                value={form.cliente_address}
+                onChange={(e) => setForm({...form, cliente_address: e.target.value})}
+                placeholder="Rua, número, bairro"
+              />
+            </div>
+            <div>
+              <Label>Cidade</Label>
+              <Input 
+                value={form.cliente_city}
+                onChange={(e) => setForm({...form, cliente_city: e.target.value})}
+                placeholder="Cidade"
+              />
+            </div>
+            <div>
+              <Label>Estado</Label>
+              <Input 
+                value={form.cliente_state}
+                onChange={(e) => setForm({...form, cliente_state: e.target.value})}
+                placeholder="UF"
+                maxLength={2}
+                className="uppercase"
+              />
+            </div>
           </div>
-          <div>
-            <Label>Endereço</Label>
-            <Input 
-              value={form.cliente_address}
-              onChange={(e) => setForm({...form, cliente_address: e.target.value})}
-              placeholder="Endereço completo"
-            />
+
+          {/* Veículo Info */}
+          <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+            <p className="text-sm font-medium text-blue-800 mb-3 flex items-center gap-2">
+              <Car className="w-4 h-4" />
+              Dados do Veículo
+            </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Marca</Label>
+              <Input 
+                value={form.vehicle_brand}
+                onChange={(e) => setForm({...form, vehicle_brand: e.target.value})}
+                placeholder="Ex: Toyota"
+              />
+            </div>
+            <div>
+              <Label>Modelo</Label>
+              <Input 
+                value={form.vehicle_model}
+                onChange={(e) => setForm({...form, vehicle_model: e.target.value})}
+                placeholder="Ex: Corolla"
+              />
+            </div>
+            <div>
+              <Label>Cor</Label>
+              <Input 
+                value={form.vehicle_color}
+                onChange={(e) => setForm({...form, vehicle_color: e.target.value})}
+                placeholder="Ex: Prata"
+              />
+            </div>
+            <div>
+              <Label>Placa</Label>
+              <Input 
+                value={form.plate}
+                onChange={(e) => setForm({...form, plate: e.target.value.toUpperCase()})}
+                placeholder="ABC-1234"
+                className="uppercase"
+              />
+            </div>
+          </div>
+
+          {/* Serviço Info */}
+          <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+            <p className="text-sm font-medium text-green-800 mb-3 flex items-center gap-2">
+              <Wrench className="w-4 h-4" />
+              Dados do Serviço
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Tipo de Serviço</Label>
               <Select 
@@ -757,59 +918,54 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
                 onChange={(e) => setForm({...form, data_agendamento: e.target.value})}
               />
             </div>
-          </div>
-          <div>
-            <Label>Descrição</Label>
-            <Textarea 
-              value={form.descricao}
-              onChange={(e) => setForm({...form, descricao: e.target.value})}
-              placeholder="Descrição do serviço..."
-            />
-          </div>
-          <div>
-            <Label>Atribuir Técnico</Label>
-            <Select 
-              value={form.tecnico_id}
-              onValueChange={(v) => setForm({...form, tecnico_id: v})}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar técnico (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sem_tecnico">Nenhum técnico</SelectItem>
-                {(technicians || []).map(tech => (
-                  <SelectItem key={tech.id} value={tech.id}>{tech.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Veículo *</Label>
-              <Input 
-                value={form.vehicle}
-                onChange={(e) => setForm({...form, vehicle: e.target.value})}
-                placeholder="Ex: Corolla"
-              />
+            <div className="col-span-2">
+              <Label>Atribuir Técnico</Label>
+              <Select 
+                value={form.tecnico_id}
+                onValueChange={(v) => setForm({...form, tecnico_id: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar técnico (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sem_tecnico">Nenhum técnico</SelectItem>
+                  {(technicians || []).map(tech => (
+                    <SelectItem key={tech.id} value={tech.id}>{tech.name || tech.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <Label>Placa *</Label>
-              <Input 
-                value={form.plate}
-                onChange={(e) => setForm({...form, plate: e.target.value})}
-                placeholder="ABC-1234"
+            <div className="col-span-2">
+              <Label>Descrição / Observações</Label>
+              <Textarea 
+                value={form.descricao}
+                onChange={(e) => setForm({...form, descricao: e.target.value})}
+                placeholder="Descrição do serviço..."
+                className="min-h-[80px]"
               />
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            Cancelar
+          </Button>
           <Button 
             onClick={handleSubmit}
-            className="bg-orange-500"
-            disabled={!form.cliente_name || !form.cliente_phone}
+            className="bg-orange-500 hover:bg-orange-600"
+            disabled={saving || !form.cliente_name || !form.cliente_phone}
           >
-            Criar Serviço
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Cadastrando...
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4 mr-2" />
+                Cadastrar Cliente + Serviço
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

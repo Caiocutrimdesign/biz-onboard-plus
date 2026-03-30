@@ -4,10 +4,11 @@ import {
   LogOut, LayoutDashboard, Users, Car, DollarSign, Settings, Bell, 
   Menu, X, ChevronRight, TrendingUp, ShieldCheck, Phone, Mail, Calendar,
   BarChart3, Target, Zap, CalendarCheck, GitBranch, Bot, HelpCircle,
-  MessageSquare, Send, Gift, Wrench, ClipboardList
+  MessageSquare, Send, Gift, Wrench, ClipboardList, Cake
 } from 'lucide-react';
 import TechniciansPage from './modules/TechniciansPage';
 import ServicesPage from './modules/ServicesPage';
+import BirthdaysPage from './modules/BirthdaysPage';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Logo3D } from '@/components/ui/Logo3D';
 import { useData } from '@/contexts/DataContext';
 
-type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'config' | 'tecnicos' | 'servicos';
+type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'config' | 'tecnicos' | 'servicos' | 'aniversarios';
 
 interface NavItem {
   id: Module;
@@ -29,6 +30,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
   { id: 'clientes', label: 'Clientes', icon: Users, path: '/admin?tab=clientes' },
+  { id: 'aniversarios', label: 'Aniversários', icon: Cake, path: '/admin?tab=aniversarios' },
   { id: 'tecnicos', label: 'Cadastro Tec', icon: Wrench, path: '/admin?tab=tecnicos' },
   { id: 'servicos', label: 'Serviços', icon: ClipboardList, path: '/admin?tab=servicos' },
   { id: 'veiculos', label: 'Veículos', icon: Car, path: '/admin?tab=veiculos' },
@@ -48,7 +50,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'clientes', 'tecnicos', 'servicos', 'veiculos', 'financeiro', 'agendamentos', 'config'].includes(tab)) {
+    if (tab && ['dashboard', 'clientes', 'aniversarios', 'tecnicos', 'servicos', 'veiculos', 'financeiro', 'agendamentos', 'config'].includes(tab)) {
       setActiveModule(tab as Module);
     }
   }, [searchParams]);
@@ -403,6 +405,9 @@ export default function AdminDashboard() {
 
           {/* Clientes View */}
           {activeModule === 'clientes' && <ClientsSection />}
+
+          {/* Aniversarios View */}
+          {activeModule === 'aniversarios' && <BirthdaysPage />}
 
           {/* Tecnicos View */}
           {activeModule === 'tecnicos' && <TechniciansPage />}
