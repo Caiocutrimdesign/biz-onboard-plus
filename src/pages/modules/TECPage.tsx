@@ -53,20 +53,31 @@ export default function TECPage() {
       setLoading(true);
       console.log('TECPage: Loading data for user', user.id);
       
-      // Load all services for this technician
-      const [tecServices, allServices, allTechnicians] = await Promise.all([
-        getServicesByTechnician(user.id),
-        crmService.getServicos(), // Get all services
+      // Single parallel call - get all services once and technicians
+      const [allServices, allTechnicians] = await Promise.all([
+        crmService.getServicos(),
         crmService.getTecnicos()
       ]);
       
-      console.log('TECPage: Loaded services:', tecServices.length, 'for technician:', user.id);
-      console.log('TECPage: All services in system:', allServices.length);
+      // Normalize technician ID for comparison
+      const normalizedUserId = user.id.replace('user_', '');
       
-      // Combine both lists and remove duplicates
-      const allServicesList = [...tecServices, ...allServices].filter((service, index, self) => 
-        index === self.findIndex(s => s.id === service.id)
-      );
+      // Filter services for this technician (local filtering is faster)
+      const myServices = allServices.filter((s: any) => {
+        const techId = s.technician_id?.replace('user_', '') || '';
+        return techId === normalizedUserId || techId === user.id;
+      });
+      
+      // Get services NOT assigned to this technician (from Admin panel)
+      const unassignedServices = allServices.filter((s: any) => {
+        const techId = s.technician_id?.replace('user_', '') || '';
+        return !techId || (techId !== normalizedUserId && techId !== user.id);
+      });
+      
+      console.log('TECPage: My services:', myServices.length, '| Unassigned:', unassignedServices.length);
+      
+      // Combine - my services first, then unassigned
+      const allServicesList = [...myServices, ...unassignedServices];
       
       setServices(allServicesList as any as Service[]);
       setTechnicians(allTechnicians as any as Technician[]);

@@ -252,54 +252,10 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('todos');
-  const [localLoading, setLocalLoading] = useState(false);
-  const [allServices, setAllServices] = useState<Service[]>([]);
-  const [initialized, setInitialized] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (!initialized) {
-      if (services && services.length > 0) {
-        setAllServices(services);
-        setInitialized(true);
-      } else {
-        loadAllServices();
-        setInitialized(true);
-      }
-    }
-  }, [services, initialized]);
-
-  const loadAllServices = useCallback(async () => {
-    setLocalLoading(true);
-    try {
-      const data = await crmService.getServicos();
-      setAllServices(data as any as Service[]);
-    } catch (error) {
-      console.error('Error loading services:', error);
-    } finally {
-      setLocalLoading(false);
-    }
-  }, []);
-
-  const handleRefresh = useCallback(() => {
-    loadAllServices();
-  }, [loadAllServices]);
-
-  const handleBack = useCallback(() => {
-    if (onBack) onBack();
-  }, [onBack]);
-
-  const handleExit = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
-
-  const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
-    { id: 'todos', label: 'Todos', icon: Calendar },
-    { id: 'pendente', label: 'Pendentes', icon: Clock },
-    { id: 'em_andamento', label: 'Em Andamento', icon: Package },
-    { id: 'concluido', label: 'Concluídos', icon: CheckCircle },
-  ];
-
-  const displayServices = allServices.length > 0 ? allServices : services;
+  // Use services passed as props directly - no extra fetch
+  const displayServices = services || [];
 
   const filteredServices = useMemo(() => {
     let result = displayServices;
@@ -345,7 +301,20 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
     }
   };
 
-  const isLoading = loading || localLoading;
+  const handleBack = useCallback(() => {
+    if (onBack) onBack();
+  }, [onBack]);
+
+  const handleExit = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
+    { id: 'todos', label: 'Todos', icon: Calendar },
+    { id: 'pendente', label: 'Pendentes', icon: Clock },
+    { id: 'em_andamento', label: 'Em Andamento', icon: Package },
+    { id: 'concluido', label: 'Concluídos', icon: CheckCircle },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -361,8 +330,8 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
               <p className="text-sm text-gray-500">{stats.todos} serviços no total</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={handleRefresh} className="h-10 w-10">
-                <RefreshCw className={`w-5 h-5 ${localLoading ? 'animate-spin' : ''}`} />
+              <Button variant="outline" size="icon" onClick={() => window.location.reload()} className="h-10 w-10">
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
               </Button>
               <Button variant="outline" size="icon" onClick={handleExit} className="h-10 w-10 text-red-500">
                 <LogOut className="w-5 h-5" />
@@ -431,7 +400,7 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
         </div>
 
         {/* Services List */}
-        {isLoading ? (
+        {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-12 h-12 animate-spin text-orange-500" />
             <p className="mt-4 text-gray-500">Carregando serviços...</p>
