@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, Calendar, Search, Clock, CheckCircle, 
-  Wrench, Phone, MapPin, Loader2, Filter, Package, Car,
-  Eye, MessageSquare, RefreshCw
+  Wrench, Phone, MapPin, Loader2, Package, Car,
+  RefreshCw, LogOut
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Service, SERVICE_TYPE_LABELS, STATUS_CONFIG } from '@/types/tec';
 import { TECView } from './TecTypes';
 import { crmService } from '@/lib/crmService';
+import { useNavigate } from 'react-router-dom';
 
 interface ServicesListViewProps {
   services: Service[];
@@ -25,16 +26,29 @@ interface ServicesListViewProps {
 type TabType = 'todos' | 'pendente' | 'em_andamento' | 'concluido';
 
 export function ServicesListView({ services, loading, onBack, goTo, onSelectService, filter = 'all' }: ServicesListViewProps) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('todos');
   const [localLoading, setLocalLoading] = useState(false);
   const [allServices, setAllServices] = useState<Service[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
+  // Use services from props if available, otherwise load from DB
   useEffect(() => {
-    loadAllServices();
-  }, []);
+    if (!initialized) {
+      // Use props services immediately if available
+      if (services && services.length > 0) {
+        setAllServices(services);
+        setInitialized(true);
+      } else {
+        // Load from DB if props are empty
+        loadAllServices();
+        setInitialized(true);
+      }
+    }
+  }, [services, initialized]);
 
-  const loadAllServices = async () => {
+  const loadAllServices = useCallback(async () => {
     setLocalLoading(true);
     try {
       const data = await crmService.getServicos();
@@ -45,7 +59,19 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
     } finally {
       setLocalLoading(false);
     }
-  };
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    loadAllServices();
+  }, [loadAllServices]);
+
+  const handleBack = useCallback(() => {
+    if (onBack) onBack();
+  }, [onBack]);
+
+  const handleExit = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
 
   const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
     { id: 'todos', label: 'Todos', icon: Calendar },
@@ -113,21 +139,32 @@ export function ServicesListView({ services, loading, onBack, goTo, onSelectServ
     <div className="space-y-4 md:space-y-6">
       {/* Header with Back Button */}
       <div className="flex items-center gap-3 md:gap-4">
-        <Button variant="ghost" size="icon" onClick={onBack} className="h-10 w-10">
+        <Button variant="ghost" size="icon" onClick={handleBack} className="h-10 w-10">
           <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
         </Button>
         <div className="flex-1">
           <h1 className="text-lg md:text-xl font-bold">Agenda de Serviços</h1>
           <p className="text-xs md:text-sm text-muted-foreground">Controle de todos os serviços</p>
         </div>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          onClick={loadAllServices}
-          className="h-10 w-10"
-        >
-          <RefreshCw className={`w-4 h-4 ${localLoading ? 'animate-spin' : ''}`} />
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleRefresh}
+            className="h-10 w-10"
+          >
+            <RefreshCw className={`w-4 h-4 ${localLoading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleExit}
+            className="h-10 w-10 text-red-500 hover:text-red-600"
+            title="Sair"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Stats - Responsive Grid */}
