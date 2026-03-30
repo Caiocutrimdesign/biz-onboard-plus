@@ -127,6 +127,12 @@ export default function TECPage() {
   const [cart, setCart] = useState<Product[]>([]);
   const [saleTotal, setSaleTotal] = useState(0);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadData();
+    }
+  }, [user?.id, user?.role]);
+
   // Protection: wait for auth and data to load
   if (authLoading || dataLoading) {
     return (
@@ -150,10 +156,6 @@ export default function TECPage() {
       </div>
     );
   }
-
-  useEffect(() => {
-    loadData();
-  }, [user?.id, user?.role]);
 
   const loadData = async () => {
     setLoading(true);
