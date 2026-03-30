@@ -113,9 +113,8 @@ export function StepTechnician({ onNext, onBack }: Props) {
         <Button 
           onClick={onNext} 
           className="bg-gradient-brand h-12 flex-1 text-base font-semibold text-primary-foreground"
-          disabled={technicians.length > 0 && !data.technician_id}
         >
-          {data.technician_id ? 'Confirmar e Continuar' : 'Pular (Auto-designação)'}
+          {data.technician_id ? 'Confirmar e Continuar' : 'Pular (Escolher depois)'}
         </Button>
       </div>
     </motion.div>
