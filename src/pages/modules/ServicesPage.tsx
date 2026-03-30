@@ -19,6 +19,7 @@ import { useData } from '@/contexts/DataContext';
 import { type Servico } from '@/lib/crmService';
 import type { Service, ServiceStatus, ServiceType } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS, SERVICE_STATUS_ORDER } from '@/types/service';
+import { toast } from 'sonner';
 
 type TabType = 'todos' | 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
 
@@ -62,13 +63,11 @@ export default function ServicesPage() {
   };
 
   // Map Servico (Supabase) to UI Service type if needed, or use directly
-  const services = (servicos || []).map(s => ({
+  const services: any[] = (servicos || []).map(s => ({
     ...s,
-    cliente_id: s.client_id,
     cliente_name: s.client_name,
     cliente_phone: s.client_phone,
     cliente_address: s.client_address,
-    tipo_servico: s.type as ServiceType,
     descricao: s.observations,
     data_agendamento: s.scheduled_date,
     status: s.status as ServiceStatus,
@@ -146,11 +145,9 @@ export default function ServicesPage() {
 
   const handleUpdateService = async (serviceId: string, data: Partial<Service>) => {
     await updateServico(serviceId, {
-      client_id: data.cliente_id,
       client_name: data.cliente_name,
       client_phone: data.cliente_phone,
       client_address: data.cliente_address,
-      type: data.tipo_servico,
       technician_id: data.tecnico_id,
       technician_name: data.tecnico_name,
       status: data.status as any,
@@ -691,7 +688,6 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
     console.log("🚀 Iniciando criação de serviço e cliente...");
     
     if (!form.cliente_name || !form.cliente_phone) {
-      console.warn("⚠️ Campos obrigatórios faltando:", { name: form.cliente_name, phone: form.cliente_phone });
       alert("Nome e telefone do cliente são obrigatórios!");
       return;
     }
@@ -719,16 +715,15 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
         throw new Error(clienteResult?.error || "Erro ao cadastrar cliente");
       }
 
-      const clienteId = clienteResult.data?.id;
-      console.log("✅ Cliente criado:", clienteId);
+      console.log("✅ Cliente criado com sucesso");
 
-      // 2. Criar o serviço com o cliente_id
+      // 2. Criar o serviço
       const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
-      const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : '';
+      const tecnicoId = form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : '';
       
       const serviceData = {
         client_name: form.cliente_name,
-        client_phone: form.cliente_phone || null,
+        client_phone: form.cliente_phone,
         client_address: form.cliente_address || null,
         observations: form.descricao || null,
         scheduled_date: form.data_agendamento || null,
@@ -739,8 +734,6 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
         plate: form.plate || null,
       };
 
-      console.log("📋 Dados do serviço:", serviceData);
-      
       const serviceResult = await addServico(serviceData);
       
       if (!serviceResult?.success) {
@@ -772,9 +765,8 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
       
       onCreated();
     } catch (err: any) {
-      console.error("❌ Erro ao criar:", err);
-      const errorMessage = err.message || "Erro desconhecido";
-      alert(`Erro: ${errorMessage}. Verifique o console para mais detalhes.`);
+      console.error("❌ Erro:", err);
+      alert(`Erro: ${err.message || "Erro desconhecido"}`);
     } finally {
       setSaving(false);
     }
