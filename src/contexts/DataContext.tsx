@@ -35,9 +35,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshServices = useCallback(async () => {
-    // Determine if we should filter by technician
-    const tecnicoId = user?.tipo === 'tecnico' ? user.id : undefined;
+    // Admin sempre vê todos os serviços, técnico só vê os seus
+    const userRole = (user as any)?.role || user?.tipo;
+    const tecnicoId = userRole === 'tecnico' ? user?.id : undefined;
     const data = await crmService.getServicos(tecnicoId);
+    console.log('DataContext: refreshServices - loaded', data.length, 'services');
     setServices(data);
   }, [user]);
 

@@ -38,6 +38,23 @@ export default function ServicesPage() {
 
   useEffect(() => {
     loadData();
+    
+    // Refresh services when page gains focus (in case technician added new services)
+    const handleFocus = () => {
+      loadData();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    // Also refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadData();
+    }, 30000);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(interval);
+    };
   }, []);
 
   const loadData = async () => {
