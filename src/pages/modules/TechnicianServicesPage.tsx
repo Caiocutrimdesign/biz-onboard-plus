@@ -84,7 +84,7 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
   const stats = {
     designado: services.filter(s => s.status === 'designado').length,
     emAndamento: services.filter(s => s.status === 'em_andamento').length,
-    finalized: services.filter(s => s.status === 'finalizado').length,
+    finalized: services.filter(s => s.status === 'finalizado' || s.status === 'concluido').length,
     total: services.length,
   };
 

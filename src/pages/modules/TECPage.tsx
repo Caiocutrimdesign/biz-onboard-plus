@@ -5,7 +5,7 @@ import {
   Clock, User, Phone, Car, MapPin, DollarSign, Package,
   ChevronLeft, Save, Loader2, Trash2, AlertCircle,
   CheckCircle, MapPinned, Image, Shield, Star, ThumbsUp,
-  ClipboardList, CheckSquare, Calendar
+  ClipboardList, CheckSquare, Calendar, Truck, ShieldCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +23,8 @@ import type { Service as AppService, ServiceStatus as AppServiceStatus } from '@
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS } from '@/types/service';
 import TechnicianServicesPage from './TechnicianServicesPage';
 import { useData } from '@/contexts/DataContext';
+
+// ============ TYPES & CONSTANTS ============
 
 type TECView = 'home' | 'novo-cliente' | 'servico' | 'vendas' | 'finalizar' | 'meus-servicos' | 'servicos-designados' | 'novo-servico';
 type Client = {
@@ -108,386 +110,24 @@ const PRODUCTS: Product[] = [
   { id: 'inst_1', name: 'Instalacao', price: 150, description: 'Servico de instalacao', category: 'gps_plus' },
 ];
 
-export default function TECPage() {
-  const { user, isLoading: authLoading } = useAuth();
-  const { customers, saveCustomer, isLoading: dataLoading } = useData();
-  const [view, setView] = useState<TECView>('home');
-  const [services, setServices] = useState<Service[]>([]);
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Current client being registered
-  const [currentClient, setCurrentClient] = useState<Client | null>(null);
-  
-  // Current service being created
-  const [currentService, setCurrentService] = useState<Partial<Service>>({});
-  
-  // Sales cart
-  const [cart, setCart] = useState<Product[]>([]);
-  const [saleTotal, setSaleTotal] = useState(0);
+// ============ HELPERS (Hoisted) ============
 
-  useEffect(() => {
-    if (user?.id) {
-      loadData();
-    }
-  }, [user?.id, user?.role]);
-
-  // Protection: wait for auth and data to load
-  if (authLoading || dataLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Protection: if no user, show error
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center p-8">
-          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
-          <p className="text-muted-foreground">Faça login para acessar esta área.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      let servicesData: Service[] = [];
-      let tecnicosData: any[] = [];
-      
-      try {
-        servicesData = await crmService.getServicos() || [];
-      } catch (e) {
-        console.error('Error loading services:', e);
-        servicesData = [];
-      }
-      
-      try {
-        tecnicosData = await crmService.getTecnicos() || [];
-      } catch (e) {
-        console.error('Error loading technicians:', e);
-        tecnicosData = [];
-      }
-      
-      const userRole = (user?.role as string);
-      const isTechnician = userRole === 'technician' || userRole === 'tecnico';
-      const userId = user?.id || '';
-      
-      let filteredServices = servicesData || [];
-      if (isTechnician && userId) {
-        filteredServices = (servicesData || []).filter((s: any) => s && s.technician_id === userId);
-      }
-      
-      const registeredTecnicos = (tecnicosData || []).map((t: any) => ({
-        id: t.id,
-        name: t.nome || t.name,
-        email: t.email,
-        phone: t.phone || '',
-        cpf: t.cpf || '',
-        status: 'active' as const,
-        created_at: t.created_at || new Date().toISOString(),
-      }));
-      
-      setServices(filteredServices || []);
-      setTechnicians(registeredTecnicos || []);
-    } catch (e: any) {
-      console.error('Error loading data:', e);
-      setError(e.message || 'Erro ao carregar dados');
-    } finally {
-      setLoading(false);
-    }
+function StatusBadge({ status }: { status: string }) {
+  const configs: Record<string, { label: string; color: string }> = {
+    'pendente': { label: 'Pendente', color: 'bg-yellow-100 text-yellow-700' },
+    'designado': { label: 'Pendente', color: 'bg-yellow-100 text-yellow-700' },
+    'em_andamento': { label: 'Em Andamento', color: 'bg-blue-100 text-blue-700' },
+    'concluido': { label: 'Concluido', color: 'bg-green-100 text-green-700' },
+    'finalizado': { label: 'Concluido', color: 'bg-green-100 text-green-700' },
   };
-
-  const goTo = (newView: TECView) => {
-    setView(newView);
-  };
-
-  const startNewClient = () => {
-    setCurrentClient({
-      id: `client_${Date.now()}`,
-      name: '',
-      phone: '',
-      email: '',
-      cpf: '',
-      address: '',
-      neighborhood: '',
-      city: '',
-      state: '',
-      cep: '',
-      vehicle: '',
-      vehicleBrand: '',
-      vehicleModel: '',
-      vehicleYear: '',
-      vehicleColor: '',
-      plate: '',
-      renavam: '',
-      // @ts-ignore
-      technician_id: '',
-      technician_name: '',
-    });
-    setCurrentService({});
-    setCart([]);
-    setSaleTotal(0);
-    goTo('novo-cliente');
-  };
-
-  const saveClient = (client: Client) => {
-    setCurrentClient(client);
-    goTo('vendas');
-  };
-
-  const addToCart = (product: Product) => {
-    setCart([...cart, product]);
-    setSaleTotal(saleTotal + product.price);
-  };
-
-  const removeFromCart = (index: number) => {
-    const removed = cart[index];
-    setCart(cart.filter((_, i) => i !== index));
-    setSaleTotal(saleTotal - removed.price);
-  };
-
-  const handleStartService = (selectedTecId?: string, selectedTecName?: string) => {
-    if (!currentClient) return;
-    
-    setCurrentService({
-      client_id: currentClient.id,
-      client_name: currentClient.name,
-      client_phone: currentClient.phone,
-      client_address: `${currentClient.address}, ${currentClient.neighborhood} - ${currentClient.city}/${currentClient.state}`,
-      vehicle: `${currentClient.vehicleBrand} ${currentClient.vehicleModel} ${currentClient.vehicleYear}`.trim(),
-      plate: currentClient.plate,
-      type: 'instalacao',
-      status: 'pendente',
-      technician_id: selectedTecId || user?.id || 'unknown',
-      technician_name: selectedTecName || user?.name,
-      photos: [],
-      observations: '',
-    });
-    goTo('servico');
-  };
-
-  const handleFinishStep = () => {
-    goTo('finalizar');
-  };
-
-  const saveFinalizedService = async (serviceData: {
-    photos: Array<{ url: string; type: PhotoType; file?: File }>;
-    signatureFuncionario: string;
-    signatureCliente: string;
-    observations: string;
-    rating?: number;
-    comment?: string;
-  }) => {
-    if (!currentService || !currentClient) return;
-    
-    try {
-      const loadingToast = toast.loading('Salvando serviço...');
-      
-      // 1. Garantir que o cliente existe no Supabase e pegar o UUID real
-      let finalClientId = currentClient.id;
-      if (finalClientId.startsWith('client_')) {
-         const { data: newClient, success: clientSuccess } = await crmService.createCliente({
-           full_name: currentClient.name,
-           phone: currentClient.phone,
-           email: currentClient.email,
-           cpf_cnpj: currentClient.cpf,
-           street: currentClient.address,
-           neighborhood: currentClient.neighborhood,
-           city: currentClient.city,
-           state: currentClient.state,
-           cep: currentClient.cep,
-           brand: currentClient.vehicleBrand,
-           model: currentClient.vehicleModel,
-           year: currentClient.vehicleYear,
-           color: currentClient.vehicleColor,
-           plate: currentClient.plate,
-           renavam: currentClient.renavam,
-           status: 'active',
-           // @ts-ignore
-           technician_id: (currentClient as any).technician_id || null,
-           // @ts-ignore
-           technician_name: (currentClient as any).technician_name || null
-         });
-         
-         if (clientSuccess && newClient) {
-           finalClientId = newClient.id;
-         } else {
-           throw new Error('Falha ao criar cliente no banco de dados');
-         }
-      }
-
-      // 2. Criar o serviço no Supabase (com o client_id real)
-      const { data: newService, success: serviceSuccess } = await crmService.createServico({
-        ...currentService,
-        client_id: finalClientId,
-        observations: serviceData.observations,
-        status: 'concluido',
-      } as any);
-
-      if (!serviceSuccess || !newService) throw new Error('Erro ao criar serviço');
-
-      // 3. Upload das fotos para o Storage
-      const uploadedPhotos = [];
-      for (const photo of serviceData.photos) {
-        if (photo.file) {
-          const uploadRes = await crmService.uploadPhoto(photo.file, newService.id, photo.type);
-          if (uploadRes.success) {
-            uploadedPhotos.push({ url: uploadRes.url, type: photo.type });
-          }
-        }
-      }
-      
-      if (uploadedPhotos.length > 0) {
-        await crmService.savePhotos(newService.id, uploadedPhotos);
-      }
-
-      // 4. Upload das assinaturas para o Storage
-      const signaturesToSave = [];
-      if (serviceData.signatureFuncionario) {
-        const sigRes = await crmService.uploadSignature(serviceData.signatureFuncionario, newService.id, 'tecnico');
-        if (sigRes.success) {
-          signaturesToSave.push({ url: sigRes.url, signed_by: 'Técnico' });
-        }
-      }
-      if (serviceData.signatureCliente) {
-        const sigRes = await crmService.uploadSignature(serviceData.signatureCliente, newService.id, 'cliente');
-        if (sigRes.success) {
-          signaturesToSave.push({ url: sigRes.url, signed_by: 'Cliente' });
-        }
-      }
-      
-      if (signaturesToSave.length > 0) {
-        await crmService.saveSignatures(newService.id, signaturesToSave);
-        // Atualiza a assinatura principal no serviço (usando a do cliente como principal se houver)
-        await crmService.updateServico(newService.id, { 
-          signature: signaturesToSave.find(s => s.signed_by === 'Cliente')?.url || signaturesToSave[0].url 
-        });
-      }
-
-      toast.dismiss(loadingToast);
-      toast.success('Serviço finalizado com sucesso!');
-      await loadData();
-      
-      // Reset tudo
-      setCurrentClient(null);
-      setCurrentService({});
-      setCart([]);
-      setSaleTotal(0);
-    } catch (e: any) {
-      toast.error(`Erro ao salvar: ${e.message}`);
-      console.error('Error saving service:', e);
-    }
-  };
-
-  // Protection: show loading while data loads
-  if (loading) {
-    return (
-      <SuperLayout>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
-            <p className="text-muted-foreground">Carregando serviços...</p>
-          </div>
-        </div>
-      </SuperLayout>
-    );
-  }
-
-  // Protection: show error if any
-  if (error) {
-    return (
-      <SuperLayout>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center p-8">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Erro ao carregar</h2>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={loadData} className="bg-orange-500">
-              Tentar novamente
-            </Button>
-          </div>
-        </div>
-      </SuperLayout>
-    );
-  }
-
+  const config = configs[status] || configs['pendente'];
   return (
-    <SuperLayout>
-      <div className="p-4 md:p-6">
-        {view === 'home' && (
-          <HomeView 
-            services={services} 
-            loading={loading} 
-            onNewClient={startNewClient}
-            userName={user?.name || 'Tecnico'}
-            goTo={goTo}
-          />
-        )}
-        
-        {view === 'novo-cliente' && (
-          <ClientFormView 
-            client={currentClient}
-            onSave={saveClient}
-            onBack={() => goTo('home')}
-            technicians={technicians}
-          />
-        )}
-        
-        {view === 'vendas' && (
-          <SalesView 
-            client={currentClient}
-            cart={cart}
-            total={saleTotal}
-            products={PRODUCTS}
-            technicians={technicians}
-            onAddProduct={addToCart}
-            onRemoveProduct={removeFromCart}
-            onStartService={handleStartService}
-            onBack={() => goTo('novo-cliente')}
-            onNewClient={() => { setCurrentClient(null); goTo('novo-cliente'); }}
-          />
-        )}
-        
-        {view === 'servico' && (
-          <ServiceView 
-            service={currentService}
-            cart={cart}
-            total={saleTotal}
-            onFinish={handleFinishStep}
-            onBack={() => goTo('vendas')}
-          />
-        )}
-        
-        {view === 'finalizar' && (
-          <FinalizeView 
-            service={currentService}
-            onSave={saveFinalizedService}
-            onBack={() => goTo('servico')}
-          />
-        )}
-
-        {view === 'meus-servicos' && (
-          <TechnicianServicesPage 
-            tecnicoId={user?.id || ''}
-            tecnicoName={user?.name || 'Técnico'}
-          />
-        )}
-      </div>
-    </SuperLayout>
+    <Badge className={config.color}>{config.label}</Badge>
   );
 }
 
-// ============ HOME VIEW ============
+// ============ SUB-VIEWS (Hoisted) ============
+
 type FilterTab = 'todos' | 'pendente' | 'em_andamento' | 'concluido';
 
 function HomeView({ services, loading, onNewClient, userName, goTo }: {
@@ -604,186 +244,103 @@ function HomeView({ services, loading, onNewClient, userName, goTo }: {
         </Card>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-xl border p-2">
-        <div className="flex gap-2 overflow-x-auto">
-          {filterTabs.map((tab) => {
-            const isActive = filterTab === tab.id;
-            return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Servicos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2 overflow-x-auto pb-4">
+            {filterTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setFilterTab(tab.id)}
-                className={`
-                  flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all whitespace-nowrap
-                  ${isActive 
-                    ? `${tab.activeBg} text-white shadow-md` 
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                  }
-                `}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+                  filterTab === tab.id ? `${tab.activeBg} text-white` : 'bg-muted text-muted-foreground hover:bg-muted-foreground/10'
+                }`}
               >
-                {isActive && <Check className="w-4 h-4" />}
                 <span>{tab.label}</span>
-                <span className={`
-                  px-2 py-0.5 rounded-full text-xs font-bold
-                  ${isActive ? 'bg-white/20' : 'bg-muted'}
-                `}>
+                <Badge variant={filterTab === tab.id ? 'secondary' : 'outline'} className={filterTab === tab.id ? 'bg-white/20' : ''}>
                   {tab.count}
-                </span>
+                </Badge>
               </button>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
 
-      {/* Services List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              <span>
-                {filterTab === 'todos' && 'Todos os Servicos'}
-                {filterTab === 'pendente' && 'Servicos Pendentes'}
-                {filterTab === 'em_andamento' && 'Servicos em Andamento'}
-                {filterTab === 'concluido' && 'Servicos Finalizados'}
-              </span>
-            </div>
-            <Badge variant="outline">{filteredServices.length} servico(s)</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
-            </div>
-          ) : filteredServices.length === 0 ? (
-            <div className="text-center py-8">
-              <Wrench className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-              <p className="text-muted-foreground">
-                {filterTab === 'todos' 
-                  ? 'Nenhum servico ainda'
-                  : filterTab === 'pendente' 
-                    ? 'Nenhum servico pendente'
-                    : filterTab === 'em_andamento'
-                      ? 'Nenhum servico em andamento'
-                      : 'Nenhum servico finalizado'
-                }
-              </p>
-              {filterTab === 'todos' && (
-                <Button onClick={onNewClient} className="mt-4 bg-orange-500">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Servico
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredServices.map((service) => (
+          <div className="space-y-4">
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : filteredServices.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Nenhum servico encontrado.</p>
+            ) : (
+              filteredServices.map(service => (
                 <ServiceCard key={service.id} service={service} />
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
 
-// ============ SERVICE CARD ============
 function ServiceCard({ service }: { service: Service }) {
   const [expanded, setExpanded] = useState(false);
-
-  // Protection: handle undefined/null service
-  if (!service) {
-    return null;
-  }
-
-  const safeService = {
-    id: service.id || '',
-    client_name: service.client_name || 'Cliente',
-    client_phone: service.client_phone || '',
-    client_address: service.client_address || '',
-    vehicle: service.vehicle || '',
-    plate: service.plate || '',
-    status: service.status || 'pendente',
-    type: service.type || '',
-    technician_name: service.technician_name || '',
-    created_at: service.created_at || new Date().toISOString(),
-  };
+  if (!service) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl border hover:bg-muted/30 transition-colors cursor-pointer"
-      onClick={() => setExpanded(!expanded)}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className={`
-            w-12 h-12 rounded-xl flex items-center justify-center
-            ${safeService.status === 'pendente' ? 'bg-yellow-100' : 
-              safeService.status === 'em_andamento' ? 'bg-blue-100' : 'bg-green-100'}
-          `}>
-            <Car className={`w-6 h-6 ${
-              safeService.status === 'pendente' ? 'text-yellow-600' : 
-              safeService.status === 'em_andamento' ? 'text-blue-600' : 'text-green-600'
-            }`} />
-          </div>
-          <div>
-            <p className="font-semibold">{safeService.client_name}</p>
-            <p className="text-sm text-muted-foreground">
-              {safeService.vehicle} - {safeService.plate}
-            </p>
-          </div>
-        </div>
-        <div className="text-right">
-          <StatusBadge status={safeService.status} />
-          <p className="text-xs text-muted-foreground mt-1">
-            {new Date(safeService.created_at).toLocaleDateString('pt-BR')}
-          </p>
-        </div>
-      </div>
-
-      {/* Expanded Details */}
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="mt-4 pt-4 border-t space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Telefone:</span>
-                <span className="font-medium">{service.client_phone}</span>
-              </div>
-              {service.client_address && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Endereco:</span>
-                  <span className="font-medium text-right max-w-[200px] truncate">{service.client_address}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tipo:</span>
-                <span className="font-medium capitalize">{service.type}</span>
-              </div>
-              {service.technician_name && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tecnico:</span>
-                  <span className="font-medium">{service.technician_name}</span>
-                </div>
-              )}
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        <div 
+          className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Car className="w-5 h-5 text-primary" />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+            <div>
+              <p className="font-bold">{service.client_name}</p>
+              <p className="text-sm text-muted-foreground">{service.vehicle} - {service.plate}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={service.status} />
+            <ChevronLeft className={`w-5 h-5 transition-transform ${expanded ? '-rotate-90' : 'rotate-180'}`} />
+          </div>
+        </div>
+        
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="px-4 pb-4 border-t"
+            >
+              <div className="pt-4 grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Telefone</p>
+                  <p className="font-medium">{service.client_phone}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Data</p>
+                  <p className="font-medium">{service.created_at ? new Date(service.created_at).toLocaleDateString() : '---'}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">Endereco</p>
+                  <p className="font-medium">{service.client_address}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </CardContent>
+    </Card>
   );
 }
 
-// ============ CLIENT FORM VIEW ============
 function ClientFormView({ client, onSave, onBack, technicians }: {
   client: Client | null;
   onSave: (client: Client) => void;
@@ -878,7 +435,7 @@ function ClientFormView({ client, onSave, onBack, technicians }: {
                 <div>
                   <label className="text-sm font-medium mb-2 block text-orange-600 font-bold">Responsável pelo Cadastro / Atendimento</label>
                   <Select 
-                    value={(form as any).technician_id || ''} 
+                    value={form.technician_id || ''} 
                     onValueChange={(val) => {
                       const tec = technicians.find(t => t.id === val);
                       setForm({ ...form, technician_id: val, technician_name: tec?.name || '' });
@@ -1121,7 +678,6 @@ function ClientFormView({ client, onSave, onBack, technicians }: {
   );
 }
 
-// ============ SALES VIEW ============
 function SalesView({ client, cart, total, products, technicians, onAddProduct, onRemoveProduct, onStartService, onBack, onNewClient }: {
   client: Client | null;
   cart: Product[];
@@ -1414,7 +970,6 @@ function SalesView({ client, cart, total, products, technicians, onAddProduct, o
   );
 }
 
-// ============ SERVICE VIEW ============
 function ServiceView({ service, cart, total, onFinish, onBack }: {
   service: Partial<Service> | null;
   cart: Product[];
@@ -1497,7 +1052,6 @@ function ServiceView({ service, cart, total, onFinish, onBack }: {
   );
 }
 
-// ============ FINALIZE VIEW ============
 function FinalizeView({ service, onSave, onBack }: {
   service: Partial<Service> | null;
   onSave: (data: {
@@ -1519,7 +1073,6 @@ function FinalizeView({ service, onSave, onBack }: {
   const [observations, setObservations] = useState('');
   const [saving, setSaving] = useState(false);
   
-  // Satisfaction
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -1530,22 +1083,18 @@ function FinalizeView({ service, onSave, onBack }: {
   const [isDrawingFunc, setIsDrawingFunc] = useState(false);
   const [isDrawingClient, setIsDrawingClient] = useState(false);
 
-  // Count photos per step
   const photosAntes = photos.filter(p => p.type === 'antes');
   const photosDurante = photos.filter(p => p.type === 'durante');
   const photosDepois = photos.filter(p => p.type === 'depois');
 
-  // Check if step is complete
   const step1Complete = photosAntes.length >= 1;
   const step2Complete = photosDurante.length >= 1;
   const step3Complete = photosDepois.length >= 1;
 
-  // Validation
   const signaturesComplete = signatureFuncionario && signatureCliente;
   const satisfactionComplete = rating > 0;
   const canFinalize = step3Complete && signaturesComplete && satisfactionComplete;
 
-  // Initialize canvases
   useEffect(() => {
     if (funcCanvasRef.current) {
       const canvas = funcCanvasRef.current;
@@ -1633,7 +1182,7 @@ function FinalizeView({ service, onSave, onBack }: {
     const reader = new FileReader();
     reader.onloadend = () => {
       const typeMap: Record<1 | 2 | 3, PhotoType> = { 1: 'antes', 2: 'durante', 3: 'depois' };
-      setPhotos([...photos, { url: reader.result as string, type: typeMap[currentPhotoStep], file }]);
+      setPhotos([...photos, { url: reader.result as string, type: typeMap[currentPhotoStep as 1|2|3], file }]);
     };
     reader.readAsDataURL(file);
     
@@ -1663,22 +1212,6 @@ function FinalizeView({ service, onSave, onBack }: {
     setter(dataUrl);
   };
 
-  const goToStep2 = () => {
-    if (step1Complete) setCurrentPhotoStep(2);
-  };
-
-  const goToStep3 = () => {
-    if (step2Complete) setCurrentPhotoStep(3);
-  };
-
-  const goToSignatures = () => {
-    if (step3Complete) setShowSignatures(true);
-  };
-
-  const goToSatisfaction = () => {
-    if (signaturesComplete) setShowSatisfaction(true);
-  };
-
   const handleSave = async () => {
     if (!canFinalize) return;
     setSaving(true);
@@ -1702,12 +1235,10 @@ function FinalizeView({ service, onSave, onBack }: {
   };
 
   const currentStepLabel = currentPhotoStep === 1 ? 'Antes' : currentPhotoStep === 2 ? 'Durante' : 'Depois';
-  const currentStepColor = currentPhotoStep === 1 ? 'red' : currentPhotoStep === 2 ? 'yellow' : 'green';
   const currentStepBg = currentPhotoStep === 1 ? 'bg-red-500' : currentPhotoStep === 2 ? 'bg-yellow-500' : 'bg-green-500';
 
   return (
     <div className="space-y-6">
-      {/* Success Screen */}
       {showSuccess && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -1727,7 +1258,6 @@ function FinalizeView({ service, onSave, onBack }: {
         </motion.div>
       )}
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={showSatisfaction ? () => setShowSatisfaction(false) : onBack}>
@@ -1744,7 +1274,6 @@ function FinalizeView({ service, onSave, onBack }: {
         </div>
       </div>
 
-      {/* Step Progress Indicator */}
       {!showSignatures && (
         <div className="bg-white rounded-xl border p-4">
           <div className="flex items-center justify-between mb-3">
@@ -1753,7 +1282,6 @@ function FinalizeView({ service, onSave, onBack }: {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Step 1 - Antes */}
             <button
               onClick={() => setCurrentPhotoStep(1)}
               disabled={!step1Complete && currentPhotoStep !== 1}
@@ -1765,20 +1293,13 @@ function FinalizeView({ service, onSave, onBack }: {
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {step1Complete ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <span className="w-5 h-5 flex items-center justify-center font-bold">1</span>
-              )}
+              {step1Complete ? <Check className="w-5 h-5" /> : <span className="w-5 h-5 flex items-center justify-center font-bold">1</span>}
               <div className="text-left">
                 <p className="font-bold text-sm">Antes</p>
                 <p className="text-xs opacity-70">{photosAntes.length} foto(s)</p>
               </div>
             </button>
-
             <div className={`w-8 h-0.5 ${step1Complete ? 'bg-green-500' : 'bg-gray-300'}`} />
-
-            {/* Step 2 - Durante */}
             <button
               onClick={() => step1Complete && setCurrentPhotoStep(2)}
               disabled={!step1Complete}
@@ -1792,20 +1313,13 @@ function FinalizeView({ service, onSave, onBack }: {
                       : 'bg-yellow-50 text-yellow-600 border-2 border-yellow-400 cursor-pointer'
               }`}
             >
-              {step2Complete ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <span className="w-5 h-5 flex items-center justify-center font-bold">2</span>
-              )}
+              {step2Complete ? <Check className="w-5 h-5" /> : <span className="w-5 h-5 flex items-center justify-center font-bold">2</span>}
               <div className="text-left">
                 <p className="font-bold text-sm">Durante</p>
                 <p className="text-xs opacity-70">{photosDurante.length} foto(s)</p>
               </div>
             </button>
-
             <div className={`w-8 h-0.5 ${step2Complete ? 'bg-green-500' : 'bg-gray-300'}`} />
-
-            {/* Step 3 - Depois */}
             <button
               onClick={() => step2Complete && setCurrentPhotoStep(3)}
               disabled={!step2Complete}
@@ -1819,11 +1333,7 @@ function FinalizeView({ service, onSave, onBack }: {
                       : 'bg-green-50 text-green-600 border-2 border-green-400 cursor-pointer'
               }`}
             >
-              {step3Complete ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <span className="w-5 h-5 flex items-center justify-center font-bold">3</span>
-              )}
+              {step3Complete ? <Check className="w-5 h-5" /> : <span className="w-5 h-5 flex items-center justify-center font-bold">3</span>}
               <div className="text-left">
                 <p className="font-bold text-sm">Depois</p>
                 <p className="text-xs opacity-70">{photosDepois.length} foto(s)</p>
@@ -1833,7 +1343,6 @@ function FinalizeView({ service, onSave, onBack }: {
         </div>
       )}
 
-      {/* Photo Capture Section */}
       {!showSignatures && (
         <Card>
           <CardHeader>
@@ -1845,31 +1354,9 @@ function FinalizeView({ service, onSave, onBack }: {
                 }`} />
                 Fotos {currentStepLabel}
               </span>
-              <Badge variant="outline" className={`
-                ${currentPhotoStep === 1 ? 'text-red-600 border-red-300' : 
-                  currentPhotoStep === 2 ? 'text-yellow-600 border-yellow-300' : 'text-green-600 border-green-300'}
-              `}>
-                {currentPhotoStep === 1 ? photosAntes.length : currentPhotoStep === 2 ? photosDurante.length : photosDepois.length} foto(s)
-              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Step Instructions */}
-            <div className={`p-4 rounded-xl ${
-              currentPhotoStep === 1 ? 'bg-red-50 border border-red-200' : 
-              currentPhotoStep === 2 ? 'bg-yellow-50 border border-yellow-200' : 'bg-green-50 border border-green-200'
-            }`}>
-              <p className={`font-medium ${
-                currentPhotoStep === 1 ? 'text-red-700' : 
-                currentPhotoStep === 2 ? 'text-yellow-700' : 'text-green-700'
-              }`}>
-                {currentPhotoStep === 1 && 'Tire fotos do veiculo ANTES de iniciar o servico'}
-                {currentPhotoStep === 2 && 'Tire fotos DURANTE a realizacao do servico'}
-                {currentPhotoStep === 3 && 'Tire fotos DEPOIS de concluir o servico'}
-              </p>
-            </div>
-
-            {/* Camera Button */}
             <input
               ref={fileInputRef}
               type="file"
@@ -1878,7 +1365,6 @@ function FinalizeView({ service, onSave, onBack }: {
               onChange={handlePhotoCapture}
               className="hidden"
             />
-            
             <button
               onClick={() => fileInputRef.current?.click()}
               className={`w-full py-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${
@@ -1890,563 +1376,473 @@ function FinalizeView({ service, onSave, onBack }: {
                 currentPhotoStep === 1 ? 'text-red-400' : 
                 currentPhotoStep === 2 ? 'text-yellow-400' : 'text-green-400'
               }`} />
-              <p className={`font-medium ${
-                currentPhotoStep === 1 ? 'text-red-600' : 
-                currentPhotoStep === 2 ? 'text-yellow-600' : 'text-green-600'
-              }`}>
-                Toque para tirar foto
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {currentPhotoStep === 1 ? 'Posicao do veiculo, pecas, etc' : 
-                 currentPhotoStep === 2 ? 'Momento da instalacao' : 
-                 'Resultado final do servico'}
-              </p>
+              <p className="font-medium">Toque para tirar foto</p>
             </button>
 
-            {/* Current Step Photos */}
-            {photos.filter(p => 
-              (currentPhotoStep === 1 && p.type === 'antes') ||
-              (currentPhotoStep === 2 && p.type === 'durante') ||
-              (currentPhotoStep === 3 && p.type === 'depois')
-            ).length > 0 && (
-              <div className="grid grid-cols-3 gap-2">
-                {photos.filter(p => 
-                  (currentPhotoStep === 1 && p.type === 'antes') ||
-                  (currentPhotoStep === 2 && p.type === 'durante') ||
-                  (currentPhotoStep === 3 && p.type === 'depois')
-                ).map((photo, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={photo.url}
-                      alt={`${photo.type} ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg border-2"
-                    />
-                    <button
-                      onClick={() => removePhoto(photos.indexOf(photo))}
-                      className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-3 gap-2">
+              {photos.filter(p => p.type === (currentPhotoStep === 1 ? 'antes' : currentPhotoStep === 2 ? 'durante' : 'depois')).map((photo, index) => (
+                <div key={index} className="relative group">
+                  <img src={photo.url} alt="work" className="w-full h-24 object-cover rounded-lg" />
+                  <button onClick={() => removePhoto(photos.indexOf(photo))} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
 
-            {/* Navigation Buttons */}
             <div className="flex gap-3 pt-4">
-              {currentPhotoStep === 1 && !step1Complete && (
-                <p className="text-center text-sm text-muted-foreground w-full">
-                  Tire pelo menos 1 foto para continuar
-                </p>
-              )}
-              
               {currentPhotoStep === 1 && step1Complete && (
-                <Button 
-                  onClick={goToStep2} 
-                  className="w-full h-12 text-base bg-yellow-500 hover:bg-yellow-600"
-                >
-                  <span className="mr-2">Continuar para Durante</span>
-                  <ChevronLeft className="w-5 h-5 rotate-180" />
-                </Button>
+                <Button onClick={() => setCurrentPhotoStep(2)} className="w-full h-12 bg-yellow-500">Continuar para Durante</Button>
               )}
-              
-              {currentPhotoStep === 2 && !step2Complete && (
-                <p className="text-center text-sm text-muted-foreground w-full">
-                  Tire pelo menos 1 foto para continuar
-                </p>
-              )}
-              
               {currentPhotoStep === 2 && step2Complete && (
-                <Button 
-                  onClick={goToStep3} 
-                  className="w-full h-12 text-base bg-green-500 hover:bg-green-600"
-                >
-                  <span className="mr-2">Continuar para Depois</span>
-                  <ChevronLeft className="w-5 h-5 rotate-180" />
-                </Button>
+                <Button onClick={() => setCurrentPhotoStep(3)} className="w-full h-12 bg-green-500">Continuar para Depois</Button>
               )}
-              
-              {currentPhotoStep === 3 && !step3Complete && (
-                <p className="text-center text-sm text-muted-foreground w-full">
-                  Tire pelo menos 1 foto para continuar
-                </p>
-              )}
-              
               {currentPhotoStep === 3 && step3Complete && (
-                <Button 
-                  onClick={goToSignatures} 
-                  className="w-full h-12 text-base bg-primary hover:bg-primary/90"
-                >
-                  <span className="mr-2">Ir para Assinaturas</span>
-                  <ChevronLeft className="w-5 h-5 rotate-180" />
-                </Button>
+                <Button onClick={() => setShowSignatures(true)} className="w-full h-12 bg-primary">Ir para Assinaturas</Button>
               )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Signatures Section */}
-      {showSignatures && (
+      {showSignatures && !showSatisfaction && (
         <div className="space-y-6">
-          {/* Back to Photos Button */}
-          <Button variant="outline" onClick={() => setShowSignatures(false)} className="w-full">
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            Voltar para Fotos
-          </Button>
-
-          {/* Photo Summary */}
-          <Card className="bg-muted/30">
-            <CardContent className="p-4">
-              <p className="text-sm font-medium mb-2">Fotos Capturadas</p>
-              <div className="flex gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  Antes: {photosAntes.length}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  Durante: {photosDurante.length}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Check className="w-4 h-4 text-green-500" />
-                  Depois: {photosDepois.length}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Signature Funcionario */}
+          <Button variant="outline" onClick={() => setShowSignatures(false)} className="w-full">Voltar para Fotos</Button>
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Pen className="w-5 h-5 text-orange-500" />
-                  Assinatura do Funcionario
-                </span>
-                {signatureFuncionario && <Badge className="bg-green-100 text-green-800 border-green-300">Assinatura Salva</Badge>}
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Assinatura do Funcionario</CardTitle></CardHeader>
             <CardContent>
-              <div className="relative border-2 border-dashed rounded-xl overflow-hidden bg-white">
-                <canvas
-                  ref={funcCanvasRef}
-                  width={500}
-                  height={150}
-                  className="w-full touch-none cursor-crosshair"
-                  onMouseDown={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
-                  onMouseMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
+              <div className="border rounded-xl bg-white">
+                <canvas ref={funcCanvasRef} width={500} height={150} className="w-full touch-none" 
+                  onMouseDown={(e) => startDrawing(e, funcCanvasRef.current!, setIsDrawingFunc)}
+                  onMouseMove={(e) => draw(e, funcCanvasRef.current!, isDrawingFunc, setIsDrawingFunc)}
                   onMouseUp={() => stopDrawing(setIsDrawingFunc)}
-                  onMouseLeave={() => stopDrawing(setIsDrawingFunc)}
-                  onTouchStart={(e) => funcCanvasRef.current && startDrawing(e, funcCanvasRef.current, setIsDrawingFunc)}
-                  onTouchMove={(e) => funcCanvasRef.current && draw(e, funcCanvasRef.current, isDrawingFunc, setIsDrawingFunc)}
+                  onTouchStart={(e) => startDrawing(e, funcCanvasRef.current!, setIsDrawingFunc)}
+                  onTouchMove={(e) => draw(e, funcCanvasRef.current!, isDrawingFunc, setIsDrawingFunc)}
                   onTouchEnd={() => stopDrawing(setIsDrawingFunc)}
                 />
-                {!signatureFuncionario && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <p className="text-muted-foreground/50 text-sm">Desenhe sua assinatura aqui</p>
-                  </div>
-                )}
               </div>
               <div className="flex gap-2 mt-2">
-                <Button size="sm" variant="outline" onClick={() => clearSignature(funcCanvasRef, setSignatureFuncionario)}>
-                  <X className="w-4 h-4 mr-1" />
-                  Limpar
-                </Button>
-                <Button size="sm" className="bg-orange-500" onClick={() => saveSignature(funcCanvasRef, setSignatureFuncionario)}>
-                  <Save className="w-4 h-4 mr-1" />
-                  Salvar Assinatura
-                </Button>
+                <Button size="sm" variant="outline" onClick={() => clearSignature(funcCanvasRef, setSignatureFuncionario)}>Limpar</Button>
+                <Button size="sm" className="bg-orange-500" onClick={() => saveSignature(funcCanvasRef, setSignatureFuncionario)}>Salvar</Button>
               </div>
             </CardContent>
           </Card>
-
-          {/* Signature Cliente */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Pen className="w-5 h-5 text-green-500" />
-                  Assinatura do Cliente
-                </span>
-                {signatureCliente && <Badge className="bg-green-100 text-green-800 border-green-300">Assinatura Salva</Badge>}
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Assinatura do Cliente</CardTitle></CardHeader>
             <CardContent>
-              <div className="relative border-2 border-dashed rounded-xl overflow-hidden bg-white">
-                <canvas
-                  ref={clientCanvasRef}
-                  width={500}
-                  height={150}
-                  className="w-full touch-none cursor-crosshair"
-                  onMouseDown={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
-                  onMouseMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
+              <div className="border rounded-xl bg-white">
+                <canvas ref={clientCanvasRef} width={500} height={150} className="w-full touch-none"
+                  onMouseDown={(e) => startDrawing(e, clientCanvasRef.current!, setIsDrawingClient)}
+                  onMouseMove={(e) => draw(e, clientCanvasRef.current!, isDrawingClient, setIsDrawingClient)}
                   onMouseUp={() => stopDrawing(setIsDrawingClient)}
-                  onMouseLeave={() => stopDrawing(setIsDrawingClient)}
-                  onTouchStart={(e) => clientCanvasRef.current && startDrawing(e, clientCanvasRef.current, setIsDrawingClient)}
-                  onTouchMove={(e) => clientCanvasRef.current && draw(e, clientCanvasRef.current, isDrawingClient, setIsDrawingClient)}
+                  onTouchStart={(e) => startDrawing(e, clientCanvasRef.current!, setIsDrawingClient)}
+                  onTouchMove={(e) => draw(e, clientCanvasRef.current!, isDrawingClient, setIsDrawingClient)}
                   onTouchEnd={() => stopDrawing(setIsDrawingClient)}
                 />
-                {!signatureCliente && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <p className="text-muted-foreground/50 text-sm">Cliente: assine aqui para confirmar o servico</p>
-                  </div>
-                )}
               </div>
               <div className="flex gap-2 mt-2">
-                <Button size="sm" variant="outline" onClick={() => clearSignature(clientCanvasRef, setSignatureCliente)}>
-                  <X className="w-4 h-4 mr-1" />
-                  Limpar
-                </Button>
-                <Button size="sm" className="bg-green-600" onClick={() => saveSignature(clientCanvasRef, setSignatureCliente)}>
-                  <Save className="w-4 h-4 mr-1" />
-                  Salvar Assinatura do Cliente
-                </Button>
+                <Button size="sm" variant="outline" onClick={() => clearSignature(clientCanvasRef, setSignatureCliente)}>Limpar</Button>
+                <Button size="sm" className="bg-green-600" onClick={() => saveSignature(clientCanvasRef, setSignatureCliente)}>Salvar</Button>
               </div>
             </CardContent>
           </Card>
-
-          {/* Observations */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Observacoes Finais</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <textarea
-                value={observations}
-                onChange={(e) => setObservations(e.target.value)}
-                placeholder="Observacoes sobre o servico realizado..."
-                className="w-full p-3 rounded-xl border bg-transparent min-h-[80px] resize-none"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Satisfaction Evaluation */}
-          <Card className="border-primary/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ThumbsUp className="w-5 h-5 text-primary" />
-                Avaliacao do Servico
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                De 0 a 10, qual sua nota para o servico?
-              </p>
-              
-              {/* Numeric Rating 0-10 */}
-              <div className="grid grid-cols-11 gap-1">
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => setRating(num)}
-                    className={`
-                      h-10 rounded-lg font-bold text-sm transition-all
-                      ${rating === num 
-                        ? num >= 8 ? 'bg-green-500 text-white shadow-lg scale-110' 
-                          : num >= 5 ? 'bg-yellow-500 text-white shadow-lg scale-110'
-                          : 'bg-red-500 text-white shadow-lg scale-110'
-                        : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                      }
-                    `}
-                  >
-                    {num}
-                  </button>
-                ))}
-              </div>
-
-              {/* Rating Labels */}
-              <div className="text-center">
-                {rating >= 9 && <p className="text-green-600 font-bold text-lg">Excelente! Nota {rating}/10</p>}
-                {rating === 8 && <p className="text-green-500 font-medium">Muito Bom! Nota 8/10</p>}
-                {rating === 7 && <p className="text-lime-500 font-medium">Bom! Nota 7/10</p>}
-                {rating >= 5 && rating <= 6 && <p className="text-yellow-500 font-medium">Regular. Nota {rating}/10</p>}
-                {rating >= 3 && rating <= 4 && <p className="text-orange-500 font-medium">Ruim. Nota {rating}/10</p>}
-                {rating >= 1 && rating <= 2 && <p className="text-red-500 font-medium">Muito Ruim. Nota {rating}/10</p>}
-                {rating === 0 && <p className="text-muted-foreground text-sm">Selecione uma nota de 0 a 10</p>}
-              </div>
-
-              {/* Quick Feedback Tags */}
-              <div>
-                <p className="text-xs text-muted-foreground mb-2 text-center">Tags rapidas (opcional):</p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {['Atendimento', 'Instalacao', 'Rapidez', 'Qualidade', 'Profissional'].map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => {
-                        if (comment.includes(tag)) {
-                          setComment(comment.replace(`, ${tag}`, '').replace(tag, '').trim());
-                        } else {
-                          setComment(comment ? `${comment}, ${tag}` : tag);
-                        }
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                        comment.includes(tag) 
-                          ? 'bg-primary text-white border-primary' 
-                          : 'bg-muted border-muted-foreground/20 text-muted-foreground hover:border-primary/50'
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Comment Field */}
-              <div>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Comentario adicional (opcional)"
-                  className="w-full p-3 rounded-xl border bg-transparent min-h-[80px] resize-none text-sm"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Go to Satisfaction Button */}
-          {!showSatisfaction && signaturesComplete && (
-            <Button 
-              onClick={goToSatisfaction}
-              className="w-full h-14 text-lg bg-primary"
-            >
-              <ThumbsUp className="w-5 h-5 mr-2" />
-              Avaliar Servico
-            </Button>
-          )}
-
-          {/* Final Action */}
-          {showSatisfaction && (
-            <>
-              <Button 
-                onClick={handleSave}
-                disabled={!canFinalize || saving}
-                className="w-full h-14 text-lg bg-green-600"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Concluir e Salvar Servico
-                  </>
-                )}
-              </Button>
-
-              {/* Validation Info */}
-              {!canFinalize && (
-                <div className="text-center text-sm text-muted-foreground space-y-1">
-                  {rating === 0 && <p>Selecione uma avaliacao (1-5 estrelas)</p>}
-                  {!signatureFuncionario && <p>Salve a assinatura do funcionario</p>}
-                  {!signatureCliente && <p>Salve a assinatura do cliente</p>}
-                </div>
-              )}
-            </>
-          )}
+          {signaturesComplete && <Button onClick={() => setShowSatisfaction(true)} className="w-full h-14 bg-primary">Avaliar Servico</Button>}
         </div>
+      )}
+
+      {showSatisfaction && (
+        <Card>
+          <CardHeader><CardTitle>Avaliacao do Servico</CardTitle></CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-11 gap-1">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                <button key={num} onClick={() => setRating(num)} className={`h-10 rounded-lg font-bold ${rating === num ? 'bg-primary text-white' : 'bg-muted'}`}>{num}</button>
+              ))}
+            </div>
+            <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Comentario opcional" className="w-full p-3 border rounded-xl" />
+            <Button onClick={handleSave} disabled={!canFinalize || saving} className="w-full h-14 bg-green-600">Finalizar e Salvar</Button>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
 }
 
-// ============ STATUS BADGE ============
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { label: string; className: string }> = {
-    pendente: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800' },
-    em_andamento: { label: 'Em Andamento', className: 'bg-blue-100 text-blue-800' },
-    concluido: { label: 'Concluído', className: 'bg-green-100 text-green-800' },
-    finalizado: { label: 'Finalizado', className: 'bg-green-100 text-green-800' },
-    designado: { label: 'Designado', className: 'bg-indigo-100 text-indigo-800' },
-    cancelado: { label: 'Cancelado', className: 'bg-red-100 text-red-800' },
-  };
+export default function TECPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const { customers, saveCustomer, isLoading: dataLoading } = useData();
+  const [view, setView] = useState<TECView>('home');
+  const [services, setServices] = useState<Service[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Current client being registered
+  const [currentClient, setCurrentClient] = useState<Client | null>(null);
+  
+  // Current service being created
+  const [currentService, setCurrentService] = useState<Partial<Service>>({});
+  
+  // Sales cart
+  const [cart, setCart] = useState<Product[]>([]);
+  const [saleTotal, setSaleTotal] = useState(0);
 
-  const fallback = { label: status || 'Desconhecido', className: 'bg-gray-100 text-gray-800' };
-  const entry = config[status] || fallback;
+  useEffect(() => {
+    if (user?.id) {
+      loadData();
+    }
+  }, [user?.id, user?.role]);
 
-  return (
-    <Badge className={entry.className}>
-      {entry.label}
-    </Badge>
-  );
-}
-
-// ============ MEUS SERVICOS VIEW ============
-function MeusServicosView({ services, loading, onBack }: {
-  services: Service[];
-  loading: boolean;
-  onBack: () => void;
-}) {
-  const [filterTab, setFilterTab] = useState<'todos' | 'pendente' | 'em_andamento' | 'concluido'>('todos');
-
-  const stats = {
-    today: services.filter(s => 
-      new Date(s.created_at).toDateString() === new Date().toDateString()
-    ).length,
-    pending: services.filter(s => s.status === 'pendente').length,
-    inProgress: services.filter(s => s.status === 'em_andamento').length,
-    completed: services.filter(s => s.status === 'concluido').length,
-    all: services.length,
-  };
-
-  const filteredServices = services.filter(service => {
-    if (filterTab === 'todos') return true;
-    return service.status === filterTab;
-  });
-
-  const filterTabs: { id: 'todos' | 'pendente' | 'em_andamento' | 'concluido'; label: string; count: number; color: string; activeBg: string }[] = [
-    { id: 'todos', label: 'Todos', count: stats.all, color: 'text-gray-500', activeBg: 'bg-gray-500' },
-    { id: 'pendente', label: 'Pendentes', count: stats.pending, color: 'text-yellow-600', activeBg: 'bg-yellow-500' },
-    { id: 'em_andamento', label: 'Em Andamento', count: stats.inProgress, color: 'text-blue-600', activeBg: 'bg-blue-500' },
-    { id: 'concluido', label: 'Finalizados', count: stats.completed, color: 'text-green-600', activeBg: 'bg-green-500' },
-  ];
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={onBack}>
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <FileText className="w-5 h-5 text-orange-500" />
-            Meus Servicos
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {stats.all} servico(s) atribuido(s)
-          </p>
+  // Protection: wait for auth and data to load
+  if (authLoading || dataLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="p-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-4 h-4 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">{stats.pending}</p>
-              <p className="text-xs text-muted-foreground">Pendentes</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Wrench className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">{stats.inProgress}</p>
-              <p className="text-xs text-muted-foreground">Em Andamento</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">{stats.completed}</p>
-              <p className="text-xs text-muted-foreground">Finalizados</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">{stats.today}</p>
-              <p className="text-xs text-muted-foreground">Hoje</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-xl border p-2">
-        <div className="flex gap-2 overflow-x-auto">
-          {filterTabs.map((tab) => {
-            const isActive = filterTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setFilterTab(tab.id)}
-                className={`
-                  flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all whitespace-nowrap text-sm
-                  ${isActive 
-                    ? `${tab.activeBg} text-white shadow-md` 
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                  }
-                `}
-              >
-                {isActive && <Check className="w-3 h-3" />}
-                <span>{tab.label}</span>
-                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${isActive ? 'bg-white/20' : 'bg-muted'}`}>
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
+  // Protection: if no user, show error
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
+          <p className="text-muted-foreground">Faça login para acessar esta área.</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Services List */}
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="text-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
-            </div>
-          ) : filteredServices.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
-              <p className="text-muted-foreground">
-                {filterTab === 'todos' ? 'Nenhum servico atribuido' : `Nenhum servico ${filterTab.replace('_', ' ')}`}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {filteredServices.map((service) => (
-                <div key={service.id} className="p-4 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`
-                        w-10 h-10 rounded-lg flex items-center justify-center
-                        ${service.status === 'pendente' ? 'bg-yellow-100' : 
-                          service.status === 'em_andamento' ? 'bg-blue-100' : 'bg-green-100'}
-                      `}>
-                        <Car className={`w-5 h-5 ${
-                          service.status === 'pendente' ? 'text-yellow-600' : 
-                          service.status === 'em_andamento' ? 'text-blue-600' : 'text-green-600'
-                        }`} />
-                      </div>
-                      <div>
-                        <p className="font-semibold">{service.client_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {service.vehicle} - {service.plate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <StatusBadge status={service.status as ServiceStatus} />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(service.created_at).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      let servicesData: Service[] = [];
+      let tecnicosData: any[] = [];
+      
+      try {
+        servicesData = await crmService.getServicos() || [];
+      } catch (e) {
+        console.error('Error loading services:', e);
+        servicesData = [];
+      }
+      
+      try {
+        tecnicosData = await crmService.getTecnicos() || [];
+      } catch (e) {
+        console.error('Error loading technicians:', e);
+        tecnicosData = [];
+      }
+      
+      const userRole = (user?.role as string);
+      const isTechnician = userRole === 'technician' || userRole === 'tecnico';
+      const userId = user?.id || '';
+      
+      let filteredServices = servicesData || [];
+      if (isTechnician && userId) {
+        filteredServices = (servicesData || []).filter((s: any) => s && s.technician_id === userId);
+      }
+      
+      const registeredTecnicos = (tecnicosData || []).map((t: any) => ({
+        id: t.id,
+        name: t.nome || t.name,
+        email: t.email,
+        phone: t.phone || '',
+        cpf: t.cpf || '',
+        status: 'active' as const,
+        created_at: t.created_at || new Date().toISOString(),
+      }));
+      
+      setServices(filteredServices || []);
+      setTechnicians(registeredTecnicos || []);
+    } catch (e: any) {
+      console.error('Error loading data:', e);
+      setError(e.message || 'Erro ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const goTo = (newView: TECView) => {
+    setView(newView);
+  };
+
+  const startNewClient = () => {
+    setCurrentClient({
+      id: `client_${Date.now()}`,
+      name: '',
+      phone: '',
+      email: '',
+      cpf: '',
+      address: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      cep: '',
+      vehicle: '',
+      vehicleBrand: '',
+      vehicleModel: '',
+      vehicleYear: '',
+      vehicleColor: '',
+      plate: '',
+      renavam: '',
+      // @ts-ignore
+      technician_id: '',
+      technician_name: '',
+    });
+    setCurrentService({});
+    setCart([]);
+    setSaleTotal(0);
+    goTo('novo-cliente');
+  };
+
+  const saveClient = (client: Client) => {
+    setCurrentClient(client);
+    goTo('vendas');
+  };
+
+  const addToCart = (product: Product) => {
+    setCart([...cart, product]);
+    setSaleTotal(saleTotal + product.price);
+  };
+
+  const removeFromCart = (index: number) => {
+    const removed = cart[index];
+    setCart(cart.filter((_, i) => i !== index));
+    setSaleTotal(saleTotal - removed.price);
+  };
+
+  const handleStartService = (selectedTecId?: string, selectedTecName?: string) => {
+    if (!currentClient) return;
+    
+    setCurrentService({
+      client_id: currentClient.id,
+      client_name: currentClient.name,
+      client_phone: currentClient.phone,
+      client_address: `${currentClient.address}, ${currentClient.neighborhood} - ${currentClient.city}/${currentClient.state}`,
+      vehicle: `${currentClient.vehicleBrand} ${currentClient.vehicleModel} ${currentClient.vehicleYear}`.trim(),
+      plate: currentClient.plate,
+      type: 'instalacao',
+      status: 'pendente',
+      technician_id: selectedTecId || user?.id || 'unknown',
+      technician_name: selectedTecName || user?.name,
+      photos: [],
+      observations: '',
+    });
+    goTo('servico');
+  };
+
+  const handleFinishStep = () => {
+    goTo('finalizar');
+  };
+
+  const saveFinalizedService = async (serviceData: {
+    photos: Array<{ url: string; type: PhotoType; file?: File }>;
+    signatureFuncionario: string;
+    signatureCliente: string;
+    observations: string;
+    rating?: number;
+    comment?: string;
+  }) => {
+    if (!currentService || !currentClient) return;
+    
+    try {
+      const loadingToast = toast.loading('Salvando serviço...');
+      
+      // 1. Garantir que o cliente existe no Supabase e pegar o UUID real
+      let finalClientId = currentClient.id;
+      if (finalClientId.startsWith('client_')) {
+         const { data: newClient, success: clientSuccess } = await crmService.createCliente({
+           full_name: currentClient.name,
+           phone: currentClient.phone,
+           email: currentClient.email,
+           cpf_cnpj: currentClient.cpf,
+           street: currentClient.address,
+           neighborhood: currentClient.neighborhood,
+           city: currentClient.city,
+           state: currentClient.state,
+           cep: currentClient.cep,
+           brand: currentClient.vehicleBrand,
+           model: currentClient.vehicleModel,
+           year: currentClient.vehicleYear,
+           color: currentClient.vehicleColor,
+           plate: currentClient.plate,
+           renavam: currentClient.renavam,
+           status: 'active',
+           // @ts-ignore
+           technician_id: (currentClient as any).technician_id || null,
+           // @ts-ignore
+           technician_name: (currentClient as any).technician_name || null
+         });
+         
+         if (clientSuccess && newClient) {
+           finalClientId = newClient.id;
+         } else {
+           throw new Error('Falha ao criar cliente no banco de dados');
+         }
+      }
+
+      // 2. Criar o serviço no Supabase (com o client_id real)
+      const { data: newService, success: serviceSuccess } = await crmService.createServico({
+        ...currentService,
+        client_id: finalClientId,
+        observations: serviceData.observations,
+        status: 'concluido',
+      });
+
+      if (!serviceSuccess || !newService) throw new Error('Erro ao criar serviço');
+
+      // 3. Upload das fotos para o Storage
+      const uploadedPhotos = [];
+      for (const photo of serviceData.photos) {
+        if (photo.file) {
+          const uploadRes = await crmService.uploadPhoto(photo.file, newService.id, photo.type);
+          if (uploadRes.success) {
+            uploadedPhotos.push({ url: uploadRes.url, type: photo.type });
+          }
+        }
+      }
+      
+      if (uploadedPhotos.length > 0) {
+        await crmService.savePhotos(newService.id, uploadedPhotos);
+      }
+
+      // 4. Upload das assinaturas para o Storage
+      const signaturesToSave = [];
+      if (serviceData.signatureFuncionario) {
+        const sigRes = await crmService.uploadSignature(serviceData.signatureFuncionario, newService.id, 'tecnico');
+        if (sigRes.success) {
+          signaturesToSave.push({ url: sigRes.url, signed_by: 'Técnico' });
+        }
+      }
+      if (serviceData.signatureCliente) {
+        const sigRes = await crmService.uploadSignature(serviceData.signatureCliente, newService.id, 'cliente');
+        if (sigRes.success) {
+          signaturesToSave.push({ url: sigRes.url, signed_by: 'Cliente' });
+        }
+      }
+      
+      if (signaturesToSave.length > 0) {
+        await crmService.saveSignatures(newService.id, signaturesToSave);
+        // Atualiza a assinatura principal no serviço (usando a do cliente como principal se houver)
+        await crmService.updateServico(newService.id, { 
+          signature: signaturesToSave.find(s => s.signed_by === 'Cliente')?.url || signaturesToSave[0].url 
+        });
+      }
+
+      toast.dismiss(loadingToast);
+      toast.success('Serviço finalizado com sucesso!');
+      await loadData();
+      
+      // Reset tudo
+      setCurrentClient(null);
+      setCurrentService({});
+      setCart([]);
+      setSaleTotal(0);
+    } catch (e: any) {
+      toast.error(`Erro ao salvar: ${e.message}`);
+      console.error('Error saving service:', e);
+    }
+  };
+
+  // Protection: show loading while data loads
+  if (loading) {
+    return (
+      <SuperLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+            <p className="text-muted-foreground">Carregando serviços...</p>
+          </div>
+        </div>
+      </SuperLayout>
+    );
+  }
+
+  // Protection: show error if any
+  if (error) {
+    return (
+      <SuperLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center p-8">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Erro ao carregar</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={loadData} className="bg-orange-500">
+              Tentar novamente
+            </Button>
+          </div>
+        </div>
+      </SuperLayout>
+    );
+  }
+
+  return (
+    <SuperLayout>
+      <div className="p-4 md:p-6">
+        {view === 'home' && (
+          <HomeView 
+            services={services} 
+            loading={loading} 
+            onNewClient={startNewClient}
+            userName={user?.name || 'Tecnico'}
+            goTo={goTo}
+          />
+        )}
+        
+        {view === 'novo-cliente' && (
+          <ClientFormView 
+            client={currentClient}
+            onSave={saveClient}
+            onBack={() => goTo('home')}
+            technicians={technicians}
+          />
+        )}
+        
+        {view === 'vendas' && (
+          <SalesView 
+            client={currentClient}
+            cart={cart}
+            total={saleTotal}
+            products={PRODUCTS}
+            technicians={technicians}
+            onAddProduct={addToCart}
+            onRemoveProduct={removeFromCart}
+            onStartService={handleStartService}
+            onBack={() => goTo('novo-cliente')}
+            onNewClient={() => { setCurrentClient(null); goTo('novo-cliente'); }}
+          />
+        )}
+        
+        {view === 'servico' && (
+          <ServiceView 
+            service={currentService}
+            cart={cart}
+            total={saleTotal}
+            onFinish={handleFinishStep}
+            onBack={() => goTo('vendas')}
+          />
+        )}
+        
+        {view === 'finalizar' && (
+          <FinalizeView 
+            service={currentService}
+            onSave={saveFinalizedService}
+            onBack={() => goTo('servico')}
+          />
+        )}
+
+        {view === 'meus-servicos' && (
+          <TechnicianServicesPage 
+            tecnicoId={user?.id || ''}
+            tecnicoName={user?.name || 'Técnico'}
+          />
+        )}
+      </div>
+    </SuperLayout>
   );
 }

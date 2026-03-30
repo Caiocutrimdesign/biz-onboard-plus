@@ -1,4 +1,4 @@
-export type ServiceStatus = 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
+export type ServiceStatus = 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'concluido' | 'cancelado';
 
 export type ServiceType = 
   | 'instalacao' 
@@ -24,6 +24,7 @@ export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = {
   designado: 'Designado',
   em_andamento: 'Em Andamento',
   finalizado: 'Finalizado',
+  concluido: 'Concluído',
   cancelado: 'Cancelado',
 };
 
@@ -32,10 +33,11 @@ export const SERVICE_STATUS_COLORS: Record<ServiceStatus, string> = {
   designado: 'bg-purple-100 text-purple-800',
   em_andamento: 'bg-blue-100 text-blue-800',
   finalizado: 'bg-green-100 text-green-800',
+  concluido: 'bg-green-100 text-green-800',
   cancelado: 'bg-red-100 text-red-800',
 };
 
-export const SERVICE_STATUS_ORDER: ServiceStatus[] = ['pendente', 'designado', 'em_andamento', 'finalizado', 'cancelado'];
+export const SERVICE_STATUS_ORDER: ServiceStatus[] = ['pendente', 'designado', 'em_andamento', 'finalizado', 'concluido', 'cancelado'];
 
 export interface ChecklistItem {
   item: string;
