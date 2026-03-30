@@ -46,12 +46,14 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
     loadServices();
   }, [tecnicoId]);
 
-  const loadServices = () => {
+  const loadServices = async () => {
     setLoading(true);
     if (activeTab === 'designados') {
-      setServices(getAssignedServicesForTechnician(tecnicoId));
+      const data = await getAssignedServicesForTechnician(tecnicoId);
+      setServices(data);
     } else {
-      setServices(getServicesByTechnician(tecnicoId));
+      const data = await getServicesByTechnician(tecnicoId);
+      setServices(data);
     }
     setLoading(false);
   };
