@@ -1,5 +1,4 @@
-import { customerService } from '@/lib/customerService';
-import { tecService } from '@/lib/tecService';
+import { crmService } from '@/lib/crmService';
 
 export interface AgentMetrics {
   tasksCompleted: number;
@@ -100,7 +99,13 @@ export class CRMMetricsAgent extends BaseAgent {
   }
 
   async execute(): Promise<void> {
-    const stats = customerService.getStats();
+    const customers = await crmService.getClientes();
+    const stats = {
+      total: customers.length,
+      active: customers.filter(c => c.status === 'active').length,
+      pending: customers.filter(c => c.status === 'pending' || c.status === 'novo_cadastro').length,
+    };
+
     this.customerStats = stats;
     
     localStorage.setItem('crm_metrics', JSON.stringify({
@@ -129,7 +134,7 @@ export class TECHealthAgent extends BaseAgent {
   }
 
   async execute(): Promise<void> {
-    const services = await tecService.getAllServices();
+    const services = await crmService.getServicos();
     
     const health = {
       total: services.length,

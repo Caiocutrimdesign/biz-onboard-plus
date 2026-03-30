@@ -3,7 +3,7 @@ import { User, Check, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useRegistrationStore } from '@/store/registrationStore';
-import { tecService } from '@/lib/tecService';
+import { crmService } from '@/lib/crmService';
 import { useState, useEffect } from 'react';
 import type { Technician } from '@/types/tec';
 
@@ -21,8 +21,11 @@ export function StepTechnician({ onNext, onBack }: Props) {
   const loadTechnicians = async () => {
     setLoading(true);
     try {
-      const techs = await tecService.getAllTechnicians();
-      setTechnicians(techs.filter(t => t.status !== 'inactive'));
+      const techs = await crmService.getTecnicos();
+      setTechnicians((techs || []).map((t: any) => ({
+        ...t,
+        status: t.status || 'active'
+      })).filter(t => t.status !== 'inactive'));
     } catch (e) {
       console.error('Erro ao carregar técnicos:', e);
     }

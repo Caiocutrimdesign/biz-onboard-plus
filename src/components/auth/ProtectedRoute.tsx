@@ -1,61 +1,46 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'user' | 'viewer' | 'technician' | 'employee')[];
+  allowedRoles?: ('admin' | 'tecnico' | 'user' | 'technician')[];
 }
 
 export function ProtectedRoute({ 
   children, 
-  allowedRoles = ['admin', 'user', 'viewer', 'technician', 'employee'] 
+  allowedRoles = ['admin', 'tecnico', 'user', 'technician'] 
 }: ProtectedRouteProps) {
+  const { user, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const sessionData = localStorage.getItem('biz_crm_session');
-    
-    if (!sessionData) {
-      navigate('/admin/login', { 
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login', { 
         state: { from: location.pathname },
         replace: true 
       });
-      return;
     }
 
-    try {
-      const session = JSON.parse(sessionData);
-      const user = session.user;
-      
-      if (!user) {
-        navigate('/admin/login', { 
-          state: { from: location.pathname },
-          replace: true 
-        });
-        return;
-      }
-
-      if (allowedRoles && !allowedRoles.includes(user.role)) {
-        if (user.role === 'technician') {
-          navigate('/tec', { replace: true });
+    if (!isLoading && isAuthenticated && user && allowedRoles) {
+      // Check if user has one of the allowed roles (tipo)
+      const userRole = user.tipo || user.role;
+      if (!allowedRoles.includes(userRole as any)) {
+        // Redirection based on role if access denied
+        if (userRole === 'tecnico') {
+          navigate('/tecnico', { replace: true });
+        } else if (userRole === 'admin') {
+          navigate('/admin', { replace: true });
         } else {
           navigate('/', { replace: true });
         }
       }
-    } catch (e) {
-      localStorage.removeItem('biz_crm_session');
-      navigate('/admin/login', { 
-        state: { from: location.pathname },
-        replace: true 
-      });
     }
-  }, [navigate, location, allowedRoles]);
+  }, [isLoading, isAuthenticated, user, allowedRoles, navigate, location]);
 
-  const sessionData = localStorage.getItem('biz_crm_session');
-  
-  if (!sessionData) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -66,24 +51,19 @@ export function ProtectedRoute({
     );
   }
 
-  try {
-    const session = JSON.parse(sessionData);
-    const user = session.user;
-    
-    if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
-            <p className="text-muted-foreground">Você não tem permissão para acessar esta área.</p>
-          </div>
-        </div>
-      );
-    }
-  } catch (e) {
+  if (!isAuthenticated) {
+    return null; // Will navigate in useEffect
+  }
+
+  // Check role again for rendering
+  const userRole = user?.tipo || user?.role;
+  if (allowedRoles && !allowedRoles.includes(userRole as any)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
+          <p className="text-muted-foreground">Você não tem permissão para acessar esta área.</p>
+        </div>
       </div>
     );
   }
@@ -92,31 +72,29 @@ export function ProtectedRoute({
 }
 
 export function GuestRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    const sessionData = localStorage.getItem('biz_crm_session');
-    
-    if (sessionData) {
-      try {
-        const session = JSON.parse(sessionData);
-        if (session.user) {
-          let redirectTo = '/admin';
-          if (session.user.role === 'technician') {
-            redirectTo = '/tec';
-          } else if (session.user.role === 'admin') {
-            redirectTo = '/admin';
-          }
-          navigate(redirectTo, { replace: true });
-        }
-      } catch (e) {
-        localStorage.removeItem('biz_crm_session');
+    if (!isLoading && isAuthenticated && user) {
+      const userRole = user.tipo || user.role;
+      let redirectTo = '/admin';
+      if (userRole === 'tecnico') {
+        redirectTo = '/tecnico';
       }
+      navigate(redirectTo, { replace: true });
     }
-  }, [navigate, location]);
+  }, [isLoading, isAuthenticated, user, navigate]);
 
-  return <>{children}</>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return !isAuthenticated ? <>{children}</> : null;
 }
 
 export default ProtectedRoute;

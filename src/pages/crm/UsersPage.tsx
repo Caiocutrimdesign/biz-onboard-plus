@@ -12,17 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-
-interface CRMUser {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'employee' | 'user';
-  active: boolean;
-  created_at: string;
-  last_sign_in?: string;
-}
+import { crmService } from '@/lib/crmService';
+import type { CRMUser } from '@/lib/crmService';
 
 const ROLES = {
   admin: { label: 'Administrador', color: 'bg-purple-100 text-purple-800', icon: Shield },
@@ -30,7 +21,6 @@ const ROLES = {
   user: { label: 'Usuário', color: 'bg-gray-100 text-gray-800', icon: Eye },
 };
 
-const STORAGE_KEY = 'biz_crm_users';
 
 export default function UsersManagement() {
   const { user: currentUser } = useAuth();
@@ -59,30 +49,13 @@ export default function UsersManagement() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      if (isSupabaseConfigured() && supabase) {
-        const { data, error } = await supabase
-          .from('crm_users')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setUsers(data || []);
-      } else {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        setUsers(stored ? JSON.parse(stored) : []);
-      }
+      const data = await crmService.getCRMUsers() as CRMUser[];
+      setUsers(data || []);
     } catch (err) {
       console.error('Error loading users:', err);
-      const stored = localStorage.getItem(STORAGE_KEY);
-      setUsers(stored ? JSON.parse(stored) : []);
     } finally {
       setLoading(false);
     }
-  };
-
-  const saveToStorage = (usersList: CRMUser[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(usersList));
-    setUsers(usersList);
   };
 
   const hashPassword = async (password: string): Promise<string> => {
@@ -91,11 +64,6 @@ export default function UsersManagement() {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
-  const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
-    const passwordHash = await hashPassword(password);
-    return passwordHash === hash;
   };
 
   const handleCreateUser = async () => {
@@ -120,31 +88,15 @@ export default function UsersManagement() {
     try {
       const passwordHash = await hashPassword(formData.password);
 
-      const newUser: CRMUser = {
-        id: `user_${Date.now()}`,
+      const res = await crmService.createCRMUser({
         email: formData.email,
         name: formData.name,
         role: formData.role,
         active: true,
-        created_at: new Date().toISOString(),
-      };
+        password_hash: passwordHash,
+      });
 
-      if (isSupabaseConfigured() && supabase) {
-        const { error } = await supabase
-          .from('crm_users')
-          .insert({ ...newUser, password_hash: passwordHash });
-
-        if (error) throw error;
-      }
-
-      const stored = localStorage.getItem(STORAGE_KEY);
-      const usersList = stored ? JSON.parse(stored) : [];
-      usersList.push(newUser);
-      saveToStorage(usersList);
-
-      const authUsers = JSON.parse(localStorage.getItem('biz_crm_auth') || '{}');
-      authUsers[formData.email] = { hash: passwordHash, userId: newUser.id };
-      localStorage.setItem('biz_crm_auth', JSON.stringify(authUsers));
+      if (!res.success) throw new Error(res.error);
 
       setShowModal(false);
       resetForm();
@@ -166,7 +118,7 @@ export default function UsersManagement() {
     setFormError('');
 
     try {
-      const updated: Partial<CRMUser> = {
+      const updates: any = {
         name: formData.name,
         email: formData.email,
         role: formData.role,
@@ -178,28 +130,11 @@ export default function UsersManagement() {
           setSaving(false);
           return;
         }
-        const passwordHash = await hashPassword(formData.password);
-        const authUsers = JSON.parse(localStorage.getItem('biz_crm_auth') || '{}');
-        authUsers[formData.email] = { hash: passwordHash, userId: editingUser.id };
-        localStorage.setItem('biz_crm_auth', JSON.stringify(authUsers));
+        updates.password_hash = await hashPassword(formData.password);
       }
 
-      if (isSupabaseConfigured() && supabase) {
-        const { error } = await supabase
-          .from('crm_users')
-          .update(updated)
-          .eq('id', editingUser.id);
-
-        if (error) throw error;
-      }
-
-      const stored = localStorage.getItem(STORAGE_KEY);
-      const usersList: CRMUser[] = stored ? JSON.parse(stored) : [];
-      const idx = usersList.findIndex(u => u.id === editingUser.id);
-      if (idx !== -1) {
-        usersList[idx] = { ...usersList[idx], ...updated };
-        saveToStorage(usersList);
-      }
+      const res = await crmService.updateCRMUser(editingUser.id, updates);
+      if (!res.success) throw new Error(res.error);
 
       setShowModal(false);
       setEditingUser(null);
@@ -214,44 +149,16 @@ export default function UsersManagement() {
 
   const handleToggleActive = async (user: CRMUser) => {
     const newStatus = !user.active;
-
-    if (isSupabaseConfigured() && supabase) {
-      const { error } = await supabase
-        .from('crm_users')
-        .update({ active: newStatus })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Error updating user:', error);
-        return;
-      }
-    }
-
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const usersList: CRMUser[] = stored ? JSON.parse(stored) : [];
-    const idx = usersList.findIndex(u => u.id === user.id);
-    if (idx !== -1) {
-      usersList[idx].active = newStatus;
-      saveToStorage(usersList);
+    const res = await crmService.updateCRMUser(user.id, { active: newStatus });
+    if (res.success) {
+      loadUsers();
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
-    try {
-      if (isSupabaseConfigured() && supabase) {
-        const { error } = await supabase
-          .from('crm_users')
-          .delete()
-          .eq('id', userId);
-
-        if (error) throw error;
-      }
-
-      const stored = localStorage.getItem(STORAGE_KEY);
-      const usersList: CRMUser[] = stored ? JSON.parse(stored) : [];
-      saveToStorage(usersList.filter(u => u.id !== userId));
-    } catch (err) {
-      console.error('Error deleting user:', err);
+    const res = await crmService.deleteCRMUser(userId);
+    if (res.success) {
+      loadUsers();
     }
     setDeleteConfirm(null);
   };

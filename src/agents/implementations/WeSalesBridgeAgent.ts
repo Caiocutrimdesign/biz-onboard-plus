@@ -1,5 +1,4 @@
-import { customerService, type CustomerStats } from '@/lib/customerService';
-import type { CustomerRegistration } from '@/types/customer';
+import { crmService, type Cliente as CustomerRegistration } from '@/lib/crmService';
 
 export interface WeSalesConfig {
   apiKey: string;
@@ -80,7 +79,7 @@ class WeSalesBridgeAgent {
         email: customer.email || undefined,
         phone: customer.phone || '',
         document: customer.cpf_cnpj || undefined,
-        address: customer.street ? `${customer.street}, ${customer.number}` : undefined,
+        address: customer.street ? `${customer.street}, ${customer.number || ''}` : undefined,
         city: customer.city || undefined,
         state: customer.state || undefined,
         vehicle: customer.brand && customer.model ? `${customer.brand} ${customer.model}` : undefined,
@@ -127,7 +126,7 @@ class WeSalesBridgeAgent {
     }
 
     try {
-      const customers = await customerService.getAllCustomers();
+      const customers = await crmService.getClientes();
       const unsyncedCustomers = customers.filter(c => !c.synced);
 
       console.log(`🔄 Sincronizando ${unsyncedCustomers.length} contatos com WeSales...`);
@@ -136,8 +135,9 @@ class WeSalesBridgeAgent {
         const syncResult = await this.syncContact(customer);
         
         if (syncResult.success) {
-          customer.synced = true;
-          customerService.saveLocalCustomer(customer);
+          await crmService.updateCliente(customer.id, {
+            synced: true,
+          });
           result.synced++;
         } else {
           result.failed++;

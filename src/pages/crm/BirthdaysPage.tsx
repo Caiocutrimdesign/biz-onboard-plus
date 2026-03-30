@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import SuperLayout from '@/components/layout/SuperLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { crmService } from '@/lib/crmService';
 
 type PersonType = 'cliente' | 'funcionario';
 
@@ -56,7 +57,7 @@ export default function BirthdaysPage() {
     loadBirthdays();
   }, [customers]);
 
-  const loadBirthdays = () => {
+  const loadBirthdays = async () => {
     setLoading(true);
     
     // Load from DataContext customers
@@ -64,38 +65,37 @@ export default function BirthdaysPage() {
     
     // Combine clients from DataContext
     const birthdayPeople: BirthdayPerson[] = (customers || [])
-      .filter((c: any) => c.birthdate || c.nascimento)
+      .filter((c: any) => c.birth_date || c.birthdate || c.nascimento)
       .map((c: any) => ({
         id: c.id || `client_${c.phone}`,
         name: c.name || c.full_name || 'Cliente',
         phone: c.phone || '',
-        birthdate: c.birthdate || c.nascimento || '',
+        birthdate: c.birth_date || c.birthdate || c.nascimento || '',
         type: 'cliente' as PersonType,
         messageSent: sentMessages[c.id] || sentMessages[c.phone] || false,
         messageSentAt: sentMessages[`${c.id}_at`] || sentMessages[`${c.phone}_at`],
       }));
 
-    // Add demo employees with birthdays
-    const employees: BirthdayPerson[] = [
-      { id: 'func_1', name: 'Maria da Silva', phone: '11999887766', birthdate: '1985-03-15', type: 'funcionario', messageSent: false },
-      { id: 'func_2', name: 'Joao Pereira', phone: '11988776655', birthdate: '1990-06-22', type: 'funcionario', messageSent: false },
-      { id: 'func_3', name: 'Ana Costa', phone: '21977665544', birthdate: '1988-03-28', type: 'funcionario', messageSent: false },
-    ];
+    // Fetch employees from crm_users
+    let employeeBirthdays: BirthdayPerson[] = [];
+    try {
+      const crmUsers = await crmService.getCRMUsers();
+      employeeBirthdays = (crmUsers || [])
+        .filter((u: any) => u.birth_date || u.birthdate)
+        .map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          phone: u.phone || '',
+          birthdate: u.birth_date || u.birthdate || '',
+          type: 'funcionario' as PersonType,
+          messageSent: sentMessages[u.id] || false,
+          messageSentAt: sentMessages[`${u.id}_at`],
+        }));
+    } catch (e) {
+      console.error('Error fetching employee birthdays:', e);
+    }
 
-    // Merge and deduplicate
-    const allPeople = [...birthdayPeople];
-    employees.forEach(emp => {
-      if (!allPeople.find(p => p.id === emp.id)) {
-        allPeople.push(emp);
-      }
-    });
-
-    // Update message sent status from storage
-    allPeople.forEach(p => {
-      p.messageSent = sentMessages[p.id] || false;
-    });
-
-    setPeople(allPeople);
+    setPeople([...birthdayPeople, ...employeeBirthdays]);
     setLoading(false);
   };
 

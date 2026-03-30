@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useCallback, useState, useEffect, type ReactNode } from 'react';
-import type { User, LoginCredentials, AuthResponse } from '@/types/auth';
-import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import type { User, LoginCredentials, AuthResponse, RegisterData } from '@/types/auth';
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { toast } from 'sonner';
 
 interface AuthContextValue {
   user: User | null;
@@ -9,25 +10,48 @@ interface AuthContextValue {
   login: (credentials: LoginCredentials) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  cadastrarUsuario: (data: RegisterData) => Promise<AuthResponse>;
+  loginUsuario: (credentials: LoginCredentials) => Promise<AuthResponse>;
+  getUserProfile: (id: string) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const SESSION_KEY = 'biz_crm_session';
-
-function generateUUID(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const getUserProfile = useCallback(async (id: string): Promise<User | null> => {
+    if (!isSupabaseConfigured() || !supabase) return null;
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.log('❌ Erro ao buscar perfil:', error.message);
+        return null;
+      }
+
+      if (profile) {
+        return {
+          id: profile.id,
+          email: profile.email || '', 
+          name: profile.nome,
+          tipo: profile.tipo as 'admin' | 'tecnico',
+          role: profile.tipo as any, 
+          created_at: profile.created_at || new Date().toISOString(),
+          active: true,
+        };
+      }
+    } catch (e: any) {
+      console.log('❌ Erro inesperado em getUserProfile:', e.message);
+    }
+    return null;
+  }, []);
 
   const refreshUser = useCallback(async () => {
     if (!isSupabaseConfigured() || !supabase) {
@@ -39,44 +63,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        const { data: crmUser } = await supabase
-          .from('crm_users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (crmUser) {
-          const loggedInUser: User = {
-            id: crmUser.id,
-            email: crmUser.email,
-            name: crmUser.name,
-            role: crmUser.role || 'user',
-            phone: crmUser.phone,
-            active: crmUser.active ?? true,
-            created_at: crmUser.created_at,
-            last_login_at: new Date().toISOString(),
-            online: true,
-          };
-          setUser(loggedInUser);
-          
-          await supabase
-            .from('crm_users')
-            .update({ last_login_at: loggedInUser.last_login_at, online: true })
-            .eq('id', crmUser.id);
-          
-          const sessionData = {
-            user: loggedInUser,
-            timestamp: Date.now(),
-          };
-          localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        const userProfile = await getUserProfile(session.user.id);
+        if (userProfile) {
+          setUser({ ...userProfile, email: session.user.email || userProfile.email });
+        } else {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
+            tipo: 'tecnico', 
+            role: 'tecnico',
+            created_at: session.user.created_at,
+          });
         }
+      } else {
+        setUser(null);
       }
-    } catch (e) {
-      console.error('Error refreshing user:', e);
+    } catch (e: any) {
+      console.log('❌ Erro ao atualizar usuário:', e.message);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getUserProfile]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -85,199 +94,160 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      try {
-        const session = localStorage.getItem(SESSION_KEY);
-        if (session) {
-          const data = JSON.parse(session);
-          if (data.user) {
-            setUser(data.user);
-          }
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔔 Mudança no estado de autenticação:', event, session?.user?.id);
+        if (session?.user) {
+          await refreshUser();
+        } else {
+          setUser(null);
+          setIsLoading(false);
         }
+      });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          if (event === 'SIGNED_IN' && session?.user) {
-            await refreshUser();
-          } else if (event === 'SIGNED_OUT') {
-            localStorage.removeItem(SESSION_KEY);
-            setUser(null);
-          }
-        });
+      await refreshUser();
 
-        await refreshUser();
-
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (e) {
-        console.error('Auth init error:', e);
-        setIsLoading(false);
-      }
+      return () => {
+        subscription.unsubscribe();
+      };
     };
 
     initAuth();
   }, [refreshUser]);
 
-  const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  const cadastrarUsuario = async (data: RegisterData): Promise<AuthResponse> => {
     setIsLoading(true);
-    
-    const emailLower = credentials.email.toLowerCase().trim();
-    const password = credentials.password.trim();
-    
+    console.log("🚀 Iniciando cadastro de usuário...");
     try {
-      if (isSupabaseConfigured() && supabase) {
-        const { data: crmUser, error: crmError } = await supabase
-          .from('crm_users')
-          .select('*')
-          .eq('email', emailLower)
-          .single();
-
-        if (crmUser && !crmError && crmUser.password) {
-          if (crmUser.password === password) {
-            if (crmUser.active === false) {
-              setIsLoading(false);
-              return { success: false, error: 'Usuário inativo. Contacte o administrador.' };
-            }
-
-            const loggedInUser: User = {
-              id: crmUser.id,
-              email: crmUser.email,
-              name: crmUser.name,
-              role: (crmUser.role as any) || 'user',
-              phone: crmUser.phone,
-              active: crmUser.active ?? true,
-              created_at: crmUser.created_at,
-              last_login_at: new Date().toISOString(),
-              online: true,
-            };
-
-            await supabase
-              .from('crm_users')
-              .update({ last_login_at: loggedInUser.last_login_at, online: true })
-              .eq('id', crmUser.id);
-
-            const sessionData = {
-              user: loggedInUser,
-              timestamp: Date.now(),
-            };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-            setUser(loggedInUser);
-            setIsLoading(false);
-            return { success: true, user: loggedInUser };
-          } else {
-            setIsLoading(false);
-            return { success: false, error: 'Senha incorreta' };
-          }
-        }
-
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: emailLower,
-          password: password,
-        });
-
-        if (authError) {
-          setIsLoading(false);
-          return { success: false, error: authError.message };
-        }
-
-        if (!authData.user) {
-          setIsLoading(false);
-          return { success: false, error: 'Usuário não encontrado' };
-        }
-
-        const { data: crmUserData } = await supabase
-          .from('crm_users')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single();
-
-        let loggedInUser: User;
-
-        if (crmUserData) {
-          loggedInUser = {
-            id: crmUserData.id,
-            email: crmUserData.email,
-            name: crmUserData.name,
-            role: crmUserData.role || 'user',
-            phone: crmUserData.phone,
-            active: crmUserData.active ?? true,
-            created_at: crmUserData.created_at,
-            last_login_at: new Date().toISOString(),
-            online: true,
-          };
-
-          await supabase
-            .from('crm_users')
-            .update({ last_login_at: loggedInUser.last_login_at, online: true })
-            .eq('id', crmUserData.id);
-        } else {
-          loggedInUser = {
-            id: authData.user.id,
-            email: authData.user.email || emailLower,
-            name: authData.user.user_metadata?.name || emailLower.split('@')[0],
-            role: 'user',
-            created_at: authData.user.created_at,
-            active: true,
-            last_login_at: new Date().toISOString(),
-            online: true,
-          };
-
-          await supabase.from('crm_users').insert({
-            id: loggedInUser.id,
-            email: loggedInUser.email,
-            name: loggedInUser.name,
-            role: loggedInUser.role,
-            active: true,
-            created_at: loggedInUser.created_at,
-            last_login_at: loggedInUser.last_login_at,
-            online: true,
-          });
-        }
-
-        const sessionData = {
-          user: loggedInUser,
-          timestamp: Date.now(),
-        };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-        setUser(loggedInUser);
-        setIsLoading(false);
-        return { success: true, user: loggedInUser };
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Supabase não configurado');
       }
 
-      setIsLoading(false);
-      return { success: false, error: 'Sistema não configurado. Contacte o administrador.' };
+      // 1. Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            nome: data.name,
+            tipo: data.tipo || 'tecnico',
+          }
+        }
+      });
 
+      if (authError) {
+        console.log("❌ Erro no signUp:", authError.message);
+        alert("Erro ao cadastrar: " + authError.message);
+        throw authError;
+      }
+
+      if (!authData.user) throw new Error('Erro ao criar usuário');
+
+      // 2. Create profile in 'profiles' table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          nome: data.name,
+          tipo: data.tipo || 'tecnico',
+        });
+
+      if (profileError) {
+        console.log('❌ Erro ao criar perfil:', profileError.message);
+        alert("Erro ao salvar perfil: " + profileError.message);
+      }
+
+      const newUser: User = {
+        id: authData.user.id,
+        email: data.email,
+        name: data.name,
+        tipo: data.tipo || 'tecnico',
+        role: (data.tipo || 'tecnico') as any,
+        created_at: authData.user.created_at,
+      };
+
+      console.log("✅ Usuário cadastrado com sucesso!");
+      setUser(newUser);
+      return { success: true, user: newUser };
     } catch (error: any) {
+      console.log('❌ Erro de cadastro:', error.message);
+      return { success: false, error: error.message || 'Erro ao cadastrar usuário' };
+    } finally {
       setIsLoading(false);
-      return { success: false, error: error.message || 'Erro ao fazer login' };
     }
-  }, []);
+  };
+
+  const loginUsuario = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+    setIsLoading(true);
+    console.log("🚀 Iniciando login de usuário...");
+    try {
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Supabase não configurado');
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      if (authError) {
+        console.log("❌ Erro no signIn:", authError.message);
+        alert("Erro ao entrar: " + authError.message);
+        throw authError;
+      }
+
+      if (!authData.user) throw new Error('Usuário não encontrado');
+
+      const userProfile = await getUserProfile(authData.user.id);
+      
+      if (!userProfile) {
+        console.log("⚠️ Perfil não encontrado, usando dados básicos da sessão.");
+        const fallbackUser: User = {
+          id: authData.user.id,
+          email: authData.user.email || credentials.email,
+          name: authData.user.user_metadata?.nome || credentials.email.split('@')[0],
+          tipo: 'tecnico',
+          role: 'tecnico',
+          created_at: authData.user.created_at,
+        };
+        setUser(fallbackUser);
+        return { success: true, user: fallbackUser };
+      }
+
+      console.log("✅ Login realizado com sucesso! Tipo:", userProfile.tipo);
+      setUser(userProfile);
+      return { success: true, user: userProfile };
+    } catch (error: any) {
+      console.log('❌ Erro de login:', error.message);
+      return { success: false, error: error.message || 'Erro ao entrar' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const logout = useCallback(async () => {
+    setIsLoading(true);
     try {
-      if (isSupabaseConfigured() && supabase && user) {
-        await supabase
-          .from('crm_users')
-          .update({ online: false })
-          .eq('id', user.id);
-        
+      if (isSupabaseConfigured() && supabase) {
         await supabase.auth.signOut();
       }
     } catch (e) {
       console.error('Logout error:', e);
     } finally {
-      localStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem('admin_auth');
       setUser(null);
+      setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const value: AuthContextValue = {
     user,
     isLoading,
     isAuthenticated: !!user,
-    login,
+    login: loginUsuario, // Map existing login to loginUsuario
     logout,
     refreshUser,
+    cadastrarUsuario,
+    loginUsuario,
+    getUserProfile,
   };
 
   return (

@@ -11,8 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SuperLayout from '@/components/layout/SuperLayout';
-import { tecService } from '@/lib/tecService';
-import type { Service, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS, ServicePhoto } from '@/types/tec';
+import { crmService } from '@/lib/crmService';
+import type { Servico as Service, ServicoPhoto as ServicePhoto } from '@/lib/crmService';
 import { SERVICE_STATUS_LABELS as STATUS_LABELS, SERVICE_STATUS_COLORS as STATUS_COLORS } from '@/types/tec';
 
 export default function TECAdminPage() {
@@ -29,8 +29,8 @@ export default function TECAdminPage() {
   const loadServices = async () => {
     setLoading(true);
     try {
-      const data = await tecService.getAllServices();
-      setServices(data);
+      const data = await crmService.getServicos();
+      setServices(data || []);
     } catch (e) {
       console.error('Error loading services:', e);
     }

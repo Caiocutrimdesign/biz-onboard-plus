@@ -15,26 +15,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useData } from '@/contexts/DataContext';
-import { type UnifiedService } from '@/lib/unifiedDataService';
+import { type Servico } from '@/lib/crmService';
 import type { Service, ServiceStatus, ServiceType } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS, SERVICE_STATUS_ORDER } from '@/types/service';
-import { unifiedDataService } from '@/lib/unifiedDataService';
-import { customerService } from '@/lib/customerService';
 
 type TabType = 'todos' | 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
 
 export default function ServicesPage() {
-  const { servicos, isLoading: loading, refreshServices, addServico, updateServico, deleteServico } = useData();
+  const { servicos, tecnicos, isLoading: loading, refreshServices, addServico, updateServico, deleteServico } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [techFilter, setTechFilter] = useState<string>('all');
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedService, setSelectedService] = useState<any | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [serviceHistory, setServiceHistory] = useState<any[]>([]);
-  const [technicians, setTechnicians] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('todos');
 
   useEffect(() => {
@@ -42,36 +39,28 @@ export default function ServicesPage() {
   }, []);
 
   const loadData = async () => {
-    const tecnicos = await unifiedDataService.getTecnicos();
-    setTechnicians(tecnicos);
     await refreshServices();
   };
 
-  const convertToService = (unified: UnifiedService): Service => ({
-    id: unified.id,
-    cliente_id: unified.client_id || '',
-    cliente_name: unified.client_name,
-    cliente_phone: unified.client_phone,
-    cliente_address: unified.client_address,
-    tipo_servico: unified.type as ServiceType,
-    descricao: unified.observations || '',
-    data_agendamento: unified.scheduled_date,
-    status: unified.status as ServiceStatus,
-    tecnico_id: unified.technician_id,
-    tecnico_name: unified.technician_name,
-    data_criacao: unified.created_at,
-    data_inicio: unified.status === 'em_andamento' ? unified.updated_at : undefined,
-    data_finalizacao: unified.completed_date,
-    fotos_inicio: [],
-    fotos_final: [],
-    observacoes_tecnico: '',
-    criado_por: 'admin',
-    updated_at: unified.updated_at,
-  });
-
-  const services = (servicos || []).map(convertToService);
+  // Map Servico (Supabase) to UI Service type if needed, or use directly
+  const services = (servicos || []).map(s => ({
+    ...s,
+    cliente_id: s.client_id,
+    cliente_name: s.client_name,
+    cliente_phone: s.client_phone,
+    cliente_address: s.client_address,
+    tipo_servico: s.type as ServiceType,
+    descricao: s.observations,
+    data_agendamento: s.scheduled_date,
+    status: s.status as ServiceStatus,
+    tecnico_id: s.technician_id,
+    tecnico_name: s.technician_name,
+    data_criacao: s.created_at,
+    data_finalizacao: s.completed_date,
+  }));
+  
   const safeServices = services;
-  const safeTechnicians = Array.isArray(technicians) ? technicians : [];
+  const safeTechnicians = tecnicos || [];
 
   const filteredServices = safeServices.filter(s => {
     const matchesSearch = !search || 
@@ -619,7 +608,7 @@ export default function ServicesPage() {
       <CreateServiceDialog 
         open={showCreate} 
         onOpenChange={setShowCreate}
-        technicians={technicians}
+        technicians={tecnicos}
         onCreated={() => {
           setShowCreate(false);
         }}
@@ -630,7 +619,7 @@ export default function ServicesPage() {
         open={showEdit}
         onOpenChange={setShowEdit}
         service={selectedService}
-        technicians={technicians}
+        technicians={tecnicos}
         onUpdated={() => {
           loadData();
         }}
@@ -680,7 +669,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
         observations: form.descricao,
         scheduled_date: form.data_agendamento || undefined,
         technician_id: tecnicoId,
-        technician_name: tech?.name,
+        technician_name: tech?.nome,
         status: tecnicoId ? ('designado' as any) : ('pendente' as any),
         vehicle: form.vehicle,
         plate: form.plate,
@@ -789,7 +778,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
               <SelectContent>
                 <SelectItem value="sem_tecnico">Nenhum técnico</SelectItem>
                 {(technicians || []).map(tech => (
-                  <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
+                  <SelectItem key={tech.id} value={tech.id}>{tech.nome}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -884,7 +873,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
         client_address: form.cliente_address,
         type: form.tipo_servico,
         technician_id: form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined,
-        technician_name: tech?.name,
+        technician_name: tech?.nome,
         status: form.status as any,
         observations: form.descricao,
         scheduled_date: form.data_agendamento || undefined,
@@ -996,7 +985,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
                 <SelectContent>
                   <SelectItem value="sem_tecnico">Nenhum técnico</SelectItem>
                   {(technicians || []).map(tech => (
-                    <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
+                    <SelectItem key={tech.id} value={tech.id}>{tech.nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

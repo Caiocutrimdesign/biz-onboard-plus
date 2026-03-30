@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { tecService } from '@/lib/tecService';
+import { crmService } from '@/lib/crmService';
 import type { TECAgent } from '@/types/tec';
 
 export default function CRMAgentsPage() {
@@ -34,13 +34,16 @@ export default function CRMAgentsPage() {
     loadData();
   }, []);
 
-  const loadData = () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const agentsData = tecService.getTECAgents();
-      const techsData = tecService.getTechnicians();
-      setAgents(agentsData);
-      setTechnicians(techsData);
+      // Agents are stored locally for now as there's no crm_agents table in Supabase
+      const stored = localStorage.getItem('crm_agents');
+      const agentsData = stored ? JSON.parse(stored) : [];
+      
+      const techsData = await crmService.getTecnicos();
+      setAgents(agentsData as any[]);
+      setTechnicians(techsData || []);
     } catch (e) {
       console.error('Error loading data:', e);
     }
@@ -53,6 +56,11 @@ export default function CRMAgentsPage() {
     (a.technician_name || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  const saveToLocal = (newAgents: TECAgent[]) => {
+    localStorage.setItem('crm_agents', JSON.stringify(newAgents));
+    setAgents(newAgents);
+  };
+
   const handleSave = () => {
     if (!formData.name || !formData.description) {
       setFormError('Preencha todos os campos');
@@ -60,37 +68,42 @@ export default function CRMAgentsPage() {
     }
 
     const tech = technicians.find(t => t.id === formData.technician_id);
+    let updatedAgents = [...agents];
 
     if (editingAgent) {
-      tecService.updateTECAgent(editingAgent.id, {
+      updatedAgents = agents.map(a => a.id === editingAgent.id ? {
+        ...a,
         ...formData,
         technician_name: tech?.name || formData.technician_name,
-      });
+      } : a);
     } else {
-      tecService.saveTECAgent({
+      updatedAgents.push({
+        id: `agent_${Date.now()}`,
         ...formData,
         technician_name: tech?.name || '',
-        status: 'ativo',
+        status: 'ativo' as any,
+        created_at: new Date().toISOString(),
       });
     }
 
+    saveToLocal(updatedAgents);
     setShowModal(false);
     setEditingAgent(null);
     setFormData({ name: '', description: '', technician_id: '', technician_name: '' });
-    loadData();
   };
 
   const handleToggleStatus = (agent: TECAgent) => {
-    tecService.updateTECAgent(agent.id, { 
-      status: agent.status === 'ativo' ? 'inativo' : 'ativo' 
-    });
-    loadData();
+    const updatedAgents = agents.map(a => a.id === agent.id ? {
+      ...a,
+      status: a.status === 'ativo' ? 'inativo' : 'ativo'
+    } : a);
+    saveToLocal(updatedAgents);
   };
 
   const handleDelete = (id: string) => {
-    tecService.deleteTECAgent(id);
+    const updatedAgents = agents.filter(a => a.id !== id);
+    saveToLocal(updatedAgents);
     setDeleteConfirm(null);
-    loadData();
   };
 
   const openEditModal = (agent: TECAgent) => {
@@ -181,7 +194,7 @@ export default function CRMAgentsPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredAgents.map((agent, i) => (
+              {(filteredAgents as any[]).map((agent, i) => (
                 <motion.div
                   key={agent.id}
                   initial={{ opacity: 0, y: 10 }}

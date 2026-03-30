@@ -1,7 +1,6 @@
-import { tecService } from '@/lib/tecService';
-import { customerService } from './customerService';
+import { crmService } from './crmService';
 import type { Technician } from '@/types/tec';
-import type { CustomerRegistration } from '@/types/customer';
+import type { Cliente as CustomerRegistration } from '@/lib/crmService';
 
 interface DesignationResult {
   success: boolean;
@@ -67,8 +66,11 @@ class DesignationAgentSystem {
 
   async getAvailableTechnicians(): Promise<Technician[]> {
     try {
-      const technicians = await tecService.getAllTechnicians();
-      return technicians.filter(t => t.status !== 'inactive');
+      const technicians = await crmService.getTecnicos();
+      return (technicians || []).map((t: any) => ({
+        ...t,
+        status: t.status || 'active'
+      })).filter(t => t.status !== 'inactive');
     } catch (e) {
       console.error('Erro ao carregar técnicos:', e);
       return [];
@@ -76,20 +78,20 @@ class DesignationAgentSystem {
   }
 
   async getUnassignedCustomers(): Promise<CustomerRegistration[]> {
-    const customers = await customerService.getAllCustomers();
+    const customers = await crmService.getClientes();
     return customers.filter(c => 
       (!c.technician_id || c.technician_id === '') &&
-      (c.status === 'novo_cadastro' || c.status === 'pendente')
+      (c.status === 'novo_cadastro' || c.status === 'pending')
     );
   }
 
   async getTechnicianServiceCount(technicianId: string): Promise<number> {
     try {
-      const services = await tecService.getAllServices();
+      const services = await crmService.getServicos();
       const today = new Date().toDateString();
       return services.filter(s => 
         s.technician_id === technicianId && 
-        new Date(s.created_at).toDateString() === today
+        new Date(s.created_at || '').toDateString() === today
       ).length;
     } catch {
       return 0;
@@ -139,7 +141,13 @@ class DesignationAgentSystem {
 
     customer.technician_id = bestTec.id;
     customer.technician_name = bestTec.name;
-    customerService.saveLocalCustomer(customer);
+    
+    if (customer.id) {
+      await crmService.updateCliente(customer.id, {
+        technician_id: bestTec.id,
+        technician_name: bestTec.name,
+      });
+    }
 
     const result: DesignationResult = {
       success: true,

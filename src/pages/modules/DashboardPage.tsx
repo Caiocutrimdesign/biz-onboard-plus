@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, Clock, CheckCircle, AlertCircle, TrendingUp,
@@ -9,48 +9,29 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import SuperLayout from '@/components/layout/SuperLayout';
-import { customerService, type CustomerStats } from '@/lib/customerService';
-import { tecService } from '@/lib/tecService';
+import { useData } from '@/contexts/DataContext';
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<CustomerStats>({
-    total: 0,
-    active: 0,
-    inactive: 0,
-    disabled: 0,
-    pending: 0,
-  });
-  const [tecStats, setTecStats] = useState({
-    total: 0,
-    pending: 0,
-    inProgress: 0,
-    completed: 0,
-  });
-  const [recentCustomers, setRecentCustomers] = useState<any[]>([]);
+  const { customers, services, isLoading } = useData();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const stats = useMemo(() => ({
+    total: customers.length,
+    active: customers.filter(c => c.status === 'active').length,
+    inactive: customers.filter(c => c.status === 'inactive').length,
+    disabled: customers.filter(c => c.status === 'disabled').length,
+    pending: customers.filter(c => c.status === 'pending').length,
+  }), [customers]);
 
-  const loadData = async () => {
-    try {
-      const customerStats = customerService.getStats();
-      setStats(customerStats);
+  const tecStats = useMemo(() => ({
+    total: services.length,
+    pending: services.filter(s => s.status === 'pendente').length,
+    inProgress: services.filter(s => s.status === 'em_andamento').length,
+    completed: services.filter(s => s.status === 'concluido').length,
+  }), [services]);
 
-      const services = await tecService.getAllServices();
-      setTecStats({
-        total: services.length,
-        pending: services.filter(s => s.status === 'pendente').length,
-        inProgress: services.filter(s => s.status === 'em_andamento').length,
-        completed: services.filter(s => s.status === 'concluido').length,
-      });
-
-      const customers = await customerService.getAllCustomers();
-      setRecentCustomers(customers.slice(0, 5));
-    } catch (e) {
-      console.error('Erro ao carregar dados:', e);
-    }
-  };
+  const recentCustomers = useMemo(() => 
+    [...customers].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()).slice(0, 5)
+  , [customers]);
 
   return (
     <SuperLayout>

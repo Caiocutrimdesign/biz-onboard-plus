@@ -11,26 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
-import { unifiedDataService, type UnifiedTecnico } from '@/lib/unifiedDataService';
-
-interface Tecnico {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  cpf: string;
-  password?: string;
-  active: boolean;
-  created_at: string;
-}
+import { useData } from '@/contexts/DataContext';
 
 export default function TechniciansPage() {
-  const { user } = useAuth();
-  const [technicians, setTechnicians] = useState<Tecnico[]>([]);
+  const { cadastrarUsuario } = useAuth();
+  const { tecnicos, isLoading: loading, updateTecnico, deleteTecnico } = useData();
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingTech, setEditingTech] = useState<Tecnico | null>(null);
+  const [editingTech, setEditingTech] = useState<any | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successData, setSuccessData] = useState({ email: '', password: '' });
@@ -48,29 +36,6 @@ export default function TechniciansPage() {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTechnicians();
-  }, []);
-
-  const loadTechnicians = async () => {
-    setLoading(true);
-    try {
-      const data = await unifiedDataService.getTecnicos();
-      setTechnicians(data.map((t: UnifiedTecnico) => ({
-        id: t.id,
-        name: t.name,
-        email: t.email,
-        phone: t.phone,
-        cpf: t.cpf,
-        active: t.active,
-        created_at: t.created_at,
-      })));
-    } catch (e) {
-      console.error('Error loading technicians:', e);
-    }
-    setLoading(false);
-  };
-
   const formatCPF = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 11);
     if (digits.length <= 3) return digits;
@@ -86,10 +51,10 @@ export default function TechniciansPage() {
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
   };
 
-  const filteredTechnicians = technicians.filter(t => 
+  const filteredTechnicians = (tecnicos || []).filter((t: any) => 
     !search || 
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.email.toLowerCase().includes(search.toLowerCase())
+    (t.nome || '').toLowerCase().includes(search.toLowerCase()) ||
+    (t.email || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const validateForm = (): boolean => {
@@ -124,7 +89,7 @@ export default function TechniciansPage() {
         return false;
       }
 
-      const existingTech = technicians.find(t => t.email.toLowerCase() === formData.email.toLowerCase());
+      const existingTech = (tecnicos || []).find((t: any) => t.email?.toLowerCase() === formData.email.toLowerCase());
       if (existingTech) {
         setFormError('Email já está cadastrado');
         return false;
@@ -143,68 +108,63 @@ export default function TechniciansPage() {
     try {
       if (editingTech) {
         const updateData: any = {
-          id: editingTech.id,
-          name: formData.name,
+          nome: formData.name,
           email: formData.email.toLowerCase().trim(),
           phone: formData.phone,
           cpf: formData.cpf,
           active: formData.active,
         };
-        if (formData.password) {
-          updateData.password = formData.password;
-        }
-        await unifiedDataService.saveTecnico(updateData);
+        await updateTecnico(editingTech.id, updateData);
       } else {
-        const newTecnico = await unifiedDataService.saveTecnico({
+        const res = await cadastrarUsuario({
           name: formData.name,
           email: formData.email.toLowerCase().trim(),
-          phone: formData.phone,
-          cpf: formData.cpf,
-          active: formData.active,
           password: formData.password,
+          tipo: 'tecnico',
         });
         
-        setSuccessData({ email: newTecnico.email, password: formData.password });
-        setShowSuccessModal(true);
+        if (res.success) {
+           if (res.user?.id) {
+             await updateTecnico(res.user.id, {
+               phone: formData.phone,
+               cpf: formData.cpf,
+               active: true
+             });
+           }
+           setSuccessData({ email: formData.email, password: formData.password });
+           setShowSuccessModal(true);
+        } else {
+          throw new Error(res.error || 'Erro ao cadastrar');
+        }
       }
       
       setShowModal(false);
       setEditingTech(null);
       setFormData({ name: '', email: '', phone: '', cpf: '', password: '', confirmPassword: '', active: true });
-      loadTechnicians();
-    } catch (e) {
-      setFormError('Erro ao salvar técnico');
+    } catch (e: any) {
+      setFormError(e.message || 'Erro ao salvar técnico');
     }
     setSaving(false);
   };
 
-  const handleToggleActive = async (tech: Tecnico) => {
+  const handleToggleActive = async (tech: any) => {
     const newStatus = !tech.active;
-    await unifiedDataService.saveTecnico({
-      id: tech.id,
-      name: tech.name,
-      email: tech.email,
-      phone: tech.phone,
-      cpf: tech.cpf,
-      active: newStatus,
-    });
-    loadTechnicians();
+    await updateTecnico(tech.id, { active: newStatus });
   };
 
   const handleDelete = async (id: string) => {
-    await unifiedDataService.deleteTecnico(id);
+    await deleteTecnico(id);
     setDeleteConfirm(null);
-    loadTechnicians();
   };
 
-  const openEditModal = (tech: Tecnico) => {
+  const openEditModal = (tech: any) => {
     setEditingTech(tech);
     setShowPassword(false);
     setFormData({
-      name: tech.name,
-      email: tech.email,
-      phone: tech.phone,
-      cpf: tech.cpf,
+      name: tech.nome || '',
+      email: tech.email || '',
+      phone: tech.phone || '',
+      cpf: tech.cpf || '',
       password: '',
       confirmPassword: '',
       active: tech.active,
@@ -275,7 +235,7 @@ export default function TechniciansPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium">{tech.name}</p>
+                      <p className="font-medium">{tech.nome}</p>
                       {!tech.active && (
                         <Badge variant="outline" className="text-xs">Inativo</Badge>
                       )}

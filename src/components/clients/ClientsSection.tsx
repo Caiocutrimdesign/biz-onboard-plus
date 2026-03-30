@@ -43,26 +43,17 @@ function getWhatsAppLink(customer: CustomerRegistration): string {
 }
 
 export default function ClientsSection() {
-  const { customers: allCustomers, tecnicos, isLoading: loading, refreshCustomers, saveCustomer, updateCustomerStatus, deleteCustomer } = useData();
+  const { customers: allCustomers, tecnicos, isLoading: loading, refreshCustomers, saveCustomer, deleteCustomer } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerRegistration | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<CustomerRegistration>>({});
+  const [editForm, setEditForm] = useState<Partial<any>>({});
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
   const [syncingWeSales, setSyncingWeSales] = useState<string | null>(null);
-  const [loadingTechnicians, setLoadingTechnicians] = useState(false);
 
-  const technicians: Technician[] = tecnicos.map(t => ({
-    id: t.id,
-    name: t.name,
-    email: t.email,
-    phone: t.phone || '',
-    cpf: t.cpf || '',
-    status: (t.active ? 'active' : 'inactive') as 'active' | 'inactive',
-    created_at: t.created_at || new Date().toISOString(),
-  }));
+  const technicians = tecnicos;
 
   const handleAssignTechnician = async (customerId: string, technicianId: string) => {
     const technician = technicians.find(t => t.id === technicianId);
@@ -70,68 +61,56 @@ export default function ClientsSection() {
     const customer = allCustomers.find(c => c.id === customerId);
     if (!customer) return;
 
-    const updatedCustomer = {
+    await saveCustomer({
       ...customer,
-      technician_id: technicianId,
-      technician_name: technician?.name || '',
-    };
-
-    await saveCustomer(updatedCustomer);
+      id: customerId,
+      // @ts-ignore - for now adding technician fields
+      technician_id: technicianId === 'none' ? null : technicianId,
+      technician_name: technicianId === 'none' ? null : technician?.nome || '',
+    });
 
     if (selectedCustomer?.id === customerId) {
-      setSelectedCustomer(updatedCustomer as CustomerRegistration);
+      setSelectedCustomer({
+        ...selectedCustomer,
+        technician_id: technicianId === 'none' ? null : technicianId,
+        technician_name: technicianId === 'none' ? null : technician?.nome || '',
+      });
     }
   };
 
-  const logStatusChange = (customerId: string, previousStatus: string, newStatus: string, user?: string) => {
-    const log = {
-      timestamp: new Date().toISOString(),
-      customerId,
-      previousStatus,
-      newStatus,
-      user: user || 'System',
-    };
-    console.log('📝 Status Change:', log);
-    const logs = JSON.parse(localStorage.getItem('status_change_logs') || '[]');
-    logs.unshift(log);
-    localStorage.setItem('status_change_logs', JSON.stringify(logs.slice(0, 100)));
-  };
-
-  const handleStatusChange = (id: string, newStatus: CustomerStatus, previousStatus: string) => {
+  const handleStatusChange = async (id: string, newStatus: string) => {
     setLoadingStatus(id);
-    setTimeout(async () => {
-      logStatusChange(id, previousStatus, newStatus);
-      await updateCustomerStatus(id, newStatus);
+    try {
+      await saveCustomer({ id, status: newStatus });
       
       if (selectedCustomer?.id === id) {
         setSelectedCustomer({ ...selectedCustomer, status: newStatus });
       }
+    } finally {
       setLoadingStatus(null);
-    }, 300);
+    }
   };
 
-  const handleActivate = (id: string, previousStatus: string) => {
-    handleStatusChange(id, 'active', previousStatus);
+  const handleActivate = (id: string) => {
+    handleStatusChange(id, 'active');
   };
 
-  const handleInactivate = (id: string, previousStatus: string) => {
-    handleStatusChange(id, 'inactive', previousStatus);
+  const handleInactivate = (id: string) => {
+    handleStatusChange(id, 'inactive');
   };
 
-  const handleDisable = (id: string, previousStatus: string) => {
-    handleStatusChange(id, 'disabled', previousStatus);
+  const handleDisable = (id: string) => {
+    handleStatusChange(id, 'disabled');
   };
 
   const handleReject = (id: string) => {
-    const customer = allCustomers.find(c => c.id === id);
-    if (customer && confirm('Tem certeza que deseja cancelar este cliente?')) {
-      logStatusChange(id, customer.status, 'cancelado');
-      handleStatusChange(id, 'cancelado', customer.status);
+    if (confirm('Tem certeza que deseja cancelar este cliente?')) {
+      handleStatusChange(id, 'cancelado');
       setIsViewOpen(false);
     }
   };
 
-  const handleEdit = (customer: CustomerRegistration) => {
+  const handleEdit = (customer: any) => {
     setEditForm({ ...customer });
     setIsViewOpen(false);
     setIsEditOpen(true);
@@ -139,14 +118,7 @@ export default function ClientsSection() {
 
   const handleSaveEdit = async () => {
     if (!editForm.id) return;
-    
-    const customer = allCustomers.find(c => c.id === editForm.id);
-    if (customer && customer.status !== editForm.status) {
-      logStatusChange(editForm.id!, customer.status, editForm.status || customer.status);
-    }
-
-    await saveCustomer(editForm as any);
-    
+    await saveCustomer(editForm);
     setIsEditOpen(false);
     setEditForm({});
   };
@@ -380,7 +352,7 @@ export default function ClientsSection() {
                   <Wrench className="w-4 h-4 text-orange-600" />
                   <p className="text-sm font-medium text-orange-800">Técnico Designado</p>
                 </div>
-                {loadingTechnicians ? (
+                {loading ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
                     <span className="text-sm text-orange-600">Carregando técnicos...</span>
@@ -395,9 +367,9 @@ export default function ClientsSection() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Nenhum técnico</SelectItem>
-                      {technicians.map((tec) => (
+                      {technicians.map((tec: any) => (
                         <SelectItem key={tec.id} value={tec.id}>
-                          {tec.name}
+                          {tec.nome}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -414,7 +386,7 @@ export default function ClientsSection() {
                 <p className="text-sm font-medium text-muted-foreground">Alterar Status:</p>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
-                    onClick={() => handleActivate(selectedCustomer.id, selectedCustomer.status)}
+                    onClick={() => handleActivate(selectedCustomer.id)}
                     disabled={loadingStatus === selectedCustomer.id}
                     className={`${selectedCustomer.status === 'active' || (selectedCustomer.status as string) === 'ativo' ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
                   >
@@ -428,7 +400,7 @@ export default function ClientsSection() {
                     )}
                   </Button>
                   <Button
-                    onClick={() => handleInactivate(selectedCustomer.id, selectedCustomer.status)}
+                    onClick={() => handleInactivate(selectedCustomer.id)}
                     disabled={loadingStatus === selectedCustomer.id}
                     variant="outline"
                     className={`${selectedCustomer.status === 'inactive' || (selectedCustomer.status as string) === 'inativo' ? 'border-orange-500 bg-orange-50 text-orange-700' : ''}`}
@@ -443,7 +415,7 @@ export default function ClientsSection() {
                     )}
                   </Button>
                   <Button
-                    onClick={() => handleDisable(selectedCustomer.id, selectedCustomer.status)}
+                    onClick={() => handleDisable(selectedCustomer.id)}
                     disabled={loadingStatus === selectedCustomer.id}
                     variant="destructive"
                   >

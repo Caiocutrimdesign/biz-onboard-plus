@@ -9,21 +9,19 @@ import { DataProvider } from "@/contexts/DataContext";
 import { AgentProvider } from "@/agents/context/AgentContext";
 import { ProtectedRoute, GuestRoute } from "@/components/auth/ProtectedRoute";
 
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
 import Index from "./pages/Index";
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import CRMPage from "./pages/crm/CRMPage";
 import NotFound from "./pages/NotFound";
 import PlansPage from "./pages/crm/PlansPage";
 import LearningPage from "./pages/crm/LearningPage";
-import UsersPage from "./pages/crm/UsersPage";
-import BirthdaysPage from "./pages/crm/BirthdaysPage";
 
 import DashboardPage from "./pages/modules/DashboardPage";
 import TECPage from "./pages/modules/TECPage";
 import ERPPage from "./pages/modules/ERPPage";
 import SHELLPage from "./pages/modules/SHELLPage";
-import AgentsMonitorPage from "./pages/modules/AgentsMonitorPage";
 import TECAdminPage from "./pages/modules/TECAdminPage";
 import TechniciansPage from "./pages/modules/TechniciansPage";
 import CRMAgentsPage from "./pages/modules/CRMAgentsPage";
@@ -61,73 +59,55 @@ function AppRoutes() {
         <Route path="/aprenda" element={<LearningPage />} />
         
         <Route
-          path="/admin/login"
+          path="/login"
           element={
             <GuestRoute>
-              <AdminLogin />
+              <LoginPage />
             </GuestRoute>
           }
         />
         
         <Route
+          path="/register"
+          element={
+            <GuestRoute>
+              <RegisterPage />
+            </GuestRoute>
+          }
+        />
+
+        <Route
+          path="/admin/login"
+          element={
+            <GuestRoute>
+              <LoginPage />
+            </GuestRoute>
+          }
+        />
+        
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tecnico"
+          element={
+            <ProtectedRoute allowedRoles={['tecnico']}>
+              <TECPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
+            <ProtectedRoute allowedRoles={['admin', 'tecnico']}>
               <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/dashboard/satisfaction"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/dashboard/analytics"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/dashboard/calendar"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/dashboard/users"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/dashboard/agents"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/dashboard/settings"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
-              <UsersPage />
             </ProtectedRoute>
           }
         />
@@ -135,7 +115,7 @@ function AppRoutes() {
         <Route
           path="/crm"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
+            <ProtectedRoute allowedRoles={['admin']}>
               <CRMPage />
             </ProtectedRoute>
           }
@@ -160,18 +140,9 @@ function AppRoutes() {
         />
 
         <Route
-          path="/crm/aniversariantes"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
-              <BirthdaysPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
           path="/tec"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'user', 'employee', 'technician']}>
+            <ProtectedRoute allowedRoles={['admin', 'tecnico']}>
               <TECPage />
             </ProtectedRoute>
           }
@@ -189,7 +160,7 @@ function AppRoutes() {
         <Route
           path="/erp"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
+            <ProtectedRoute allowedRoles={['admin']}>
               <ERPPage />
             </ProtectedRoute>
           }
@@ -198,30 +169,12 @@ function AppRoutes() {
         <Route
           path="/shell"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'user', 'employee']}>
+            <ProtectedRoute allowedRoles={['admin']}>
               <SHELLPage />
             </ProtectedRoute>
           }
         />
-        
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
 
-        <Route
-          path="/dashboard/agents-monitor"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AgentsMonitorPage />
-            </ProtectedRoute>
-          }
-        />
-        
         <Route path="*" element={<NotFound />} />
       </Routes>
     </ErrorBoundary>

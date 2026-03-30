@@ -1,17 +1,17 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { Service, ServiceStatus, ServiceType, ServiceHistory } from '@/types/service';
-import { unifiedDataService, type UnifiedService } from '@/lib/unifiedDataService';
+import { crmService } from '@/lib/crmService';
 
 const SERVICES_HISTORY_KEY = 'rastremix_services_history';
 
-function convertToService(unified: UnifiedService): Service {
+function convertToService(unified: any): Service {
   return {
     id: unified.id,
     cliente_id: unified.client_id || '',
     cliente_name: unified.client_name,
     cliente_phone: unified.client_phone,
     cliente_address: unified.client_address,
-    tipo_servico: unified.type as ServiceType,
+    tipo_servico: (unified.type || unified.service_type) as ServiceType,
     descricao: unified.observations || '',
     data_agendamento: unified.scheduled_date,
     status: unified.status as ServiceStatus,
@@ -29,7 +29,7 @@ function convertToService(unified: UnifiedService): Service {
 }
 
 export async function getServices(): Promise<Service[]> {
-  const data = await unifiedDataService.getServices();
+  const data = await crmService.getServicos();
   return data.map(convertToService);
 }
 
@@ -75,18 +75,23 @@ export async function createService(data: {
   tecnico_name?: string;
   criado_por: 'admin' | 'tecnico';
 }): Promise<Service> {
-  const service = await unifiedDataService.saveService({
+  const res = await crmService.createServico({
     client_id: data.cliente_id,
     client_name: data.cliente_name,
     client_phone: data.cliente_phone,
     client_address: data.cliente_address,
     type: data.tipo_servico,
-    technician_id: data.tecnico_id,
+    technician_id: data.tecnico_id || '',
     technician_name: data.tecnico_name,
     status: data.tecnico_id ? 'designado' : 'pendente',
     observations: data.descricao,
-    scheduled_date: data.data_agendamento,
+    scheduled_date: data.data_agendamento || null,
+    vehicle: '',
+    plate: '',
   });
+
+  if (!res.success) throw new Error(res.error);
+  const service = res.data;
 
   addHistory(service.id, 'Criação do serviço', '-', service.status, data.criado_por === 'admin' ? 'Admin' : 'Técnico');
   
@@ -96,8 +101,7 @@ export async function createService(data: {
 export async function updateService(id: string, data: Partial<Service>, changedBy: string = 'Admin'): Promise<void> {
   const oldService = await getServiceById(id);
   
-  await unifiedDataService.saveService({
-    id,
+  await crmService.updateServico(id, {
     client_id: data.cliente_id,
     client_name: data.cliente_name,
     client_phone: data.cliente_phone,
@@ -105,7 +109,7 @@ export async function updateService(id: string, data: Partial<Service>, changedB
     type: data.tipo_servico as string,
     technician_id: data.tecnico_id,
     technician_name: data.tecnico_name,
-    status: data.status as UnifiedService['status'],
+    status: data.status as any,
     observations: data.descricao,
     scheduled_date: data.data_agendamento,
   });
@@ -190,7 +194,7 @@ export function getHistoryByService(serviceId: string): ServiceHistory[] {
 }
 
 export async function deleteService(id: string): Promise<void> {
-  await unifiedDataService.deleteService(id);
+  await crmService.deleteServico(id);
 }
 
 interface ServiceContextValue {
@@ -214,7 +218,7 @@ export function useServices() {
 
   const loadServices = useCallback(async () => {
     setLoading(true);
-    const data = await unifiedDataService.getServices();
+    const data = await crmService.getServicos();
     setServices(data.map(convertToService));
     setLoading(false);
   }, []);

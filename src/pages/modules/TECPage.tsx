@@ -15,8 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import SuperLayout from '@/components/layout/SuperLayout';
-import { tecService } from '@/lib/tecService';
-import { unifiedDataService } from '@/lib/unifiedDataService';
+import { crmService } from '@/lib/crmService';
 import { getAssignedServicesForTechnician, finishService as finishServiceCtx, updateService, getServicesByTechnician, startService, createService as createServiceCtx } from '@/contexts/ServiceContext';
 import type { Service, ServiceStatus, ServiceType, PhotoType, Technician } from '@/types/tec';
 import type { Service as AppService, ServiceStatus as AppServiceStatus } from '@/types/service';
@@ -161,14 +160,14 @@ export default function TECPage() {
       let tecnicosData: any[] = [];
       
       try {
-        servicesData = await tecService.getAllServices() || [];
+        servicesData = await crmService.getServicos() || [];
       } catch (e) {
         console.error('Error loading services:', e);
         servicesData = [];
       }
       
       try {
-        tecnicosData = await unifiedDataService.getTecnicos() || [];
+        tecnicosData = await crmService.getTecnicos() || [];
       } catch (e) {
         console.error('Error loading technicians:', e);
         tecnicosData = [];
@@ -283,17 +282,19 @@ export default function TECPage() {
     if (!currentService) return;
     
     try {
-      const newService = await tecService.saveService({
+      const { data: newService, success } = await crmService.createServico({
         ...currentService,
         observations: serviceData.observations,
         signature: serviceData.signatureFuncionario,
         status: 'concluido',
       } as any);
 
+      if (!success || !newService) throw new Error('Erro ao criar serviço');
+
       // Save ALL photos to the service
       if (serviceData.photos.length > 0) {
         console.log(`📸 Salvando ${serviceData.photos.length} fotos para serviço ${newService.id}`);
-        await tecService.savePhotos(newService.id, serviceData.photos);
+        await crmService.savePhotos(newService.id, serviceData.photos);
       }
 
       // Save signatures
@@ -313,7 +314,7 @@ export default function TECPage() {
       
       if (signaturesToSave.length > 0) {
         console.log(`✍️ Salvando ${signaturesToSave.length} assinaturas para serviço ${newService.id}`);
-        await tecService.saveSignatures(newService.id, signaturesToSave);
+        await crmService.saveSignatures(newService.id, signaturesToSave);
       }
 
       // Save satisfaction rating linked to client

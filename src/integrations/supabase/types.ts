@@ -432,6 +432,38 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          id: string
+          nome: string
+          tipo: string
+          email: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id: string
+          nome: string
+          tipo: string
+          email?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          nome?: string
+          tipo?: string
+          email?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       tec_technicians: {
         Row: {
           active: boolean | null

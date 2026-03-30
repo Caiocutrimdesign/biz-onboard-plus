@@ -1,48 +1,49 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { unifiedDataService, type UnifiedCustomer, type UnifiedTecnico, type UnifiedService } from '@/lib/unifiedDataService';
+import { crmService, type Cliente, type Servico } from '@/lib/crmService';
+import { useAuth } from './AuthContext';
 
 interface DataContextValue {
-  customers: UnifiedCustomer[];
-  tecnicos: UnifiedTecnico[];
-  services: UnifiedService[];
+  customers: Cliente[];
+  tecnicos: any[]; // We can use the tech profile as list
+  services: Servico[];
+  servicos: Servico[];
   isLoading: boolean;
   refreshCustomers: () => Promise<void>;
-  refreshTecnicos: () => Promise<void>;
   refreshServices: () => Promise<void>;
   refreshAll: () => Promise<void>;
-  saveCustomer: (customer: Partial<UnifiedCustomer>) => Promise<UnifiedCustomer>;
-  updateCustomerStatus: (id: string, status: string) => Promise<void>;
-  deleteCustomer: (id: string) => Promise<void>;
-  saveTecnico: (tecnico: Partial<UnifiedTecnico>) => Promise<UnifiedTecnico>;
-  deleteTecnico: (id: string) => Promise<void>;
-  saveService: (service: Partial<UnifiedService>) => Promise<UnifiedService>;
-  servicos: UnifiedService[];
-  addServico: (service: Partial<UnifiedService>) => Promise<UnifiedService>;
-  updateServico: (id: string, service: Partial<UnifiedService>) => Promise<void>;
-  deleteServico: (id: string) => Promise<void>;
+  saveCustomer: (customer: Partial<Cliente>) => Promise<any>;
+  deleteCustomer: (id: string) => Promise<any>;
+  addServico: (service: Partial<Servico>) => Promise<any>;
+  updateServico: (id: string, service: Partial<Servico>) => Promise<any>;
+  deleteServico: (id: string) => Promise<any>;
+  updateTecnico: (id: string, updates: any) => Promise<any>;
+  deleteTecnico: (id: string) => Promise<any>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [customers, setCustomers] = useState<UnifiedCustomer[]>([]);
-  const [tecnicos, setTecnicos] = useState<UnifiedTecnico[]>([]);
-  const [services, setServices] = useState<UnifiedService[]>([]);
+  const { user } = useAuth();
+  const [customers, setCustomers] = useState<Cliente[]>([]);
+  const [tecnicos, setTecnicos] = useState<any[]>([]);
+  const [services, setServices] = useState<Servico[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshCustomers = useCallback(async () => {
-    const data = await unifiedDataService.getCustomers();
+    const data = await crmService.getClientes();
     setCustomers(data);
   }, []);
 
-  const refreshTecnicos = useCallback(async () => {
-    const data = await unifiedDataService.getTecnicos();
-    setTecnicos(data);
-  }, []);
-
   const refreshServices = useCallback(async () => {
-    const data = await unifiedDataService.getServices();
+    // Determine if we should filter by technician
+    const tecnicoId = user?.tipo === 'tecnico' ? user.id : undefined;
+    const data = await crmService.getServicos(tecnicoId);
     setServices(data);
+  }, [user]);
+
+  const refreshTecnicos = useCallback(async () => {
+    const data = await crmService.getTecnicos();
+    setTecnicos(data || []);
   }, []);
 
   const refreshAll = useCallback(async () => {
@@ -51,93 +52,73 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, [refreshCustomers, refreshTecnicos, refreshServices]);
 
-  const saveCustomer = useCallback(async (customer: Partial<UnifiedCustomer>) => {
-    return await unifiedDataService.saveCustomer(customer);
+  const saveCustomer = useCallback(async (customer: Partial<Cliente>) => {
+    if (customer.id) {
+      return await crmService.updateCliente(customer.id, customer);
+    } else {
+      return await crmService.createCliente(customer as any);
+    }
   }, []);
-
-  const updateCustomerStatus = useCallback(async (id: string, status: string) => {
-    await unifiedDataService.updateCustomerStatus(id, status as any);
-    await refreshCustomers();
-  }, [refreshCustomers]);
 
   const deleteCustomer = useCallback(async (id: string) => {
-    await unifiedDataService.deleteCustomer(id);
-    await refreshCustomers();
-  }, [refreshCustomers]);
-
-  const saveTecnico = useCallback(async (tecnico: Partial<UnifiedTecnico>) => {
-    return await unifiedDataService.saveTecnico(tecnico);
+    return await crmService.deleteCliente(id);
   }, []);
 
-  const deleteTecnico = useCallback(async (id: string) => {
-    await unifiedDataService.deleteTecnico(id);
-    await refreshTecnicos();
-  }, [refreshTecnicos]);
-
-  const saveService = useCallback(async (service: Partial<UnifiedService>) => {
-    return await unifiedDataService.saveService(service);
+  const addServico = useCallback(async (service: Partial<Servico>) => {
+    return await crmService.createServico(service as any);
   }, []);
 
-  const addServico = useCallback(async (service: Partial<UnifiedService>) => {
-    const result = await unifiedDataService.saveService(service);
-    await refreshServices();
-    return result;
-  }, [refreshServices]);
-
-  const updateServico = useCallback(async (id: string, service: Partial<UnifiedService>) => {
-    await unifiedDataService.saveService({ ...service, id });
-    await refreshServices();
-  }, [refreshServices]);
+  const updateServico = useCallback(async (id: string, service: Partial<Servico>) => {
+    return await crmService.updateServico(id, service);
+  }, []);
 
   const deleteServico = useCallback(async (id: string) => {
-    await unifiedDataService.deleteService(id);
-    await refreshServices();
-  }, [refreshServices]);
+    return await crmService.deleteServico(id);
+  }, []);
+
+  const updateTecnico = useCallback(async (id: string, updates: any) => {
+    const res = await crmService.updateTecnico(id, updates);
+    if (res.success) refreshTecnicos();
+    return res;
+  }, [refreshTecnicos]);
+
+  const deleteTecnico = useCallback(async (id: string) => {
+    const res = await crmService.deleteTecnico(id);
+    if (res.success) refreshTecnicos();
+    return res;
+  }, [refreshTecnicos]);
 
   useEffect(() => {
-    refreshAll();
+    if (user) {
+      refreshAll();
 
-    const unsubCustomers = unifiedDataService.subscribe('customers', (data) => {
-      setCustomers(data);
-    });
+      // Real-time subscriptions
+      const customerSub = crmService.subscribeToChanges('customers', refreshCustomers);
+      const serviceSub = crmService.subscribeToChanges('tec_services', refreshServices);
 
-    const unsubTecnicos = unifiedDataService.subscribe('tecnicos', (data) => {
-      setTecnicos(data);
-    });
-
-    const unsubServices = unifiedDataService.subscribe('services', (data) => {
-      setServices(data);
-    });
-
-    const unsubscribeRealtime = unifiedDataService.subscribeToRealtime();
-
-    return () => {
-      unsubCustomers();
-      unsubTecnicos();
-      unsubServices();
-      unsubscribeRealtime();
-    };
-  }, [refreshAll]);
+      return () => {
+        customerSub.unsubscribe();
+        serviceSub.unsubscribe();
+      };
+    }
+  }, [user, refreshAll, refreshCustomers, refreshServices]);
 
   const value: DataContextValue = {
     customers,
     tecnicos,
     services,
+    servicos: services,
     isLoading,
     refreshCustomers,
-    refreshTecnicos,
     refreshServices,
     refreshAll,
     saveCustomer,
-    updateCustomerStatus,
     deleteCustomer,
-    saveTecnico,
-    deleteTecnico,
-    saveService,
     addServico,
     updateServico,
     deleteServico,
-    servicos: services,
+    updateTecnico,
+    deleteTecnico,
   };
 
   return (

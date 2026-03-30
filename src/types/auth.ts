@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   role: 'admin' | 'user' | 'viewer' | 'technician' | 'tecnico';
+  tipo?: 'admin' | 'tecnico';
   avatar_url?: string;
   created_at: string;
   last_sign_in_at?: string;
@@ -32,6 +33,7 @@ export interface RegisterData {
   password: string;
   name: string;
   role?: 'admin' | 'user' | 'viewer' | 'technician' | 'tecnico';
+  tipo?: 'admin' | 'tecnico';
   phone?: string;
   cpf?: string;
 }
