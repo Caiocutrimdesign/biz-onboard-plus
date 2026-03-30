@@ -107,12 +107,13 @@ const PRODUCTS: Product[] = [
 ];
 
 export default function TECPage() {
-  const { user } = useAuth();
-  const { customers, saveCustomer } = useData();
+  const { user, isLoading: authLoading } = useAuth();
+  const { customers, saveCustomer, isLoading: dataLoading } = useData();
   const [view, setView] = useState<TECView>('home');
   const [services, setServices] = useState<Service[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Current client being registered
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
@@ -124,29 +125,64 @@ export default function TECPage() {
   const [cart, setCart] = useState<Product[]>([]);
   const [saleTotal, setSaleTotal] = useState(0);
 
+  // Protection: wait for auth and data to load
+  if (authLoading || dataLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Protection: if no user, show error
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
+          <p className="text-muted-foreground">Faça login para acessar esta área.</p>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     loadData();
   }, [user?.id, user?.role]);
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const [servicesData] = await Promise.all([
-        tecService.getAllServices(),
-      ]);
+      let servicesData: Service[] = [];
+      let tecnicosData: any[] = [];
+      
+      try {
+        servicesData = await tecService.getAllServices() || [];
+      } catch (e) {
+        console.error('Error loading services:', e);
+        servicesData = [];
+      }
+      
+      try {
+        tecnicosData = await unifiedDataService.getTecnicos() || [];
+      } catch (e) {
+        console.error('Error loading technicians:', e);
+        tecnicosData = [];
+      }
       
       const isTechnician = (user?.role as string) === 'technician';
       const userId = user?.id || '';
       
-      let filteredServices = servicesData;
-      if (isTechnician) {
-        filteredServices = servicesData.filter((s: Service) => s.technician_id === userId);
+      let filteredServices = servicesData || [];
+      if (isTechnician && userId) {
+        filteredServices = (servicesData || []).filter((s: Service) => s.technician_id === userId);
       }
       
-      const tecnicosFromStorage = await unifiedDataService.getTecnicos();
-      console.log('Técnicos do storage:', tecnicosFromStorage);
-      
-      const registeredTecnicos = tecnicosFromStorage.map(t => ({
+      const registeredTecnicos = (tecnicosData || []).map((t: any) => ({
         id: t.id,
         name: t.name,
         email: t.email,
@@ -156,14 +192,14 @@ export default function TECPage() {
         created_at: t.created_at || new Date().toISOString(),
       }));
       
-      console.log('Técnicos carregados:', registeredTecnicos);
-      
-      setServices(filteredServices);
-      setTechnicians(registeredTecnicos);
-    } catch (e) {
+      setServices(filteredServices || []);
+      setTechnicians(registeredTecnicos || []);
+    } catch (e: any) {
       console.error('Error loading data:', e);
+      setError(e.message || 'Erro ao carregar dados');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const goTo = (newView: TECView) => {
@@ -350,6 +386,38 @@ export default function TECPage() {
     }
   };
 
+  // Protection: show loading while data loads
+  if (loading) {
+    return (
+      <SuperLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+            <p className="text-muted-foreground">Carregando serviços...</p>
+          </div>
+        </div>
+      </SuperLayout>
+    );
+  }
+
+  // Protection: show error if any
+  if (error) {
+    return (
+      <SuperLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center p-8">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Erro ao carregar</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={loadData} className="bg-orange-500">
+              Tentar novamente
+            </Button>
+          </div>
+        </div>
+      </SuperLayout>
+    );
+  }
+
   return (
     <SuperLayout>
       <div className="p-4 md:p-6">
@@ -427,19 +495,22 @@ function HomeView({ services, loading, onNewClient, userName, goTo }: {
 }) {
   const [filterTab, setFilterTab] = useState<FilterTab>('todos');
 
+  // Protection: ensure services is always an array
+  const safeServices = Array.isArray(services) ? services : [];
+
   const stats = {
-    today: services.filter(s => 
-      new Date(s.created_at).toDateString() === new Date().toDateString()
+    today: safeServices.filter(s => 
+      s?.created_at && new Date(s.created_at).toDateString() === new Date().toDateString()
     ).length,
-    pending: services.filter(s => s.status === 'pendente').length,
-    inProgress: services.filter(s => s.status === 'em_andamento').length,
-    completed: services.filter(s => s.status === 'concluido').length,
-    all: services.length,
+    pending: safeServices.filter(s => s?.status === 'pendente').length,
+    inProgress: safeServices.filter(s => s?.status === 'em_andamento').length,
+    completed: safeServices.filter(s => s?.status === 'concluido').length,
+    all: safeServices.length,
   };
 
-  const filteredServices = services.filter(service => {
+  const filteredServices = safeServices.filter(service => {
     if (filterTab === 'todos') return true;
-    return service.status === filterTab;
+    return service?.status === filterTab;
   });
 
   const filterTabs: { id: FilterTab; label: string; count: number; color: string; activeBg: string }[] = [
@@ -616,6 +687,24 @@ function HomeView({ services, loading, onNewClient, userName, goTo }: {
 function ServiceCard({ service }: { service: Service }) {
   const [expanded, setExpanded] = useState(false);
 
+  // Protection: handle undefined/null service
+  if (!service) {
+    return null;
+  }
+
+  const safeService = {
+    id: service.id || '',
+    client_name: service.client_name || 'Cliente',
+    client_phone: service.client_phone || '',
+    client_address: service.client_address || '',
+    vehicle: service.vehicle || '',
+    plate: service.plate || '',
+    status: service.status || 'pendente',
+    type: service.type || '',
+    technician_name: service.technician_name || '',
+    created_at: service.created_at || new Date().toISOString(),
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -627,25 +716,25 @@ function ServiceCard({ service }: { service: Service }) {
         <div className="flex items-center gap-3">
           <div className={`
             w-12 h-12 rounded-xl flex items-center justify-center
-            ${service.status === 'pendente' ? 'bg-yellow-100' : 
-              service.status === 'em_andamento' ? 'bg-blue-100' : 'bg-green-100'}
+            ${safeService.status === 'pendente' ? 'bg-yellow-100' : 
+              safeService.status === 'em_andamento' ? 'bg-blue-100' : 'bg-green-100'}
           `}>
             <Car className={`w-6 h-6 ${
-              service.status === 'pendente' ? 'text-yellow-600' : 
-              service.status === 'em_andamento' ? 'text-blue-600' : 'text-green-600'
+              safeService.status === 'pendente' ? 'text-yellow-600' : 
+              safeService.status === 'em_andamento' ? 'text-blue-600' : 'text-green-600'
             }`} />
           </div>
           <div>
-            <p className="font-semibold">{service.client_name}</p>
+            <p className="font-semibold">{safeService.client_name}</p>
             <p className="text-sm text-muted-foreground">
-              {service.vehicle} - {service.plate}
+              {safeService.vehicle} - {safeService.plate}
             </p>
           </div>
         </div>
         <div className="text-right">
-          <StatusBadge status={service.status} />
+          <StatusBadge status={safeService.status} />
           <p className="text-xs text-muted-foreground mt-1">
-            {new Date(service.created_at).toLocaleDateString('pt-BR')}
+            {new Date(safeService.created_at).toLocaleDateString('pt-BR')}
           </p>
         </div>
       </div>
