@@ -392,6 +392,9 @@ class UnifiedDataService {
 
   async deleteTecnico(id: string): Promise<void> {
     if (isSupabaseConfigured() && supabase) {
+      // Delete from crm_users first (so login is removed)
+      await supabase.from('crm_users').delete().eq('id', id);
+
       const { error } = await supabase.from('tec_technicians').delete().eq('id', id);
       if (error) {
         console.error('Error deleting tecnico:', error);
