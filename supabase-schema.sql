@@ -190,3 +190,54 @@ ON CONFLICT (name) DO NOTHING;
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE crm_users ENABLE ROW LEVEL SECURITY;
+
+-- ============================================
+-- TEC SERVICES TABLE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS tec_services (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  client_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+  client_name TEXT NOT NULL,
+  client_phone TEXT,
+  client_address TEXT,
+  technician_id TEXT,
+  technician_name TEXT,
+  type TEXT DEFAULT 'suporte' CHECK (type IN ('instalacao', 'manutencao', 'retirada', 'suporte', 'suporte_tecnico')),
+  status TEXT DEFAULT 'pendente' CHECK (status IN ('pendente', 'designado', 'em_andamento', 'concluido', 'finalizado', 'cancelado')),
+  scheduled_date TIMESTAMP WITH TIME ZONE,
+  completed_date TIMESTAMP WITH TIME ZONE,
+  vehicle TEXT,
+  plate TEXT,
+  observations TEXT,
+  signature TEXT,
+  photos JSONB DEFAULT '[]',
+  localizacao_inicio TEXT,
+  localizacao_fim TEXT,
+  finalizado_por TEXT,
+  checklist JSONB DEFAULT '[]',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_tec_services_technician ON tec_services(technician_id);
+CREATE INDEX IF NOT EXISTS idx_tec_services_status ON tec_services(status);
+CREATE INDEX IF NOT EXISTS idx_tec_services_client ON tec_services(client_id);
+CREATE INDEX IF NOT EXISTS idx_tec_services_scheduled ON tec_services(scheduled_date);
+
+-- Enable RLS
+ALTER TABLE tec_services ENABLE ROW LEVEL SECURITY;
+
+-- Policies for tec_services (allow all operations for authenticated users)
+CREATE POLICY "Enable read for authenticated users" ON tec_services
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable insert for authenticated users" ON tec_services
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Enable update for authenticated users" ON tec_services
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Enable delete for authenticated users" ON tec_services
+  FOR DELETE USING (true);
