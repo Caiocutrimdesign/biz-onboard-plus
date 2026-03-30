@@ -415,51 +415,71 @@ class CRMService {
     }
   }
 
-  async uploadPhoto(file: File, serviceId: string, type: string) {
+  async uploadPhoto(file: File, serviceId: string, type: string): Promise<{ success: boolean; url?: string; error?: string }> {
     try {
-      // Ensure bucket exists
-      await this.ensureStorageBucket('tec-photos');
+      // First, try to upload to Supabase Storage
+      const fileName = `tec-photos/${serviceId}/${type}_${Date.now()}.${file.name.split('.').pop()}`;
       
-      const fileName = `${serviceId}/${type}_${Date.now()}.${file.name.split('.').pop()}`;
       const { data, error } = await supabase.storage
         .from('tec-photos')
-        .upload(fileName, file, { upsert: true });
-      if (error) throw error;
+        .upload(fileName, file, { 
+          upsert: true,
+          contentType: file.type
+        });
+      
+      if (error) {
+        console.warn('Supabase upload failed, using base64 fallback:', error.message);
+        // Fallback to base64 if Supabase storage fails
+        return this.convertToBase64(file);
+      }
 
       const { data: urlData } = supabase.storage
         .from('tec-photos')
         .getPublicUrl(data.path);
 
+      console.log('Photo uploaded successfully:', urlData.publicUrl);
       return { success: true, url: urlData.publicUrl };
     } catch (error: any) {
-      console.error('Error uploading photo:', error);
-      // Fallback: return base64 URL for local storage
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve({ success: true, url: reader.result as string });
-        };
-        reader.onerror = () => {
-          resolve({ success: false, error: 'Failed to read file' });
-        };
-        reader.readAsDataURL(file);
-      });
+      console.error('Upload error:', error);
+      // Fallback to base64 on any error
+      return this.convertToBase64(file);
     }
   }
 
-  private async ensureStorageBucket(bucketId: string) {
+  private convertToBase64(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        console.log('Using base64 fallback for photo');
+        resolve({ success: true, url: reader.result as string });
+      };
+      reader.onerror = () => {
+        resolve({ success: false, error: 'Failed to convert to base64' });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async ensureStorageBucket(bucketId: string): Promise<boolean> {
     try {
       const { data: buckets } = await supabase.storage.listBuckets();
       const bucketExists = buckets?.some(b => b.id === bucketId);
       
       if (!bucketExists) {
-        await supabase.storage.createBucket(bucketId, {
+        const { error } = await supabase.storage.createBucket(bucketId, {
           public: true,
           fileSizeLimit: 10485760
         });
+        if (error) {
+          console.warn('Could not create bucket:', error);
+          return false;
+        }
+        console.log('Bucket created:', bucketId);
       }
+      return true;
     } catch (error) {
       console.warn('Could not verify/create bucket:', error);
+      return false;
     }
   }
 

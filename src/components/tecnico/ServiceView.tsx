@@ -34,20 +34,30 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
     if (!file) return;
 
     setUploading(currentPhotoType);
-    const url = await onUploadPhoto(file, currentPhotoType);
-    setUploading(null);
     
-    if (url) {
-      const photos = service.photos || [];
-      onUpdate({
-        photos: [...photos, {
-          id: `photo_${Date.now()}`,
-          service_id: service.id || '',
-          url,
-          type: currentPhotoType,
-          created_at: new Date().toISOString()
-        }]
-      });
+    try {
+      const url = await onUploadPhoto(file, currentPhotoType);
+      
+      if (url) {
+        const photos = service.photos || [];
+        onUpdate({
+          photos: [...photos, {
+            id: `photo_${Date.now()}`,
+            service_id: service.id || '',
+            url,
+            type: currentPhotoType,
+            created_at: new Date().toISOString()
+          }]
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    } finally {
+      setUploading(null);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 

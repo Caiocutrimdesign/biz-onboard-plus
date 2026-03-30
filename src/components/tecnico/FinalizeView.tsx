@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   ChevronLeft, CheckCircle, Camera, 
-  Trash2, Save, FileText, Loader2, Pen
+  Trash2, Save, FileText, Loader2, Pen, X, ImagePlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,13 +12,14 @@ import { Service, PhotoType } from '@/types/tec';
 interface FinalizeViewProps {
   service: Partial<Service>;
   onBack: () => void;
-  onSave: (observations: string, signature: string) => void;
+  onSave: (observations: string, signature: string, photos: string[]) => void;
   onUploadPhoto: (file: File, type: PhotoType) => Promise<string | null>;
 }
 
 export function FinalizeView({ service, onBack, onSave, onUploadPhoto }: FinalizeViewProps) {
   const [observations, setObservations] = useState('');
   const [uploading, setUploading] = useState<PhotoType | null>(null);
+  const [photos, setPhotos] = useState<Array<{ id: string; url: string; type: PhotoType }>>([]);
   const sigPad = useRef<SignatureCanvas>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,7 +31,8 @@ export function FinalizeView({ service, onBack, onSave, onUploadPhoto }: Finaliz
       return;
     }
     const signatureData = sigPad.current?.getTrimmedCanvas().toDataURL('image/png');
-    onSave(observations, signatureData || '');
+    const photoUrls = photos.map(p => p.url);
+    onSave(observations, signatureData || '', photoUrls);
   };
 
   const handlePhotoClick = () => fileInputRef.current?.click();
@@ -40,14 +42,33 @@ export function FinalizeView({ service, onBack, onSave, onUploadPhoto }: Finaliz
     if (!file) return;
 
     setUploading('depois');
-    const url = await onUploadPhoto(file, 'depois');
-    setUploading(null);
     
-    // In a real app we would update the service photos here
-    // But for simplicity in this flow, we assume the parent handles it
+    try {
+      const url = await onUploadPhoto(file, 'depois');
+      if (url) {
+        const newPhoto = {
+          id: `photo_${Date.now()}`,
+          url: url,
+          type: 'depois' as PhotoType
+        };
+        setPhotos(prev => [...prev, newPhoto]);
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    } finally {
+      setUploading(null);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
-  const photosFinal = (service.photos || []).filter(p => p.type === 'depois');
+  const removePhoto = (photoId: string) => {
+    setPhotos(prev => prev.filter(p => p.id !== photoId));
+  };
+
+  const photosFinal = photos;
 
   return (
     <div className="space-y-6 pb-20">
@@ -68,24 +89,44 @@ export function FinalizeView({ service, onBack, onSave, onUploadPhoto }: Finaliz
           <Button 
             size="sm" 
             variant="outline" 
-            className="gap-2 border-orange-200"
+            className="gap-2 border-green-200 text-green-600 hover:bg-green-50"
             onClick={handlePhotoClick}
             disabled={uploading === 'depois'}
           >
-            {uploading === 'depois' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4 text-orange-600" />}
-            Adicionar
+            {uploading === 'depois' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ImagePlus className="w-4 h-4" />
+            )}
+            Adicionar Foto
           </Button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="grid grid-cols-3 gap-2">
           {photosFinal.map(photo => (
-            <div key={photo.id} className="relative min-w-[120px] h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-100">
-              <img src={photo.url} alt="Final" className="w-full h-full object-cover" />
+            <div key={photo.id} className="relative group">
+              <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                <img src={photo.url} alt="Final" className="w-full h-full object-cover" />
+              </div>
+              <button
+                onClick={() => removePhoto(photo.id)}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+              >
+                <X className="w-3 h-3" />
+              </button>
+              <div className="absolute bottom-1 left-1">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500 text-white">
+                  Depois
+                </span>
+              </div>
             </div>
           ))}
           {photosFinal.length === 0 && (
-            <div className="w-full h-24 rounded-xl border-2 border-dashed border-gray-100 flex items-center justify-center text-muted-foreground">
-              <p className="text-[10px]">Pelo menos 1 foto final é recomendada</p>
+            <div className="col-span-3 aspect-video rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <Camera className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-xs">Toque acima para adicionar fotos</p>
+              </div>
             </div>
           )}
         </div>

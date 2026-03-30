@@ -187,13 +187,11 @@ export default function TECPage() {
     }
   };
 
-  const handleFinalizeService = async (obs: string, signature: string) => {
+  const handleFinalizeService = async (obs: string, signature: string, photos: string[]) => {
     try {
       setLoading(true);
       console.log('TECPage: Finalizing service');
-      
-      // Collect photos URLs from current service
-      const photosUrls = (currentService.photos || []).map((p: any) => p.url);
+      console.log('TECPage: Photos to save:', photos);
       
       // Create service record with only existing columns in the database
       const serviceData = {
@@ -202,7 +200,7 @@ export default function TECPage() {
         client_address: currentService.client_address || currentClient?.address || null,
         observations: obs || currentService.observations || null,
         signature: signature || null,
-        photos: photosUrls.length > 0 ? JSON.stringify(photosUrls) : null,
+        photos: photos && photos.length > 0 ? JSON.stringify(photos) : null,
         technician_id: user?.id || null,
         technician_name: (user as any)?.full_name || user?.name || null,
         vehicle: currentService.vehicle || currentClient?.vehicleModel || null,
@@ -213,7 +211,7 @@ export default function TECPage() {
       
       console.log('TECPage: Service data to save:', serviceData);
       
-      // Save directly to Supabase without using crmService wrapper
+      // Save directly to Supabase
       const { supabase } = await import('@/lib/supabaseClient');
       
       const { data, error } = await supabase
