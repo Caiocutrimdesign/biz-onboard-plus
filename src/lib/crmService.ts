@@ -434,6 +434,30 @@ class CRMService {
     }
   }
 
+  async uploadSignature(base64: string, serviceId: string, type: string) {
+    try {
+      // Convert base64 to Blob
+      const response = await fetch(base64);
+      const blob = await response.blob();
+      
+      const fileName = `${serviceId}/sig_${type}_${Date.now()}.png`;
+      const { data, error } = await supabase.storage
+        .from('tec-photos')
+        .upload(fileName, blob, { contentType: 'image/png' });
+        
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('tec-photos')
+        .getPublicUrl(data.path);
+
+      return { success: true, url: urlData.publicUrl };
+    } catch (error: any) {
+      console.error('Error uploading signature:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // REAL-TIME SUBSCRIPTION
   subscribeToChanges(table: 'customers' | 'tec_services' | 'profiles', callback: () => void) {
     return supabase

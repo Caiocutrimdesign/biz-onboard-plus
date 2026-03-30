@@ -7,6 +7,7 @@ import {
   CheckCircle, MapPinned, Image, Shield, Star, ThumbsUp,
   ClipboardList, CheckSquare, Calendar
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useAuth } from '@/contexts/AuthContext';
 import SuperLayout from '@/components/layout/SuperLayout';
 import { crmService } from '@/lib/crmService';
-import { getAssignedServicesForTechnician, finishService as finishServiceCtx, updateService, getServicesByTechnician, startService, createService as createServiceCtx } from '@/contexts/ServiceContext';
+import { getAssignedServicesForTechnician, finishService as finishServiceCtx, updateService as updateServiceCtx, getServicesByTechnician, startService as startServiceCtx, createService as createServiceCtx } from '@/contexts/ServiceContext';
 import type { Service, ServiceStatus, ServiceType, PhotoType, Technician } from '@/types/tec';
 import type { Service as AppService, ServiceStatus as AppServiceStatus } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS } from '@/types/service';
@@ -173,7 +174,8 @@ export default function TECPage() {
         tecnicosData = [];
       }
       
-      const isTechnician = (user?.role as string) === 'technician';
+      const userRole = (user?.role as string);
+      const isTechnician = userRole === 'technician' || userRole === 'tecnico';
       const userId = user?.id || '';
       
       let filteredServices = servicesData || [];
@@ -183,7 +185,7 @@ export default function TECPage() {
       
       const registeredTecnicos = (tecnicosData || []).map((t: any) => ({
         id: t.id,
-        name: t.name,
+        name: t.nome || t.name,
         email: t.email,
         phone: t.phone || '',
         cpf: t.cpf || '',
@@ -247,7 +249,7 @@ export default function TECPage() {
     setSaleTotal(saleTotal - removed.price);
   };
 
-  const startService = (selectedTecId?: string, selectedTecName?: string) => {
+  const handleStartService = (selectedTecId?: string, selectedTecName?: string) => {
     if (!currentClient) return;
     
     setCurrentService({
@@ -267,123 +269,112 @@ export default function TECPage() {
     goTo('servico');
   };
 
-  const finishService = () => {
+  const handleFinishStep = () => {
     goTo('finalizar');
   };
 
   const saveFinalizedService = async (serviceData: {
-    photos: Array<{ url: string; type: PhotoType }>;
+    photos: Array<{ url: string; type: PhotoType; file?: File }>;
     signatureFuncionario: string;
     signatureCliente: string;
     observations: string;
     rating?: number;
     comment?: string;
   }) => {
-    if (!currentService) return;
+    if (!currentService || !currentClient) return;
     
     try {
-      const { data: newService, success } = await crmService.createServico({
+      const loadingToast = toast.loading('Salvando serviço...');
+      
+      // 1. Garantir que o cliente existe no Supabase e pegar o UUID real
+      let finalClientId = currentClient.id;
+      if (finalClientId.startsWith('client_')) {
+         const { data: newClient, success: clientSuccess } = await crmService.createCliente({
+           full_name: currentClient.name,
+           phone: currentClient.phone,
+           email: currentClient.email,
+           cpf_cnpj: currentClient.cpf,
+           street: currentClient.address,
+           neighborhood: currentClient.neighborhood,
+           city: currentClient.city,
+           state: currentClient.state,
+           cep: currentClient.cep,
+           brand: currentClient.vehicleBrand,
+           model: currentClient.vehicleModel,
+           year: currentClient.vehicleYear,
+           color: currentClient.vehicleColor,
+           plate: currentClient.plate,
+           renavam: currentClient.renavam,
+           status: 'active'
+         });
+         
+         if (clientSuccess && newClient) {
+           finalClientId = newClient.id;
+         } else {
+           throw new Error('Falha ao criar cliente no banco de dados');
+         }
+      }
+
+      // 2. Criar o serviço no Supabase (com o client_id real)
+      const { data: newService, success: serviceSuccess } = await crmService.createServico({
         ...currentService,
+        client_id: finalClientId,
         observations: serviceData.observations,
-        signature: serviceData.signatureFuncionario,
         status: 'concluido',
       } as any);
 
-      if (!success || !newService) throw new Error('Erro ao criar serviço');
+      if (!serviceSuccess || !newService) throw new Error('Erro ao criar serviço');
 
-      // Save ALL photos to the service
-      if (serviceData.photos.length > 0) {
-        console.log(`📸 Salvando ${serviceData.photos.length} fotos para serviço ${newService.id}`);
-        await crmService.savePhotos(newService.id, serviceData.photos);
+      // 3. Upload das fotos para o Storage
+      const uploadedPhotos = [];
+      for (const photo of serviceData.photos) {
+        if (photo.file) {
+          const uploadRes = await crmService.uploadPhoto(photo.file, newService.id, photo.type);
+          if (uploadRes.success) {
+            uploadedPhotos.push({ url: uploadRes.url, type: photo.type });
+          }
+        }
+      }
+      
+      if (uploadedPhotos.length > 0) {
+        await crmService.savePhotos(newService.id, uploadedPhotos);
       }
 
-      // Save signatures
+      // 4. Upload das assinaturas para o Storage
       const signaturesToSave = [];
       if (serviceData.signatureFuncionario) {
-        signaturesToSave.push({
-          url: serviceData.signatureFuncionario,
-          signed_by: 'Funcionario',
-        });
+        const sigRes = await crmService.uploadSignature(serviceData.signatureFuncionario, newService.id, 'tecnico');
+        if (sigRes.success) {
+          signaturesToSave.push({ url: sigRes.url, signed_by: 'Técnico' });
+        }
       }
       if (serviceData.signatureCliente) {
-        signaturesToSave.push({
-          url: serviceData.signatureCliente,
-          signed_by: 'Cliente',
-        });
+        const sigRes = await crmService.uploadSignature(serviceData.signatureCliente, newService.id, 'cliente');
+        if (sigRes.success) {
+          signaturesToSave.push({ url: sigRes.url, signed_by: 'Cliente' });
+        }
       }
       
       if (signaturesToSave.length > 0) {
-        console.log(`✍️ Salvando ${signaturesToSave.length} assinaturas para serviço ${newService.id}`);
         await crmService.saveSignatures(newService.id, signaturesToSave);
+        // Atualiza a assinatura principal no serviço (usando a do cliente como principal se houver)
+        await crmService.updateServico(newService.id, { 
+          signature: signaturesToSave.find(s => s.signed_by === 'Cliente')?.url || signaturesToSave[0].url 
+        });
       }
 
-      // Save satisfaction rating linked to client
-      if (serviceData.rating !== undefined) {
-        try {
-          const satisfactionData = {
-            service_id: newService.id,
-            client_id: currentService.client_id || currentClient?.id,
-            client_name: currentService.client_name || currentClient?.name,
-            rating: serviceData.rating,
-            comment: serviceData.comment || '',
-            created_at: new Date().toISOString(),
-          };
-          
-          // Save to localStorage
-          localStorage.setItem(`tec_satisfaction_${newService.id}`, JSON.stringify(satisfactionData));
-          
-          // Also save to customers via DataContext for CRM visibility
-          const customerData = {
-            id: currentService.client_id || currentClient?.id,
-            full_name: currentService.client_name || currentClient?.name,
-            phone: currentService.client_phone || currentClient?.phone,
-            email: currentClient?.email || '',
-            street: currentService.client_address || '',
-            vehicle_type: currentService.vehicle || '',
-            plate: currentService.plate || '',
-            plan: cart.length > 0 ? cart[0].name : '',
-            status: 'active' as any,
-            brand: currentClient?.vehicleBrand || '',
-            model: currentClient?.vehicleModel || '',
-            created_at: new Date().toISOString(),
-          };
-          
-          // Check if customer already exists
-          const existingCustomer = customers.find((c: any) => 
-            c.id === customerData.id || 
-            c.phone === customerData.phone ||
-            c.full_name === customerData.full_name
-          );
-          
-          if (existingCustomer) {
-            await saveCustomer({
-              ...existingCustomer,
-              satisfaction: satisfactionData,
-              tec_service_id: newService.id,
-            });
-          } else {
-            await saveCustomer({
-              ...customerData,
-              satisfaction: satisfactionData,
-              tec_service_id: newService.id,
-            });
-          }
-        } catch (e) {
-          console.error('Error saving satisfaction:', e);
-        }
-      }
-
-      console.log('✅ Serviço finalizado com sucesso!');
+      toast.dismiss(loadingToast);
+      toast.success('Serviço finalizado com sucesso!');
       await loadData();
       
-      // Reset everything
+      // Reset tudo
       setCurrentClient(null);
       setCurrentService({});
       setCart([]);
       setSaleTotal(0);
-    } catch (e) {
+    } catch (e: any) {
+      toast.error(`Erro ao salvar: ${e.message}`);
       console.error('Error saving service:', e);
-      alert('Erro ao salvar servico');
     }
   };
 
@@ -449,7 +440,7 @@ export default function TECPage() {
             technicians={technicians}
             onAddProduct={addToCart}
             onRemoveProduct={removeFromCart}
-            onStartService={startService}
+            onStartService={handleStartService}
             onBack={() => goTo('novo-cliente')}
             onNewClient={() => { setCurrentClient(null); goTo('novo-cliente'); }}
           />
@@ -460,7 +451,7 @@ export default function TECPage() {
             service={currentService}
             cart={cart}
             total={saleTotal}
-            onFinish={finishService}
+            onFinish={handleFinishStep}
             onBack={() => goTo('vendas')}
           />
         )}
