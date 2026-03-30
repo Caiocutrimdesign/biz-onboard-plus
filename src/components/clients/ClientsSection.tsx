@@ -4,7 +4,8 @@ import {
   Search, Eye, Plus, Car, Smartphone, Mail, MapPin,
   Users, Clock, CheckCircle2, AlertCircle, User, CreditCard,
   Calendar, X, Save, Trash2, Send, RefreshCw, MessageCircle,
-  Play, Power, Pause, Loader2, Check, Edit2, Trash, Wrench
+  Play, Power, Pause, Loader2, Check, Edit2, Trash, Wrench,
+  CalendarCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { STATUS_LABELS, STATUS_COLORS, type CustomerRegistration, type CustomerStatus } from '@/types/customer';
 import { useData } from '@/contexts/DataContext';
+import { crmService } from '@/lib/crmService';
 import type { Technician } from '@/types/tec';
+import { toast } from 'sonner';
 
 const WESALES_KEY = 'wesales_api_key';
 
@@ -61,19 +64,49 @@ export default function ClientsSection() {
     const customer = allCustomers.find(c => c.id === customerId);
     if (!customer) return;
 
+    // 1. Update customer with technician info
     await saveCustomer({
       ...customer,
       id: customerId,
-      // @ts-ignore - for now adding technician fields
       technician_id: technicianId === 'none' ? null : technicianId,
-      technician_name: technicianId === 'none' ? null : technician?.nome || '',
+      technician_name: technicianId === 'none' ? null : technician?.name || technician?.nome || '',
     });
 
+    // 2. Create service in tec_services for the technician
+    if (technicianId !== 'none') {
+      try {
+        const serviceData = {
+          client_name: customer.full_name,
+          client_phone: customer.phone,
+          client_address: customer.street || null,
+          technician_id: technicianId,
+          technician_name: technician?.name || technician?.nome || null,
+          vehicle: `${customer.brand || ''} ${customer.model || ''}`.trim() || null,
+          plate: customer.plate || null,
+          status: 'pendente',
+          scheduled_date: null,
+          observations: `Serviço criado pelo Admin para o cliente ${customer.full_name}`,
+        };
+
+        const result = await crmService.createServico(serviceData);
+        
+        if (result.success) {
+          toast.success(`Técnico ${technician?.name || technician?.nome} designado! Serviço criado.`);
+        } else {
+          toast.error('Cliente atualizado, mas falha ao criar serviço.');
+        }
+      } catch (error) {
+        console.error('Error creating service:', error);
+        toast.error('Erro ao criar serviço para o técnico.');
+      }
+    }
+
+    // Update selected customer state
     if (selectedCustomer?.id === customerId) {
       setSelectedCustomer({
         ...selectedCustomer,
         technician_id: technicianId === 'none' ? null : technicianId,
-        technician_name: technicianId === 'none' ? null : technician?.nome || '',
+        technician_name: technicianId === 'none' ? null : technician?.name || technician?.nome || '',
       });
     }
   };
@@ -380,6 +413,60 @@ export default function ClientsSection() {
                     Atual: <strong>{selectedCustomer.technician_name}</strong>
                   </p>
                 )}
+              </div>
+
+              {/* Criar Serviço Button */}
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CalendarCheck className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-800">Criar Serviço</p>
+                      <p className="text-xs text-blue-600">Envia para a agenda do técnico</p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={async () => {
+                      if (!selectedCustomer.technician_id) {
+                        toast.error('Selecione um técnico primeiro!');
+                        return;
+                      }
+                      
+                      const tech = technicians.find(t => t.id === selectedCustomer.technician_id);
+                      
+                      try {
+                        const serviceData = {
+                          client_name: selectedCustomer.full_name,
+                          client_phone: selectedCustomer.phone,
+                          client_address: selectedCustomer.street || null,
+                          technician_id: selectedCustomer.technician_id,
+                          technician_name: tech?.name || tech?.nome || null,
+                          vehicle: `${selectedCustomer.brand || ''} ${selectedCustomer.model || ''}`.trim() || null,
+                          plate: selectedCustomer.plate || null,
+                          status: 'pendente',
+                          scheduled_date: new Date().toISOString(),
+                          observations: `Serviço criado pelo Admin - Cliente: ${selectedCustomer.full_name}`,
+                        };
+
+                        const result = await crmService.createServico(serviceData);
+                        
+                        if (result.success) {
+                          toast.success('Serviço criado e enviado para o técnico!');
+                        } else {
+                          toast.error('Erro ao criar serviço');
+                        }
+                      } catch (error) {
+                        console.error('Error creating service:', error);
+                        toast.error('Erro ao criar serviço');
+                      }
+                    }}
+                  >
+                    <CalendarCheck className="w-4 h-4 mr-2" />
+                    Criar Serviço
+                  </Button>
+                </div>
               </div>
               
               <div className="flex flex-col gap-3 pt-4 border-t">
