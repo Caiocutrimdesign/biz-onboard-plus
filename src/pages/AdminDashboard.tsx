@@ -74,7 +74,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   const handleNavigate = (item: NavItem) => {

@@ -44,7 +44,7 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
 
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   return (
