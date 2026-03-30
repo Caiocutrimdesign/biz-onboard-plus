@@ -310,84 +310,82 @@ class UnifiedDataService {
     return [];
   }
 
-  async saveTecnico(tecnico: Partial<UnifiedTecnico>): Promise<UnifiedTecnico> {
-    const tecnicoId = tecnico.id || generateUUID();
+  async saveTecnico(tecnico: Partial<UnifiedTecnico> & { password?: string }): Promise<UnifiedTecnico> {
     const now = new Date().toISOString();
-
-    const newTecnico: UnifiedTecnico = {
-      id: tecnicoId,
-      email: tecnico.email || '',
-      name: tecnico.name || '',
-      phone: tecnico.phone || '',
-      cpf: tecnico.cpf || '',
-      active: tecnico.active ?? true,
-      created_at: tecnico.created_at || now,
-    };
+    let tecnicoId = tecnico.id;
 
     if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase
+      // 1. If it's a NEW technician, create in Supabase Auth first
+      if (!tecnicoId && tecnico.email && tecnico.password) {
+        console.log("🚀 Criando usuário no Supabase Auth...");
+        const { data, error: authError } = await supabase.auth.signUp({
+          email: tecnico.email.trim().toLowerCase(),
+          password: tecnico.password.trim(),
+        });
+
+        if (authError) {
+          console.error("❌ Erro ao criar login no Auth:", authError.message);
+          throw authError;
+        }
+
+        if (data.user) {
+          tecnicoId = data.user.id;
+        }
+      }
+
+      const idToUse = tecnicoId || generateUUID();
+
+      // 2. Save/Update in tec_technicians
+      const { data: savedTec, error: tecError } = await supabase
         .from('tec_technicians')
         .upsert({
-          id: newTecnico.id,
-          email: newTecnico.email,
-          name: newTecnico.name,
-          phone: newTecnico.phone,
-          cpf: newTecnico.cpf,
-          active: newTecnico.active,
-          created_at: newTecnico.created_at,
+          id: idToUse,
+          email: tecnico.email?.toLowerCase().trim() || '',
+          name: tecnico.name || '',
+          phone: tecnico.phone || '',
+          cpf: tecnico.cpf || '',
+          active: tecnico.active ?? true,
+          updated_at: now,
         })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error saving tecnico:', error);
-        throw error;
+      if (tecError) {
+        console.error('❌ Erro ao salvar em tec_technicians:', tecError);
+        throw tecError;
       }
 
-      const finalId = data?.id || tecnicoId;
+      // 3. Save/Update in crm_users (Profile table) with role 'tecnico'
+      const { error: profileError } = await supabase
+        .from('crm_users')
+        .upsert({
+          id: idToUse,
+          email: tecnico.email?.toLowerCase().trim() || '',
+          name: tecnico.name || '',
+          phone: tecnico.phone || '',
+          role: 'tecnico',
+          active: tecnico.active ?? true,
+          updated_at: now,
+        }, { onConflict: 'id' });
 
-      // Sync with crm_users so the technician can login
-      if (tecnico.password) {
-        // New technician or password update — upsert crm_users with password
-        await supabase
-          .from('crm_users')
-          .upsert({
-            id: finalId,
-            email: newTecnico.email,
-            name: newTecnico.name,
-            phone: newTecnico.phone,
-            password: tecnico.password,
-            role: 'technician',
-            active: newTecnico.active,
-            created_at: newTecnico.created_at,
-          }, { onConflict: 'id' });
-      } else if (tecnico.id) {
-        // Editing without password change — update other fields only
-        const { data: existing } = await supabase
-          .from('crm_users')
-          .select('id')
-          .eq('id', tecnico.id)
-          .single();
-
-        if (existing) {
-          await supabase
-            .from('crm_users')
-            .update({
-              email: newTecnico.email,
-              name: newTecnico.name,
-              phone: newTecnico.phone,
-              active: newTecnico.active,
-              role: 'technician',
-            })
-            .eq('id', tecnico.id);
-        }
+      if (profileError) {
+        console.error('❌ Erro ao salvar perfil em crm_users:', profileError);
+        // We don't throw here to avoid failing the whole process if only the profile fails, 
+        // but it's important for login.
       }
 
-      await this.getTecnicos(true);
-      return { ...newTecnico, id: finalId };
+      return {
+        id: idToUse,
+        email: savedTec?.email || tecnico.email || '',
+        name: savedTec?.name || tecnico.name || '',
+        phone: savedTec?.phone || tecnico.phone || '',
+        cpf: savedTec?.cpf || tecnico.cpf || '',
+        active: savedTec?.active ?? true,
+        created_at: savedTec?.created_at || now,
+      };
     }
 
-    throw new Error('Supabase not configured');
+    throw new Error("Supabase não configurado");
   }
 
   async deleteTecnico(id: string): Promise<void> {

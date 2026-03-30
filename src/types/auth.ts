@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user' | 'viewer' | 'technician';
+  role: 'admin' | 'user' | 'viewer' | 'technician' | 'tecnico';
   avatar_url?: string;
   created_at: string;
   last_sign_in_at?: string;
@@ -31,7 +31,7 @@ export interface RegisterData {
   email: string;
   password: string;
   name: string;
-  role?: 'admin' | 'user' | 'viewer' | 'technician';
+  role?: 'admin' | 'user' | 'viewer' | 'technician' | 'tecnico';
   phone?: string;
   cpf?: string;
 }
