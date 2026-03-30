@@ -8,8 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { AgentProvider } from "@/agents/context/AgentContext";
 import { ProtectedRoute, GuestRoute } from "@/components/auth/ProtectedRoute";
-import { ErrorBoundary } from "@/lib/guardianAgent";
-import GuardianDashboard from "@/components/guardian/GuardianDashboard";
 
 import Index from "./pages/Index";
 import AdminLogin from "./pages/AdminLogin";
@@ -34,7 +32,6 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   return (
-    <ErrorBoundary>
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
@@ -216,7 +213,6 @@ function AppRoutes() {
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
-    </ErrorBoundary>
   );
 }
 
@@ -225,13 +221,12 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <DataProvider>
-          <AgentProvider autoStart={true}>
+          <AgentProvider autoStart={false}>
             <Toaster />
             <Sonner />
             <BrowserRouter>
               <AppRoutes />
             </BrowserRouter>
-            <GuardianDashboard />
           </AgentProvider>
         </DataProvider>
       </AuthProvider>
