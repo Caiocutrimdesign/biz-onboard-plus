@@ -544,6 +544,24 @@ class UnifiedDataService {
     }
   }
 
+  async deleteService(id: string): Promise<void> {
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase
+        .from('tec_services')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting service:', error);
+        throw error;
+      }
+
+      await this.getServices(true);
+    } else {
+      throw new Error('Supabase not configured');
+    }
+  }
+
   subscribeToRealtime() {
     if (!isSupabaseConfigured() || !supabase) return () => {};
 

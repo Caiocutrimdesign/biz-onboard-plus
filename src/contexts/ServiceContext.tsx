@@ -190,10 +190,7 @@ export function getHistoryByService(serviceId: string): ServiceHistory[] {
 }
 
 export async function deleteService(id: string): Promise<void> {
-  await unifiedDataService.saveService({
-    id,
-    status: 'cancelado',
-  });
+  await unifiedDataService.deleteService(id);
 }
 
 interface ServiceContextValue {

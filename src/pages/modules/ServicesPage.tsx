@@ -4,7 +4,7 @@ import {
   Wrench, Search, Filter, User, Calendar, CheckCircle, 
   Clock, XCircle, ChevronRight, Loader2, RefreshCw, 
   History, UserPlus, Eye, Plus, Phone, MapPin, ArrowRightCircle,
-  Image, FileText
+  Image, FileText, Pencil, Trash2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ import { customerService } from '@/lib/customerService';
 type TabType = 'todos' | 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
 
 export default function ServicesPage() {
-  const { services, loading, loadServices, assignTech, updateServiceStatus, createService } = useServices();
+  const { services, loading, loadServices, assignTech, updateServiceStatus, createService, deleteService } = useServices();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [techFilter, setTechFilter] = useState<string>('all');
@@ -31,6 +31,7 @@ export default function ServicesPage() {
   const [showDetail, setShowDetail] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [serviceHistory, setServiceHistory] = useState<any[]>([]);
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('todos');
@@ -45,11 +46,14 @@ export default function ServicesPage() {
     loadServices();
   };
 
-  const filteredServices = services.filter(s => {
+  const safeServices = Array.isArray(services) ? services : [];
+  const safeTechnicians = Array.isArray(technicians) ? technicians : [];
+
+  const filteredServices = safeServices.filter(s => {
     const matchesSearch = !search || 
-      s.cliente_name.toLowerCase().includes(search.toLowerCase()) ||
-      s.cliente_phone.includes(search) ||
-      s.descricao?.toLowerCase().includes(search.toLowerCase());
+      (s.cliente_name?.toLowerCase().includes(search.toLowerCase()) ||
+      s.cliente_phone?.includes(search) ||
+      s.descricao?.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
     const matchesTab = activeTab === 'todos' || s.status === activeTab;
     const matchesTech = techFilter === 'all' || s.tecnico_id === techFilter;
@@ -84,6 +88,45 @@ export default function ServicesPage() {
     }
   };
 
+  const handleDeleteService = async (serviceId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.')) {
+      await deleteService(serviceId);
+      loadData();
+      if (selectedService?.id === serviceId) {
+        setSelectedService(null);
+        setShowDetail(false);
+      }
+    }
+  };
+
+  const handleEditService = (service: Service, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedService(service);
+    setShowEdit(true);
+  };
+
+  const handleUpdateService = async (serviceId: string, data: Partial<Service>) => {
+    await unifiedDataService.saveService({
+      id: serviceId,
+      client_id: data.cliente_id,
+      client_name: data.cliente_name,
+      client_phone: data.cliente_phone,
+      client_address: data.cliente_address,
+      type: data.tipo_servico,
+      technician_id: data.tecnico_id,
+      technician_name: data.tecnico_name,
+      status: data.status,
+      observations: data.descricao,
+      scheduled_date: data.data_agendamento,
+    });
+    loadData();
+    setShowEdit(false);
+    if (selectedService?.id === serviceId) {
+      setSelectedService(services.find(s => s.id === serviceId) || null);
+    }
+  };
+
   const openDetail = (service: Service) => {
     setSelectedService(service);
     setServiceHistory([]);
@@ -91,12 +134,12 @@ export default function ServicesPage() {
   };
 
   const stats = {
-    total: services.length,
-    pendente: services.filter(s => s.status === 'pendente').length,
-    designado: services.filter(s => s.status === 'designado').length,
-    emAndamento: services.filter(s => s.status === 'em_andamento').length,
-    finalized: services.filter(s => s.status === 'finalizado').length,
-    cancelado: services.filter(s => s.status === 'cancelado').length,
+    total: safeServices.length,
+    pendente: safeServices.filter(s => s.status === 'pendente').length,
+    designado: safeServices.filter(s => s.status === 'designado').length,
+    emAndamento: safeServices.filter(s => s.status === 'em_andamento').length,
+    finalized: safeServices.filter(s => s.status === 'finalizado').length,
+    cancelado: safeServices.filter(s => s.status === 'cancelado').length,
   };
 
   const tabs: { id: TabType; label: string; count: number; color: string; activeBg: string }[] = [
@@ -247,7 +290,7 @@ export default function ServicesPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            {technicians.map(tech => (
+            {safeTechnicians.map(tech => (
               <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
             ))}
           </SelectContent>
@@ -318,6 +361,24 @@ export default function ServicesPage() {
                     <Badge className={SERVICE_STATUS_COLORS[service.status]}>
                       {SERVICE_STATUS_LABELS[service.status]}
                     </Badge>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                      onClick={(e) => handleEditService(service, e)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
+                      onClick={(e) => handleDeleteService(service.id, e)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                   <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
                 </div>
@@ -468,7 +529,7 @@ export default function ServicesPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Selecionar técnico...</SelectItem>
-                    {technicians.map(tech => (
+            {safeTechnicians.map(tech => (
                       <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -539,6 +600,17 @@ export default function ServicesPage() {
           setShowCreate(false);
         }}
       />
+
+      {/* Edit Service Dialog */}
+      <EditServiceDialog
+        open={showEdit}
+        onOpenChange={setShowEdit}
+        service={selectedService}
+        technicians={technicians}
+        onUpdated={() => {
+          loadData();
+        }}
+      />
     </div>
   );
 }
@@ -560,13 +632,13 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
     tecnico_id: '',
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.cliente_name || !form.cliente_phone) return;
     
     const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'none');
     const tecnicoId = form.tecnico_id && form.tecnico_id !== 'none' ? form.tecnico_id : undefined;
     
-    createService({
+    await createService({
       cliente_id: `cliente_${Date.now()}`,
       cliente_name: form.cliente_name,
       cliente_phone: form.cliente_phone,
@@ -667,7 +739,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum - Ficará pendente</SelectItem>
-                {technicians.map(tech => (
+                {(technicians || []).map(tech => (
                   <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -682,6 +754,194 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
             disabled={!form.cliente_name || !form.cliente_phone}
           >
             Criar Serviço
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  service: Service | null;
+  technicians: any[];
+  onUpdated: () => void;
+}) {
+  const [form, setForm] = useState({
+    cliente_name: '',
+    cliente_phone: '',
+    cliente_address: '',
+    tipo_servico: 'instalacao' as ServiceType,
+    status: 'pendente' as ServiceStatus,
+    descricao: '',
+    data_agendamento: '',
+    tecnico_id: '',
+    tecnico_name: '',
+  });
+
+  useEffect(() => {
+    if (service) {
+      setForm({
+        cliente_name: service.cliente_name || '',
+        cliente_phone: service.cliente_phone || '',
+        cliente_address: service.cliente_address || '',
+        tipo_servico: service.tipo_servico as ServiceType || 'instalacao',
+        status: service.status || 'pendente',
+        descricao: service.descricao || '',
+        data_agendamento: service.data_agendamento ? service.data_agendamento.split('T')[0] : '',
+        tecnico_id: service.tecnico_id || '',
+        tecnico_name: service.tecnico_name || '',
+      });
+    }
+  }, [service]);
+
+  const handleSubmit = async () => {
+    if (!form.cliente_name || !form.cliente_phone || !service) return;
+    
+    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'none');
+    
+    await unifiedDataService.saveService({
+      id: service.id,
+      client_id: service.cliente_id,
+      client_name: form.cliente_name,
+      client_phone: form.cliente_phone,
+      client_address: form.cliente_address,
+      type: form.tipo_servico,
+      technician_id: form.tecnico_id && form.tecnico_id !== 'none' ? form.tecnico_id : undefined,
+      technician_name: tech?.name,
+      status: form.status,
+      observations: form.descricao,
+      scheduled_date: form.data_agendamento || undefined,
+    });
+    
+    setForm({
+      cliente_name: '',
+      cliente_phone: '',
+      cliente_address: '',
+      tipo_servico: 'instalacao',
+      status: 'pendente',
+      descricao: '',
+      data_agendamento: '',
+      tecnico_id: '',
+      tecnico_name: '',
+    });
+    onUpdated();
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="w-5 h-5" />
+            Editar Serviço
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Nome do Cliente *</Label>
+            <Input 
+              value={form.cliente_name}
+              onChange={(e) => setForm({...form, cliente_name: e.target.value})}
+              placeholder="Nome completo"
+            />
+          </div>
+          <div>
+            <Label>Telefone *</Label>
+            <Input 
+              value={form.cliente_phone}
+              onChange={(e) => setForm({...form, cliente_phone: e.target.value})}
+              placeholder="(00) 00000-0000"
+            />
+          </div>
+          <div>
+            <Label>Endereço</Label>
+            <Input 
+              value={form.cliente_address}
+              onChange={(e) => setForm({...form, cliente_address: e.target.value})}
+              placeholder="Endereço completo"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Tipo de Serviço</Label>
+              <Select 
+                value={form.tipo_servico}
+                onValueChange={(v) => setForm({...form, tipo_servico: v as ServiceType})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(SERVICE_TYPE_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select 
+                value={form.status}
+                onValueChange={(v) => setForm({...form, status: v as ServiceStatus})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SERVICE_STATUS_ORDER.map((status) => (
+                    <SelectItem key={status} value={status}>{SERVICE_STATUS_LABELS[status]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Data Agendamento</Label>
+              <Input 
+                type="date"
+                value={form.data_agendamento}
+                onChange={(e) => setForm({...form, data_agendamento: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Atribuir Técnico</Label>
+              <Select 
+                value={form.tecnico_id}
+                onValueChange={(v) => setForm({...form, tecnico_id: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar técnico" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {(technicians || []).map(tech => (
+                    <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label>Descrição</Label>
+            <Textarea 
+              value={form.descricao}
+              onChange={(e) => setForm({...form, descricao: e.target.value})}
+              placeholder="Descrição do serviço..."
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button 
+            onClick={handleSubmit}
+            className="bg-blue-600"
+            disabled={!form.cliente_name || !form.cliente_phone}
+          >
+            Salvar Alterações
           </Button>
         </DialogFooter>
       </DialogContent>
