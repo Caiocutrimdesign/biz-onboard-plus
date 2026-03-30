@@ -113,7 +113,7 @@ export function RegistrationFlow({ onClose }: Props) {
       
       const customerId = generateUUID();
       
-      const customerData: CustomerData = {
+      const customerData: any = {
         id: customerId,
         full_name: data.full_name || 'Cliente',
         phone: data.phone || '',
@@ -135,20 +135,18 @@ export function RegistrationFlow({ onClose }: Props) {
         payment_method: data.payment_method || '',
         technician_id: data.technician_id || '',
         technician_name: data.technician_name || '',
-        status: 'novo_cadastro',
+        status: 'novo_cadastro' as any,
         created_at: new Date().toISOString(),
       };
 
+      // 1. Save to Unified Data Service (handles Supabase + Local cache + Dashboard refresh)
+      console.log('⏳ Salvando cadastro principal...');
+      await saveCustomer(customerData);
+      console.log('✅ Cadastro principal salvo com sucesso!');
+
+      // 2. Create CRM Lead in Supabase
       if (isSupabaseConfigured() && supabase) {
-        const { error: customerError } = await supabase
-          .from('customers')
-          .insert(customerData);
-
-        if (customerError) {
-          console.error('Erro ao salvar no Supabase:', customerError);
-          throw customerError;
-        }
-
+        console.log('⏳ Criando lead no CRM...');
         const leadData = {
           name: data.full_name || 'Cliente',
           email: data.email || null,
@@ -169,11 +167,17 @@ export function RegistrationFlow({ onClose }: Props) {
           stage_id: 'stage-1',
         };
 
-        await supabase.from('leads').insert(leadData);
-        
-        console.log('✅ Cadastro salvo no Supabase com sucesso!');
-        
-        if (data.email) {
+        const { error: leadError } = await supabase.from('leads').insert(leadData);
+        if (leadError) {
+          console.warn('⚠️ Erro ao criar lead no CRM (não crítico):', leadError);
+        } else {
+          console.log('✅ Lead criado no CRM com sucesso!');
+        }
+      }
+
+      // 3. Send Emails
+      if (data.email) {
+        try {
           console.log('📧 Enviando email de boas-vindas...');
           await sendWelcomeEmail({
             to: data.email,
@@ -182,67 +186,20 @@ export function RegistrationFlow({ onClose }: Props) {
             vehicle: data.brand && data.model ? `${data.brand} ${data.model}` : undefined,
             plate: data.plate,
           });
-        }
-      } else {
-        console.warn('⚠️ Supabase não configurado, salvando localmente...');
-        await saveCustomerData(customerData);
-        console.log('✅ Cadastro salvo localmente!');
-        
-        if (data.email) {
-          console.log('📧 Enviando email de boas-vindas (local)...');
-          await sendWelcomeEmail({
-            to: data.email,
-            customerName: data.full_name || 'Cliente',
-            plan: data.plan,
-            vehicle: data.brand && data.model ? `${data.brand} ${data.model}` : undefined,
-            plate: data.plate,
-          });
+          console.log('✅ Email enviado!');
+        } catch (emailErr) {
+          console.warn('⚠️ Erro ao enviar email (não crítico):', emailErr);
         }
       }
 
       next();
     } catch (err: any) {
-      console.error('Erro completo:', err);
+      console.error('❌ Erro crítico no salvamento:', err);
+      setError('Ocorreu um erro ao salvar seu cadastro. Por favor, tente novamente.');
       
-      const customerData: CustomerData = {
-        full_name: data.full_name || 'Cliente',
-        phone: data.phone || '',
-        cpf_cnpj: data.cpf_cnpj || '',
-        email: data.email || '',
-        cep: data.cep || '',
-        street: data.street || '',
-        number: data.number || '',
-        neighborhood: data.neighborhood || '',
-        city: data.city || '',
-        state: data.state || '',
-        vehicle_type: data.vehicle_type || '',
-        plate: data.plate || '',
-        brand: data.brand || '',
-        model: data.model || '',
-        year: data.year || '',
-        color: data.color || '',
-        plan: data.plan || '',
-        payment_method: data.payment_method || '',
-        status: 'novo_cadastro',
-        created_at: new Date().toISOString(),
-      };
-      
-      await saveCustomerData(customerData);
-      
-      console.log('✅ Cadastro salvo localmente como fallback!');
-      
-      if (data.email) {
-        console.log('📧 Enviando email de boas-vindas (fallback)...');
-        await sendWelcomeEmail({
-          to: data.email,
-          customerName: data.full_name || 'Cliente',
-          plan: data.plan,
-          vehicle: data.brand && data.model ? `${data.brand} ${data.model}` : undefined,
-          plate: data.plate,
-        });
-      }
-      
-      next();
+      // Still allow "Success" step if we saved at least locally via saveCustomer
+      // but only if the error happened AFTER saveCustomer
+      // For now, let's just show the error to ensure "sem erros" requirement
     } finally {
       setIsSubmitting(false);
     }

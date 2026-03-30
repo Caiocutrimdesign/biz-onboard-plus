@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useServices } from '@/contexts/ServiceContext';
+import { useData } from '@/contexts/DataContext';
+import { type UnifiedService } from '@/lib/unifiedDataService';
 import type { Service, ServiceStatus, ServiceType } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS, SERVICE_STATUS_ORDER } from '@/types/service';
 import { unifiedDataService } from '@/lib/unifiedDataService';
@@ -23,7 +24,7 @@ import { customerService } from '@/lib/customerService';
 type TabType = 'todos' | 'pendente' | 'designado' | 'em_andamento' | 'finalizado' | 'cancelado';
 
 export default function ServicesPage() {
-  const { services, loading, loadServices, assignTech, updateServiceStatus, createService, deleteService } = useServices();
+  const { servicos, isLoading: loading, refreshServices, addServico, updateServico, deleteServico } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [techFilter, setTechFilter] = useState<string>('all');
@@ -43,10 +44,33 @@ export default function ServicesPage() {
   const loadData = async () => {
     const tecnicos = await unifiedDataService.getTecnicos();
     setTechnicians(tecnicos);
-    loadServices();
+    await refreshServices();
   };
 
-  const safeServices = Array.isArray(services) ? services : [];
+  const convertToService = (unified: UnifiedService): Service => ({
+    id: unified.id,
+    cliente_id: unified.client_id || '',
+    cliente_name: unified.client_name,
+    cliente_phone: unified.client_phone,
+    cliente_address: unified.client_address,
+    tipo_servico: unified.type as ServiceType,
+    descricao: unified.observations || '',
+    data_agendamento: unified.scheduled_date,
+    status: unified.status as ServiceStatus,
+    tecnico_id: unified.technician_id,
+    tecnico_name: unified.technician_name,
+    data_criacao: unified.created_at,
+    data_inicio: unified.status === 'em_andamento' ? unified.updated_at : undefined,
+    data_finalizacao: unified.completed_date,
+    fotos_inicio: [],
+    fotos_final: [],
+    observacoes_tecnico: '',
+    criado_por: 'admin',
+    updated_at: unified.updated_at,
+  });
+
+  const services = (servicos || []).map(convertToService);
+  const safeServices = services;
   const safeTechnicians = Array.isArray(technicians) ? technicians : [];
 
   const filteredServices = safeServices.filter(s => {
@@ -60,39 +84,45 @@ export default function ServicesPage() {
     return matchesSearch && matchesStatus && matchesTab && matchesTech;
   });
 
-  const handleAssignTech = (serviceId: string, techId: string) => {
-    const tech = technicians.find(t => t.id === techId);
+  const handleAssignTech = async (serviceId: string, techId: string) => {
+    const tech = safeTechnicians.find(t => t.id === techId);
     if (tech) {
-      assignTech(serviceId, tech.id, tech.name);
-      loadData();
+      await updateServico(serviceId, {
+        technician_id: tech.id,
+        technician_name: tech.name,
+        status: 'designado' as any,
+      });
       if (selectedService?.id === serviceId) {
-        setSelectedService(services.find(s => s.id === serviceId) || null);
+        const updated = services.find(s => s.id === serviceId);
+        if (updated) setSelectedService(updated);
       }
     }
   };
 
-  const handleReassignTech = (serviceId: string, techId: string) => {
-    const tech = technicians.find(t => t.id === techId);
+  const handleReassignTech = async (serviceId: string, techId: string) => {
+    const tech = safeTechnicians.find(t => t.id === techId);
     if (tech) {
-      assignTech(serviceId, tech.id, tech.name);
-      loadData();
+      await updateServico(serviceId, {
+        technician_id: tech.id,
+        technician_name: tech.name,
+        status: 'designado' as any,
+      });
       setShowDetail(false);
     }
   };
 
-  const handleUpdateStatus = (serviceId: string, status: ServiceStatus) => {
-    updateServiceStatus(serviceId, status);
-    loadData();
+  const handleUpdateStatus = async (serviceId: string, status: ServiceStatus) => {
+    await updateServico(serviceId, { status: status as any });
     if (selectedService?.id === serviceId) {
-      setSelectedService(services.find(s => s.id === serviceId) || null);
+      const updated = services.find(s => s.id === serviceId);
+      if (updated) setSelectedService(updated);
     }
   };
 
   const handleDeleteService = async (serviceId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.')) {
-      await deleteService(serviceId);
-      loadData();
+      await deleteServico(serviceId);
       if (selectedService?.id === serviceId) {
         setSelectedService(null);
         setShowDetail(false);
@@ -107,8 +137,7 @@ export default function ServicesPage() {
   };
 
   const handleUpdateService = async (serviceId: string, data: Partial<Service>) => {
-    await unifiedDataService.saveService({
-      id: serviceId,
+    await updateServico(serviceId, {
       client_id: data.cliente_id,
       client_name: data.cliente_name,
       client_phone: data.cliente_phone,
@@ -116,15 +145,11 @@ export default function ServicesPage() {
       type: data.tipo_servico,
       technician_id: data.tecnico_id,
       technician_name: data.tecnico_name,
-      status: data.status,
+      status: data.status as any,
       observations: data.descricao,
       scheduled_date: data.data_agendamento,
     });
-    loadData();
     setShowEdit(false);
-    if (selectedService?.id === serviceId) {
-      setSelectedService(services.find(s => s.id === serviceId) || null);
-    }
   };
 
   const openDetail = (service: Service) => {
@@ -596,7 +621,6 @@ export default function ServicesPage() {
         onOpenChange={setShowCreate}
         technicians={technicians}
         onCreated={() => {
-          loadData();
           setShowCreate(false);
         }}
       />
@@ -621,7 +645,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
   technicians: any[];
   onCreated: () => void;
 }) {
-  const { createService } = useServices();
+  const { addServico } = useData();
   const [form, setForm] = useState({
     cliente_name: '',
     cliente_phone: '',
@@ -638,17 +662,17 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
     const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'none');
     const tecnicoId = form.tecnico_id && form.tecnico_id !== 'none' ? form.tecnico_id : undefined;
     
-    await createService({
-      cliente_id: `cliente_${Date.now()}`,
-      cliente_name: form.cliente_name,
-      cliente_phone: form.cliente_phone,
-      cliente_address: form.cliente_address,
-      tipo_servico: form.tipo_servico,
-      descricao: form.descricao,
-      data_agendamento: form.data_agendamento || undefined,
-      tecnico_id: tecnicoId,
-      tecnico_name: tech?.name,
-      criado_por: 'admin',
+    await addServico({
+      client_id: `cliente_${Date.now()}`,
+      client_name: form.cliente_name,
+      client_phone: form.cliente_phone,
+      client_address: form.cliente_address,
+      type: form.tipo_servico,
+      observations: form.descricao,
+      scheduled_date: form.data_agendamento || undefined,
+      technician_id: tecnicoId,
+      technician_name: tech?.name,
+      status: tecnicoId ? 'designado' : 'pendente',
     });
     
     setForm({
@@ -768,6 +792,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
   technicians: any[];
   onUpdated: () => void;
 }) {
+  const { updateServico } = useData();
   const [form, setForm] = useState({
     cliente_name: '',
     cliente_phone: '',
@@ -801,8 +826,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
     
     const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'none');
     
-    await unifiedDataService.saveService({
-      id: service.id,
+    await updateServico(service.id, {
       client_id: service.cliente_id,
       client_name: form.cliente_name,
       client_phone: form.cliente_phone,
@@ -810,7 +834,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
       type: form.tipo_servico,
       technician_id: form.tecnico_id && form.tecnico_id !== 'none' ? form.tecnico_id : undefined,
       technician_name: tech?.name,
-      status: form.status,
+      status: form.status as any,
       observations: form.descricao,
       scheduled_date: form.data_agendamento || undefined,
     });

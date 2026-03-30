@@ -16,6 +16,10 @@ interface DataContextValue {
   saveTecnico: (tecnico: Partial<UnifiedTecnico>) => Promise<UnifiedTecnico>;
   deleteTecnico: (id: string) => Promise<void>;
   saveService: (service: Partial<UnifiedService>) => Promise<UnifiedService>;
+  servicos: UnifiedService[];
+  addServico: (service: Partial<UnifiedService>) => Promise<UnifiedService>;
+  updateServico: (id: string, service: Partial<UnifiedService>) => Promise<void>;
+  deleteServico: (id: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -74,6 +78,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return await unifiedDataService.saveService(service);
   }, []);
 
+  const addServico = useCallback(async (service: Partial<UnifiedService>) => {
+    const result = await unifiedDataService.saveService(service);
+    await refreshServices();
+    return result;
+  }, [refreshServices]);
+
+  const updateServico = useCallback(async (id: string, service: Partial<UnifiedService>) => {
+    await unifiedDataService.saveService({ ...service, id });
+    await refreshServices();
+  }, [refreshServices]);
+
+  const deleteServico = useCallback(async (id: string) => {
+    await unifiedDataService.deleteService(id);
+    await refreshServices();
+  }, [refreshServices]);
+
   useEffect(() => {
     refreshAll();
 
@@ -114,6 +134,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveTecnico,
     deleteTecnico,
     saveService,
+    addServico,
+    updateServico,
+    deleteServico,
+    servicos: services,
   };
 
   return (

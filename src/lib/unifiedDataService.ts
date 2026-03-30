@@ -516,7 +516,16 @@ class UnifiedDataService {
       return { ...newService, id: data?.id || serviceId };
     }
 
-    throw new Error('Supabase not configured');
+    // Local fallback if Supabase is not configured
+    const services = await this.getServices();
+    const index = services.findIndex(s => s.id === serviceId);
+    if (index >= 0) {
+      services[index] = newService;
+    } else {
+      services.push(newService);
+    }
+    this.notify('services', [...services]);
+    return newService;
   }
 
   async updateServiceStatus(id: string, status: UnifiedService['status']): Promise<void> {
