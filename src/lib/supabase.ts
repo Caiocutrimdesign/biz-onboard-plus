@@ -1,22 +1,10 @@
-// Updated for Lovable - RLS fixed
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+// Unified Supabase client - re-exports from integrations to avoid duplicate instances
+import { supabase } from '@/integrations/supabase/client';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-const DEFAULT_SUPABASE_URL = 'https://xzbwubngwnujnjqljstc.supabase.co';
-const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6Ynd1Ym5nd251am5qcWxqc3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzIwMDYsImV4cCI6MjA5MDMwODAwNn0.Sj5OVd5t4O3orwP1rzOgujkrwpPfmub1M0uS1npDM4g';
-
-const finalUrl = supabaseUrl || DEFAULT_SUPABASE_URL;
-const finalKey = supabaseAnonKey || DEFAULT_SUPABASE_KEY;
-
-console.log('🔧 Supabase URL:', finalUrl);
-console.log('🔧 Supabase configured:', !!(finalUrl && finalKey));
-
-export const supabase: SupabaseClient = createClient(finalUrl, finalKey);
+export { supabase };
 
 export const isSupabaseConfigured = (): boolean => {
-  return !!supabase && !!finalUrl && !!finalKey;
+  return !!supabase;
 };
 
 export type LeadStatus = 
