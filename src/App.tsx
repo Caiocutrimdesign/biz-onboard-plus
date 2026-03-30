@@ -160,22 +160,67 @@ function AppRoutes() {
   );
 }
 
+// Error Boundary for the whole app
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("APP CRASH:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background p-4 text-center">
+          <div className="max-w-md space-y-4">
+            <h1 className="text-2xl font-bold text-destructive">Oops! Algo deu errado.</h1>
+            <p className="text-muted-foreground">O sistema encontrou um erro inesperado.</p>
+            <div className="bg-muted p-4 rounded-lg text-left overflow-auto max-h-40">
+              <code className="text-xs text-destructive">{this.state.error?.message}</code>
+            </div>
+            <Button 
+              onClick={() => window.location.href = '/'}
+              className="bg-orange-500"
+            >
+              Reiniciar Aplicativo
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <DataProvider>
-          <AgentProvider autoStart={false}>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-          </AgentProvider>
-        </DataProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <DataProvider>
+            <AgentProvider autoStart={false}>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </AgentProvider>
+          </DataProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

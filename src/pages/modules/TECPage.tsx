@@ -182,7 +182,7 @@ export default function TECPage() {
       
       let filteredServices = servicesData || [];
       if (isTechnician && userId) {
-        filteredServices = (servicesData || []).filter((s: Service) => s.technician_id === userId);
+        filteredServices = (servicesData || []).filter((s: any) => s && s.technician_id === userId);
       }
       
       const registeredTecnicos = (tecnicosData || []).map((t: any) => ({
@@ -506,13 +506,15 @@ function HomeView({ services, loading, onNewClient, userName, goTo }: {
     ).length,
     pending: safeServices.filter(s => s?.status === 'pendente').length,
     inProgress: safeServices.filter(s => s?.status === 'em_andamento').length,
-    completed: safeServices.filter(s => s?.status === 'concluido').length,
+    completed: safeServices.filter(s => s?.status === 'concluido' || s?.status === 'finalizado').length,
     all: safeServices.length,
   };
 
   const filteredServices = safeServices.filter(service => {
+    if (!service) return false;
     if (filterTab === 'todos') return true;
-    return service?.status === filterTab;
+    if (filterTab === 'concluido') return service.status === 'concluido' || service.status === 'finalizado';
+    return service.status === filterTab;
   });
 
   const filterTabs: { id: FilterTab; label: string; count: number; color: string; activeBg: string }[] = [
