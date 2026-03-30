@@ -1,15 +1,19 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-// Only create client if we have valid credentials
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+const DEFAULT_SUPABASE_URL = 'https://xzbwubngwnujnjqljstc.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6Ynd1Ym5nd251am5qcWxqc3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzIwMDYsImV4cCI6MjA5MDMwODAwNn0.Sj5OVd5t4O3orwP1rzOgujkrwpPfmub1M0uS1npDM4g';
 
-// Helper to check if Supabase is configured
-export const isSupabaseConfigured = () => !!supabase;
+const finalUrl = supabaseUrl || DEFAULT_SUPABASE_URL;
+const finalKey = supabaseAnonKey || DEFAULT_SUPABASE_KEY;
+
+export const supabase: SupabaseClient = createClient(finalUrl, finalKey);
+
+export const isSupabaseConfigured = (): boolean => {
+  return !!supabase && !!finalUrl && !!finalKey;
+};
 
 export type LeadStatus = 
   | 'novo'
