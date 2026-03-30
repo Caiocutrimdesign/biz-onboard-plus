@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   User, Phone, MapPin, ChevronLeft, Save, 
-  Trash2, Mail, CreditCard, Building, MapPinned
+  Trash2, Mail, CreditCard, Building, MapPinned, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,36 +12,53 @@ import { Client } from './TecTypes';
 
 interface ClientFormViewProps {
   client: Client | null;
-  onSave: (client: Client) => void;
+  onSave: (client: Client) => Promise<void>;
   onBack: () => void;
   technicians: Technician[];
 }
 
 export function ClientFormView({ client, onSave, onBack, technicians }: ClientFormViewProps) {
-  const [form, setForm] = useState<Client>(client || {
-    id: `client_${Date.now()}`,
-    name: '',
-    phone: '',
-    email: '',
-    cpf: '',
-    address: '',
-    neighborhood: '',
-    city: '',
-    state: '',
-    cep: '',
-    vehicle: '',
-    vehicleBrand: '',
-    vehicleModel: '',
-    vehicleYear: '',
-    vehicleColor: '',
-    plate: '',
-    renavam: '',
-    technician_id: '',
-    technician_name: '',
+  const [form, setForm] = useState<Client>({
+    id: client?.id || `client_${Date.now()}`,
+    name: client?.name || '',
+    phone: client?.phone || '',
+    email: client?.email || '',
+    cpf: client?.cpf || '',
+    address: client?.address || '',
+    neighborhood: client?.neighborhood || '',
+    city: client?.city || '',
+    state: client?.state || '',
+    cep: client?.cep || '',
+    vehicle: client?.vehicle || '',
+    vehicleBrand: client?.vehicleBrand || '',
+    vehicleModel: client?.vehicleModel || '',
+    vehicleYear: client?.vehicleYear || '',
+    vehicleColor: client?.vehicleColor || '',
+    plate: client?.plate || '',
+    renavam: client?.renavam || '',
+    technician_id: client?.technician_id || '',
+    technician_name: client?.technician_name || '',
   });
   const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
 
   const isValid = form.name.trim() && form.phone.trim();
+
+  const handleSave = async () => {
+    if (saving) return;
+    
+    console.log('ClientFormView: Starting save, form data:', form);
+    setSaving(true);
+    
+    try {
+      await onSave(form);
+      console.log('ClientFormView: Save completed successfully');
+    } catch (error: any) {
+      console.error('ClientFormView: Save failed:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -211,16 +228,39 @@ export function ClientFormView({ client, onSave, onBack, technicians }: ClientFo
 
           <div className="pt-4 flex gap-3">
             {step === 1 ? (
-              <Button className="flex-1 bg-orange-600" disabled={!isValid} onClick={() => setStep(2)}>
+              <Button 
+                className="flex-1 bg-orange-600" 
+                disabled={!isValid} 
+                onClick={() => setStep(2)}
+              >
                 Próximo Passo
               </Button>
             ) : (
               <>
-                <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => setStep(1)}
+                  disabled={saving}
+                >
                   Voltar
                 </Button>
-                <Button className="flex-1 bg-orange-600" onClick={() => onSave(form)}>
-                  Finalizar Cadastro
+                <Button 
+                  className="flex-1 bg-orange-600" 
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Finalizar Cadastro
+                    </>
+                  )}
                 </Button>
               </>
             )}
