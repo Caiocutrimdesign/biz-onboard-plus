@@ -376,7 +376,7 @@ export default function ServicesPage() {
                         {service.tecnico_name}
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Sem técnico</p>
+                      <p className="text-sm text-muted-foreground italic">Sem técnico</p>
                     )}
                     <Badge className={SERVICE_STATUS_COLORS[service.status]}>
                       {SERVICE_STATUS_LABELS[service.status]}
@@ -553,7 +553,7 @@ export default function ServicesPage() {
                     <SelectValue placeholder="Selecionar técnico" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Selecionar técnico...</SelectItem>
+                    <SelectItem value="sem_tecnico">Nenhum técnico</SelectItem>
             {safeTechnicians.map(tech => (
                       <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                     ))}
@@ -653,14 +653,14 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
     tipo_servico: 'instalacao' as ServiceType,
     descricao: '',
     data_agendamento: '',
-    tecnico_id: '',
+    tecnico_id: 'sem_tecnico',
   });
 
   const handleSubmit = async () => {
     if (!form.cliente_name || !form.cliente_phone) return;
     
-    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'none');
-    const tecnicoId = form.tecnico_id && form.tecnico_id !== 'none' ? form.tecnico_id : undefined;
+    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
+    const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined;
     
     await addServico({
       client_id: `cliente_${Date.now()}`,
@@ -762,7 +762,7 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
                 <SelectValue placeholder="Selecionar técnico (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Nenhum - Ficará pendente</SelectItem>
+                <SelectItem value="sem_tecnico">Nenhum técnico</SelectItem>
                 {(technicians || []).map(tech => (
                   <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                 ))}
@@ -815,7 +815,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
         status: service.status || 'pendente',
         descricao: service.descricao || '',
         data_agendamento: service.data_agendamento ? service.data_agendamento.split('T')[0] : '',
-        tecnico_id: service.tecnico_id || '',
+        tecnico_id: service.tecnico_id || 'sem_tecnico',
         tecnico_name: service.tecnico_name || '',
       });
     }
@@ -824,7 +824,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
   const handleSubmit = async () => {
     if (!form.cliente_name || !form.cliente_phone || !service) return;
     
-    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'none');
+    const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
     
     await updateServico(service.id, {
       client_id: service.cliente_id,
@@ -832,7 +832,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
       client_phone: form.cliente_phone,
       client_address: form.cliente_address,
       type: form.tipo_servico,
-      technician_id: form.tecnico_id && form.tecnico_id !== 'none' ? form.tecnico_id : undefined,
+      technician_id: form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined,
       technician_name: tech?.name,
       status: form.status as any,
       observations: form.descricao,
@@ -941,7 +941,7 @@ function EditServiceDialog({ open, onOpenChange, service, technicians, onUpdated
                   <SelectValue placeholder="Selecionar técnico" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
+                  <SelectItem value="sem_tecnico">Nenhum técnico</SelectItem>
                   {(technicians || []).map(tech => (
                     <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                   ))}
