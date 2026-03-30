@@ -30,46 +30,10 @@ import CRMAgentsPage from "./pages/modules/CRMAgentsPage";
 
 const queryClient = new QueryClient();
 
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: any, errorInfo: any) {
-    console.error("ErrorBoundary caught:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center p-8 max-w-md">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Algo deu errado ⚠️</h1>
-            <p className="text-muted-foreground mb-6">{this.state.error?.message || 'Erro desconhecido'}</p>
-            <Button 
-              onClick={() => window.location.reload()}
-              className="bg-primary text-white"
-            >
-              Recarregar Página
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 function AppRoutes() {
   return (
-    <ErrorBoundary>
-      <Routes>
+    <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/planos" element={<PlansPage />} />
         <Route path="/aprenda" element={<LearningPage />} />
@@ -193,7 +157,6 @@ function AppRoutes() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </ErrorBoundary>
   );
 }
 
