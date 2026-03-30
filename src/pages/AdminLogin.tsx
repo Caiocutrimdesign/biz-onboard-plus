@@ -43,7 +43,8 @@ export default function AdminLogin() {
       if (result.success) {
         toast.success(`Bem-vindo, ${result.user?.name}!`);
         
-        if (loginMode === 'tec') {
+        const userRole = result.user?.role;
+        if (loginMode === 'tec' || userRole === 'technician' || userRole === 'user') {
           navigate('/tec', { replace: true });
         } else {
           navigate('/admin?tab=clientes', { replace: true });
