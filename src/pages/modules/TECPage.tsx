@@ -180,10 +180,21 @@ export default function TECPage() {
     if (!currentService.id) return;
     try {
       console.log('TECPage: Starting service', currentService.id);
+      
+      // Update in database
+      const { supabase } = await import('@/lib/supabaseClient');
+      const { error } = await supabase
+        .from('tec_services')
+        .update({ status: 'em_andamento' })
+        .eq('id', currentService.id);
+      
+      if (error) throw error;
+      
       setCurrentService(prev => ({ ...prev, status: 'em_andamento' }));
-      toast.success('Serviço iniciado!');
-    } catch (error) {
+      toast.success('Serviço iniciado! Continue com as fotos.');
+    } catch (error: any) {
       console.error('TECPage: Error starting service', error);
+      toast.error('Erro ao iniciar serviço');
     }
   };
 
@@ -192,40 +203,65 @@ export default function TECPage() {
       setLoading(true);
       console.log('TECPage: Finalizing service');
       console.log('TECPage: Photos to save:', photos);
+      console.log('TECPage: Current service ID:', currentService.id);
       
       // Import supabase
       const { supabase } = await import('@/lib/supabaseClient');
       
-      // Build minimal service data
-      const serviceData = {
-        client_name: currentService.client_name || currentClient?.name || 'Cliente',
-        status: 'concluido',
-        completed_date: new Date().toISOString(),
-        observations: obs || null,
-        client_phone: currentService.client_phone || currentClient?.phone || null,
-        client_address: currentService.client_address || currentClient?.address || null,
-        signature: signature || null,
-        photos: (photos && photos.length > 0) ? JSON.stringify(photos) : null,
-        technician_id: user?.id || null,
-        technician_name: (user as any)?.full_name || user?.name || null,
-        vehicle: currentService.vehicle || currentClient?.vehicleModel || null,
-        plate: currentService.plate || currentClient?.plate || null,
-      };
+      const photosJson = (photos && photos.length > 0) ? JSON.stringify(photos) : null;
       
-      console.log('TECPage: Service data to save:', serviceData);
-      
-      // Save to Supabase
-      const { data, error } = await supabase
-        .from('tec_services')
-        .insert([serviceData])
-        .select();
-      
-      if (error) {
-        console.error('TECPage: Supabase error:', error);
-        throw new Error(error.message || 'Erro ao salvar no banco');
+      // If service has an ID, UPDATE it. Otherwise INSERT new
+      if (currentService.id) {
+        // Update existing service
+        const { data, error } = await supabase
+          .from('tec_services')
+          .update({
+            status: 'concluido',
+            completed_date: new Date().toISOString(),
+            observations: obs || currentService.observations || null,
+            signature: signature || null,
+            photos: photosJson || currentService.photos || null,
+          })
+          .eq('id', currentService.id)
+          .select();
+        
+        if (error) {
+          console.error('TECPage: Supabase update error:', error);
+          throw new Error(error.message || 'Erro ao atualizar no banco');
+        }
+        
+        console.log('TECPage: Service updated successfully:', data);
+      } else {
+        // Insert new service (from new client flow)
+        const serviceData = {
+          client_name: currentService.client_name || currentClient?.name || 'Cliente',
+          client_phone: currentService.client_phone || currentClient?.phone || null,
+          client_address: currentService.client_address || currentClient?.address || null,
+          observations: obs || null,
+          signature: signature || null,
+          photos: photosJson,
+          technician_id: user?.id || null,
+          technician_name: (user as any)?.full_name || user?.name || null,
+          vehicle: currentService.vehicle || currentClient?.vehicleModel || null,
+          plate: currentService.plate || currentClient?.plate || null,
+          status: 'concluido',
+          completed_date: new Date().toISOString(),
+        };
+        
+        console.log('TECPage: Service data to insert:', serviceData);
+        
+        const { data, error } = await supabase
+          .from('tec_services')
+          .insert([serviceData])
+          .select();
+        
+        if (error) {
+          console.error('TECPage: Supabase insert error:', error);
+          throw new Error(error.message || 'Erro ao salvar no banco');
+        }
+        
+        console.log('TECPage: Service inserted successfully:', data);
       }
-      
-      console.log('TECPage: Service saved successfully:', data);
 
       toast.success('Atendimento concluído com sucesso!');
       loadData();
@@ -328,6 +364,10 @@ export default function TECPage() {
                 loading={loading}
                 onBack={() => goTo('home')}
                 goTo={goTo}
+                onSelectService={(service) => {
+                  console.log('TECPage: Service selected from list:', service);
+                  setCurrentService(service);
+                }}
                 filter={view === 'servicos-designados' ? 'pending' : 'all'}
               />
             )}

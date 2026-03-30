@@ -18,18 +18,18 @@ interface ServicesListViewProps {
   loading: boolean;
   onBack: () => void;
   goTo: (view: TECView) => void;
+  onSelectService?: (service: Service) => void;
   filter?: 'pending' | 'completed' | 'all' | 'pendente' | 'concluido';
 }
 
 type TabType = 'todos' | 'pendente' | 'em_andamento' | 'concluido';
 
-export function ServicesListView({ services, loading, onBack, goTo, filter = 'all' }: ServicesListViewProps) {
+export function ServicesListView({ services, loading, onBack, goTo, onSelectService, filter = 'all' }: ServicesListViewProps) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('todos');
   const [localLoading, setLocalLoading] = useState(false);
   const [allServices, setAllServices] = useState<Service[]>([]);
 
-  // Load all services on mount
   useEffect(() => {
     loadAllServices();
   }, []);
@@ -54,7 +54,6 @@ export function ServicesListView({ services, loading, onBack, goTo, filter = 'al
     { id: 'concluido', label: 'Concluídos', icon: CheckCircle },
   ];
 
-  // Use all services for display
   const displayServices = allServices.length > 0 ? allServices : services;
 
   const filteredServices = useMemo(() => {
@@ -85,6 +84,12 @@ export function ServicesListView({ services, loading, onBack, goTo, filter = 'al
 
   const handleServiceClick = (service: Service) => {
     console.log('Service clicked:', service);
+    if (onSelectService) {
+      onSelectService(service);
+      goTo('servico');
+    } else if (goTo) {
+      goTo('servico');
+    }
   };
 
   const getStatusBadge = (status: string) => {
