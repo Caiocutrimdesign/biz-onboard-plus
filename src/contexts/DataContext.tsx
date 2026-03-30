@@ -53,28 +53,51 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [refreshCustomers, refreshTecnicos, refreshServices]);
 
   const saveCustomer = useCallback(async (customer: Partial<Cliente>) => {
+    let result;
     if (customer.id) {
-      return await crmService.updateCliente(customer.id, customer);
+      result = await crmService.updateCliente(customer.id, customer);
     } else {
-      return await crmService.createCliente(customer as any);
+      result = await crmService.createCliente(customer as any);
     }
-  }, []);
+    // Refresh customers list after save
+    if (result?.success) {
+      await refreshCustomers();
+    }
+    return result;
+  }, [refreshCustomers]);
 
   const deleteCustomer = useCallback(async (id: string) => {
-    return await crmService.deleteCliente(id);
-  }, []);
+    const result = await crmService.deleteCliente(id);
+    if (result?.success) {
+      await refreshCustomers();
+    }
+    return result;
+  }, [refreshCustomers]);
 
   const addServico = useCallback(async (service: Partial<Servico>) => {
-    return await crmService.createServico(service as any);
-  }, []);
+    const result = await crmService.createServico(service as any);
+    // Refresh services list after add
+    if (result?.success) {
+      await refreshServices();
+    }
+    return result;
+  }, [refreshServices]);
 
   const updateServico = useCallback(async (id: string, service: Partial<Servico>) => {
-    return await crmService.updateServico(id, service);
-  }, []);
+    const result = await crmService.updateServico(id, service);
+    if (result?.success) {
+      await refreshServices();
+    }
+    return result;
+  }, [refreshServices]);
 
   const deleteServico = useCallback(async (id: string) => {
-    return await crmService.deleteServico(id);
-  }, []);
+    const result = await crmService.deleteServico(id);
+    if (result?.success) {
+      await refreshServices();
+    }
+    return result;
+  }, [refreshServices]);
 
   const updateTecnico = useCallback(async (id: string, updates: any) => {
     const res = await crmService.updateTecnico(id, updates);

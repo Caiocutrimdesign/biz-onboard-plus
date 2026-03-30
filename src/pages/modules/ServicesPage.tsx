@@ -623,6 +623,7 @@ export default function ServicesPage() {
         technicians={tecnicos}
         onCreated={() => {
           setShowCreate(false);
+          loadData(); // Refresh services list
         }}
       />
 

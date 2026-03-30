@@ -33,7 +33,7 @@ import type { Service, ServiceStatus, PhotoType, Technician } from '@/types/tec'
 
 export default function TECPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { saveCustomer, isLoading: dataLoading } = useData();
+  const { saveCustomer, isLoading: dataLoading, refreshServices } = useData();
   const [view, setView] = useState<TECView>('home');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,12 +52,22 @@ export default function TECPage() {
       setLoading(true);
       console.log('TECPage: Loading data for user', user.id);
       
-      const [tecServices, allTechnicians] = await Promise.all([
+      // Load all services for this technician
+      const [tecServices, allServices, allTechnicians] = await Promise.all([
         getServicesByTechnician(user.id),
+        crmService.getServicos(), // Get all services
         crmService.getTecnicos()
       ]);
       
-      setServices(tecServices as any as Service[]);
+      console.log('TECPage: Loaded services:', tecServices.length, 'for technician:', user.id);
+      console.log('TECPage: All services in system:', allServices.length);
+      
+      // Combine both lists and remove duplicates
+      const allServicesList = [...tecServices, ...allServices].filter((service, index, self) => 
+        index === self.findIndex(s => s.id === service.id)
+      );
+      
+      setServices(allServicesList as any as Service[]);
       setTechnicians(allTechnicians as any as Technician[]);
     } catch (error: any) {
       console.error('TECPage: Error loading data', error);
@@ -72,6 +82,13 @@ export default function TECPage() {
       loadData();
     }
   }, [user?.id, loadData]);
+
+  // Reload services when view changes to home
+  useEffect(() => {
+    if (view === 'home' && user?.id) {
+      loadData();
+    }
+  }, [view, user?.id, loadData]);
 
   const goTo = (newView: TECView) => {
     console.log(`TECPage: Navigating to ${newView}`);
@@ -95,7 +112,7 @@ export default function TECPage() {
       setLoading(true);
       console.log('TECPage: Saving client', clientData);
       
-      const { success, data, error } = await crmService.createCliente({
+      const result = await crmService.createCliente({
         full_name: clientData.name,
         phone: clientData.phone,
         email: clientData.email || null,
@@ -110,13 +127,15 @@ export default function TECPage() {
         technician_name: clientData.technician_name || user?.name || ''
       });
 
-      if (!success || !data) throw new Error(error || 'Erro ao cadastrar cliente');
+      if (!result.success) throw new Error(result.error || 'Erro ao cadastrar cliente');
+      
+      console.log('TECPage: Client saved with ID:', result.data?.id);
 
-      setCurrentClient({ ...clientData, id: data.id });
+      setCurrentClient({ ...clientData, id: result.data?.id });
       goTo('vendas');
     } catch (error: any) {
       console.error('TECPage: Error saving client', error);
-      toast.error(error.message);
+      toast.error(error.message || 'Erro ao cadastrar cliente');
     } finally {
       setLoading(false);
     }
@@ -146,9 +165,9 @@ export default function TECPage() {
     try {
       const id = currentService.id || currentClient?.id || 'unknown';
       console.log(`TECPage: Uploading ${type} photo for ${id}`);
-      const { success, url, error } = await crmService.uploadPhoto(file, id, type);
-      if (!success || !url) throw new Error(error || 'Erro no upload');
-      return url;
+      const result = await crmService.uploadPhoto(file, id, type) as { success: boolean; url?: string; error?: string };
+      if (!result.success || !result.url) throw new Error(result.error || 'Erro no upload');
+      return result.url;
     } catch (error: any) {
       console.error('TECPage: Photo upload error', error);
       toast.error('Erro ao enviar foto');
@@ -172,25 +191,24 @@ export default function TECPage() {
       setLoading(true);
       console.log('TECPage: Finalizing service', currentService.id);
       
-      const finalService = {
-        ...currentService,
-        status: 'concluido' as ServiceStatus,
-        observations: obs,
-        signature
-      };
-
-      const result = await createServiceCtx({
-        tipo_servico: finalService.type! as any,
+      // Save to database via CRM service directly
+      const result = await crmService.createServico({
+        client_id: currentService.client_id || '',
+        client_name: currentService.client_name || '',
+        client_phone: currentService.client_phone || '',
+        client_address: currentService.client_address || '',
+        type: currentService.type || 'suporte',
         status: 'concluido',
-        cliente_id: finalService.client_id!,
-        cliente_name: finalService.client_name!,
-        tecnico_id: user?.id!,
-        tecnico_name: user?.name || '',
-        vehicle: finalService.vehicle!,
-        plate: finalService.plate!,
-        descricao: finalService.observations!,
-        criado_por: 'tecnico'
+        observations: obs,
+        signature: signature,
+        technician_id: user?.id || '',
+        technician_name: user?.name || '',
+        vehicle: currentService.vehicle || '',
+        plate: currentService.plate || '',
+        scheduled_date: new Date().toISOString(),
       });
+
+      console.log('TECPage: Service save result:', result);
 
       if (!result.success) throw new Error(result.error || 'Erro ao salvar serviço');
 
@@ -199,7 +217,7 @@ export default function TECPage() {
       goTo('home');
     } catch (error: any) {
       console.error('TECPage: Error finalizing service', error);
-      toast.error(error.message);
+      toast.error(error.message || 'Erro ao finalizar serviço');
     } finally {
       setLoading(false);
     }
@@ -244,7 +262,7 @@ export default function TECPage() {
               <HomeView 
                 services={services}
                 loading={loading}
-                userName={user.full_name || user.name}
+                userName={(user as any).full_name || user.name || 'Técnico'}
                 onNewClient={startNewClient}
                 goTo={goTo}
               />
