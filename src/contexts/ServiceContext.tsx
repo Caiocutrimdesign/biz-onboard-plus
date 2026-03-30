@@ -104,11 +104,9 @@ export async function updateService(id: string, data: Partial<Service>, changedB
   const oldService = await getServiceById(id);
   
   await crmService.updateServico(id, {
-    client_id: data.cliente_id,
     client_name: data.cliente_name,
     client_phone: data.cliente_phone,
     client_address: data.cliente_address,
-    type: data.tipo_servico as string,
     technician_id: data.tecnico_id,
     technician_name: data.tecnico_name,
     status: data.status as any,
