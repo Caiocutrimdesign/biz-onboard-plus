@@ -724,26 +724,28 @@ function CreateServiceDialog({ open, onOpenChange, technicians, onCreated }: {
 
       // 2. Criar o serviço com o cliente_id
       const tech = technicians.find(t => t.id === form.tecnico_id && form.tecnico_id !== 'sem_tecnico');
-      const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : undefined;
+      const tecnicoId = form.tecnico_id && form.tecnico_id !== 'sem_tecnico' ? form.tecnico_id : '';
       
       const serviceData = {
-        client_id: clienteId,
         client_name: form.cliente_name,
-        client_phone: form.cliente_phone,
-        client_address: form.cliente_address,
-        type: form.tipo_servico,
-        observations: form.descricao,
-        scheduled_date: form.data_agendamento || undefined,
-        technician_id: tecnicoId,
-        technician_name: tech?.nome,
-        status: tecnicoId ? ('designado' as any) : ('pendente' as any),
-        vehicle: `${form.vehicle_brand} ${form.vehicle_model}`.trim() || form.vehicle,
-        plate: form.plate,
+        client_phone: form.cliente_phone || null,
+        client_address: form.cliente_address || null,
+        observations: form.descricao || null,
+        scheduled_date: form.data_agendamento || null,
+        technician_id: tecnicoId || null,
+        technician_name: tech?.name || tech?.nome || null,
+        status: tecnicoId ? 'designado' : 'pendente',
+        vehicle: `${form.vehicle_brand} ${form.vehicle_model}`.trim() || form.vehicle || null,
+        plate: form.plate || null,
       };
 
       console.log("📋 Dados do serviço:", serviceData);
       
-      await addServico(serviceData);
+      const serviceResult = await addServico(serviceData);
+      
+      if (!serviceResult?.success) {
+        throw new Error(serviceResult?.error || "Erro ao cadastrar serviço");
+      }
       
       console.log("✅ Serviço criado com sucesso!");
       

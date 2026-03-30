@@ -38,21 +38,19 @@ export interface Cliente {
 
 export interface Servico {
   id: string;
-  client_id: string | null;
   client_name: string;
   client_phone?: string | null;
   client_address?: string | null;
-  technician_id: string;
+  technician_id?: string | null;
   technician_name?: string | null;
-  type: string;
   status: string;
-  scheduled_date: string | null;
+  scheduled_date?: string | null;
   completed_date?: string | null;
-  vehicle: string;
-  plate: string;
+  vehicle?: string | null;
+  plate?: string | null;
   observations?: string | null;
   signature?: string | null;
-  photos?: ServicoPhoto[];
+  photos?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -175,7 +173,7 @@ class CRMService {
     }
   }
 
-  async createServico(servico: Omit<Servico, 'id' | 'created_at' | 'updated_at'>) {
+  async createServico(servico: any) {
     try {
       const { data, error } = await supabase
         .from('tec_services')
@@ -184,7 +182,7 @@ class CRMService {
         .single();
 
       if (error) throw error;
-      toast.success('Serviço/Agendamento criado com sucesso!');
+      toast.success('Serviço criado com sucesso!');
       return { success: true, data };
     } catch (error: any) {
       console.error('Error creating servico:', error.message);
