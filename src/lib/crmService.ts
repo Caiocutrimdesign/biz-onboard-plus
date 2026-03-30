@@ -254,6 +254,7 @@ class CRMService {
           email: u.email,
           tipo: u.tipo || u.role,
           phone: u.phone || u.telefone,
+          active: u.active !== undefined ? u.active : true,
         }));
         
         console.log('CRM Tecnicos loaded:', tecnicos.length);
@@ -270,6 +271,7 @@ class CRMService {
         email: p.email,
         tipo: p.tipo || p.role,
         phone: p.phone || p.telefone,
+        active: p.active !== undefined ? p.active : true,
       }));
 
       console.log('Profiles Tecnicos loaded:', tecnicos.length);
@@ -282,14 +284,29 @@ class CRMService {
 
   async updateTecnico(id: string, updates: any) {
     try {
-      const { data, error } = await supabase
+      // Try to update in profiles table first
+      let { data, error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Profiles update error, trying crm_users:', error.message);
+        // Fallback to crm_users
+        const { data: crmData, error: crmError } = await supabase
+          .from('crm_users')
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (crmError) throw crmError;
+        toast.success('Técnico atualizado!');
+        return { success: true, data: crmData };
+      }
+      
       toast.success('Técnico atualizado!');
       return { success: true, data };
     } catch (error: any) {

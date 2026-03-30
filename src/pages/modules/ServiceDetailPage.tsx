@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   ChevronLeft, Camera, X, Play, CheckCircle, Save, 
   Clock, MapPin, User, Phone, MapPinHouse, FileText,
-  CheckSquare, Square, Image, Trash2
+  CheckSquare, Square, Image, Trash2, Eye, AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,13 +18,40 @@ import {
 } from '@/contexts/ServiceContext';
 import type { Service, ChecklistItem, ServiceStatus } from '@/types/service';
 import { SERVICE_TYPE_LABELS, SERVICE_STATUS_LABELS, SERVICE_STATUS_COLORS } from '@/types/service';
+import type { ServicePhoto } from '@/types/tec';
 
 interface ServiceDetailPageProps {
-  service: Service;
+  service: any;
   tecnicoId: string;
   tecnicoName: string;
   onBack: () => void;
   onUpdated: () => void;
+}
+
+// Helper to parse photos from various formats
+function parsePhotos(photos: any): string[] {
+  if (!photos) return [];
+  if (Array.isArray(photos)) {
+    // Check if it's an array of objects (ServicePhoto[]) or strings
+    if (photos.length > 0 && typeof photos[0] === 'object' && photos[0].url) {
+      return (photos as ServicePhoto[]).map(p => p.url);
+    }
+    return photos as string[];
+  }
+  if (typeof photos === 'string') {
+    try {
+      const parsed = JSON.parse(photos);
+      if (Array.isArray(parsed)) {
+        if (parsed.length > 0 && typeof parsed[0] === 'object' && parsed[0].url) {
+          return parsed.map((p: ServicePhoto) => p.url);
+        }
+        return parsed;
+      }
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 const DEFAULT_CHECKLIST: ChecklistItem[] = [
@@ -42,12 +69,24 @@ export default function ServiceDetailPage({
   onBack,
   onUpdated 
 }: ServiceDetailPageProps) {
-  const [currentService, setCurrentService] = useState<Service>(service);
-  const [fotosInicio, setFotosInicio] = useState<string[]>(service.fotos_inicio || []);
-  const [fotosFinal, setFotosFinal] = useState<string[]>(service.fotos_final || []);
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(service.checklist || DEFAULT_CHECKLIST);
-  const [observacoes, setObservacoes] = useState(service.observacoes_tecnico || '');
-  const [assinatura, setAssinatura] = useState<string>(service.assinatura_cliente || '');
+  // Parse photos from various formats
+  const parsedPhotos = parsePhotos(service.photos);
+  const parsedSignature = service.signature || service.assinatura_cliente || '';
+  
+  const [currentService, setCurrentService] = useState<any>(service);
+  const [fotosInicio, setFotosInicio] = useState<string[]>(
+    service.fotos_inicio || parsedPhotos.filter((_: any, i: number) => i % 2 === 0) || []
+  );
+  const [fotosFinal, setFotosFinal] = useState<string[]>(
+    service.fotos_final || parsedPhotos.filter((_: any, i: number) => i % 2 === 1) || []
+  );
+  const [checklist, setChecklist] = useState<ChecklistItem[]>(
+    service.checklist || service.checklist_data || DEFAULT_CHECKLIST
+  );
+  const [observacoes, setObservacoes] = useState(
+    service.observations || service.observacoes_tecnico || ''
+  );
+  const [assinatura, setAssinatura] = useState<string>(parsedSignature);
   const [signatureCanvas, setSignatureCanvas] = useState<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -530,75 +569,127 @@ export default function ServiceDetailPage({
         {/* Dados da Finalização (visualização) */}
         {isFinalizado && (
           <>
+            {/* Fotos Iniciais */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Fotos Iniciais</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Camera className="w-4 h-4" />
+                  Fotos do Início
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {(currentService.fotos_inicio || fotosInicio).map((foto, index) => (
-                    <img 
-                      key={index} 
-                      src={foto} 
-                      alt={`Foto ${index + 1}`} 
-                      className="w-full aspect-square object-cover rounded-lg" 
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Fotos da Finalização</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {(currentService.fotos_final || fotosFinal).map((foto, index) => (
-                    <img 
-                      key={index} 
-                      src={foto} 
-                      alt={`Foto ${index + 1}`} 
-                      className="w-full aspect-square object-cover rounded-lg" 
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Assinatura do Cliente</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {(currentService.assinatura_cliente || assinatura) && (
-                  <img 
-                    src={currentService.assinatura_cliente || assinatura} 
-                    alt="Assinatura" 
-                    className="h-24 mx-auto" 
-                  />
+                {fotosInicio.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {fotosInicio.map((foto, index) => (
+                      <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <img 
+                          src={foto} 
+                          alt={`Foto início ${index + 1}`}
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/200?text=Erro+ao+carregar';
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Nenhuma foto do início registrada</p>
                 )}
               </CardContent>
             </Card>
 
+            {/* Fotos da Finalização */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Observações do Técnico</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Camera className="w-4 h-4" />
+                  Fotos da Finalização
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p>{currentService.observacoes_tecnico || observacoes}</p>
+                {fotosFinal.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {fotosFinal.map((foto, index) => (
+                      <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <img 
+                          src={foto} 
+                          alt={`Foto final ${index + 1}`}
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/200?text=Erro+ao+carregar';
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Nenhuma foto da finalização registrada</p>
+                )}
               </CardContent>
             </Card>
 
-            {currentService.checklist && currentService.checklist.length > 0 && (
+            {/* Assinatura do Cliente */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Assinatura do Cliente
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {assinatura ? (
+                  <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <img 
+                      src={assinatura} 
+                      alt="Assinatura do Cliente" 
+                      className="h-24 mx-auto" 
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement!.innerHTML = '<p class="text-red-500 text-center text-sm">Erro ao carregar assinatura</p>';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Nenhuma assinatura registrada</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Observações do Técnico */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Observações do Técnico
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {observacoes ? (
+                  <p className="whitespace-pre-wrap">{observacoes}</p>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Nenhuma observação registrada</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Checklist */}
+            {checklist && checklist.length > 0 && (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Checklist</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4" />
+                    Checklist
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {currentService.checklist.map((item, index) => (
+                  {checklist.map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <CheckSquare className={`w-4 h-4 ${item.concluido ? 'text-green-500' : 'text-gray-300'}`} />
+                      {item.concluido ? (
+                        <CheckSquare className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <Square className="w-5 h-5 text-gray-300" />
+                      )}
                       <span className={item.concluido ? 'line-through text-muted-foreground' : ''}>
                         {item.item}
                       </span>
@@ -607,6 +698,25 @@ export default function ServiceDetailPage({
                 </CardContent>
               </Card>
             )}
+
+            {/* Resumo do Serviço */}
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="p-6 text-center">
+                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
+                <h3 className="font-bold text-green-700 text-lg">Serviço Concluído</h3>
+                <p className="text-green-600 text-sm mt-1">
+                  {currentService.completed_date 
+                    ? `Finalizado em ${new Date(currentService.completed_date).toLocaleDateString('pt-BR', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}`
+                    : 'Data de finalização não registrada'}
+                </p>
+              </CardContent>
+            </Card>
           </>
         )}
       </div>

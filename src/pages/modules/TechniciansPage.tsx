@@ -150,8 +150,15 @@ export default function TechniciansPage() {
   };
 
   const handleToggleActive = async (tech: any) => {
-    const newStatus = !tech.active;
-    await updateTecnico(tech.id, { active: newStatus });
+    try {
+      const newStatus = !tech.active;
+      const result = await updateTecnico(tech.id, { active: newStatus });
+      if (result.success) {
+        // Refresh the list is handled by updateTecnico internally
+      }
+    } catch (error) {
+      console.error('Error toggling active status:', error);
+    }
   };
 
   const handleDelete = async (id: string) => {
