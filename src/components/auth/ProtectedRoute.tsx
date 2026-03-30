@@ -29,7 +29,7 @@ export function ProtectedRoute({
       const userRole = user.tipo || user.role;
       if (!allowedRoles.includes(userRole as any)) {
         // Redirection based on role if access denied
-        if (userRole === 'tecnico') {
+        if (userRole === 'tecnico' || userRole === 'technician') {
           navigate('/tecnico', { replace: true });
         } else if (userRole === 'admin') {
           navigate('/admin', { replace: true });
@@ -79,7 +79,7 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
     if (!isLoading && isAuthenticated && user) {
       const userRole = user.tipo || user.role;
       let redirectTo = '/admin';
-      if (userRole === 'tecnico') {
+      if (userRole === 'tecnico' || userRole === 'technician') {
         redirectTo = '/tecnico';
       }
       navigate(redirectTo, { replace: true });

@@ -16,7 +16,7 @@ interface SuperLayoutProps {
 }
 
 const tecMenuItems = [
-  { id: 'home', label: 'Inicio', icon: LayoutDashboard, path: '/tec', color: 'text-orange-500' },
+  { id: 'tec', label: 'Módulo TEC', icon: Wrench, path: '/tecnico', color: 'text-orange-500' },
 ];
 
 const fullMenuItems = [
@@ -36,8 +36,9 @@ export default function SuperLayout({ children, showCRM = true, showFullMenu = f
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const isInTEC = location.pathname.startsWith('/tec') || location.pathname.startsWith('/erp') || location.pathname.startsWith('/shell');
-  const isTechnician = (user?.role as string) === 'technician';
-  const menuItems = (isInTEC && isTechnician) ? tecMenuItems : fullMenuItems;
+  const userRole = (user?.role as string);
+  const isTechnician = userRole === 'technician' || userRole === 'tecnico';
+  const menuItems = isTechnician ? tecMenuItems : fullMenuItems;
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
