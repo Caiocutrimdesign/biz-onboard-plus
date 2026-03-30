@@ -17,7 +17,6 @@ const CUSTOMERS_KEY = 'rastremix_customers';
 export function useAgentOrchestrator() {
   const [agents, setAgents] = useState<Record<string, AgentState>>({
     sync: { id: 'sync', name: 'Sync Agent', status: 'idle', lastRun: null, interval: 60000, errors: 0 },
-    guardian: { id: 'guardian', name: 'Guardian Agent', status: 'idle', lastRun: null, interval: 30000, errors: 0 },
   });
   
   const [logs, setLogs] = useState<any[]>([]);
@@ -86,15 +85,7 @@ export function useAgentOrchestrator() {
     }
   }, [loadCustomers, updateAgent, addLog]);
 
-  const runGuardianAgent = useCallback(() => {
-    updateAgent('guardian', { status: 'running' });
-    try {
-      localStorage.setItem('guardian_check', Date.now().toString());
-      updateAgent('guardian', { status: 'idle', lastRun: new Date(), errors: 0 });
-    } catch {
-      updateAgent('guardian', { status: 'error', errors: 1 });
-    }
-  }, [updateAgent]);
+
 
   const updateStats = useCallback(() => {
     const customers = loadCustomers();
@@ -110,19 +101,17 @@ export function useAgentOrchestrator() {
     if (!isRunning) return;
 
     intervalsRef.current.push(setInterval(runSyncAgent, 60000));
-    intervalsRef.current.push(setInterval(runGuardianAgent, 30000));
     intervalsRef.current.push(setInterval(updateStats, 15000));
 
     runSyncAgent();
-    runGuardianAgent();
     updateStats();
-    addLog('Sistema de Agentes iniciado');
+    addLog('Sistema de Sincronização iniciado');
 
     return () => {
       intervalsRef.current.forEach(clearInterval);
       intervalsRef.current = [];
     };
-  }, [isRunning, runSyncAgent, runGuardianAgent, updateStats, addLog]);
+  }, [isRunning, runSyncAgent, updateStats, addLog]);
 
   return {
     agents,
