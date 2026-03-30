@@ -18,10 +18,17 @@ export default function RegisterPage() {
   
   const navigate = useNavigate();
   const { cadastrarUsuario } = useAuth();
+  const [token, setToken] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (token !== 'Rastre018@') {
+      setError('Token de segurança inválido');
+      return;
+    }
+
     setIsLoading(true);
 
     if (!name || !email || !password) {
@@ -127,6 +134,19 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Senha"
+              className="h-12 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="group relative">
+            <Shield className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-dark-foreground/30 transition-colors group-focus-within:text-primary" />
+            <Input
+              type="text"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="Token de Segurança"
               className="h-12 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
               required
               disabled={isLoading}
