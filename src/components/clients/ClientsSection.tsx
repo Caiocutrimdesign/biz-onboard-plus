@@ -402,7 +402,7 @@ export default function ClientsSection() {
                       <SelectItem value="none">Nenhum técnico</SelectItem>
                       {technicians.map((tec: any) => (
                         <SelectItem key={tec.id} value={tec.id}>
-                          {tec.nome}
+                          {tec.name || tec.nome || 'Técnico'}
                         </SelectItem>
                       ))}
                     </SelectContent>
