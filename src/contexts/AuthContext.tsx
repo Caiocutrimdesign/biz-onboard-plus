@@ -95,31 +95,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [getUserProfile]);
 
   useEffect(() => {
+    let mounted = true;
+    let subscription: { unsubscribe: () => void } | null = null;
+
     const initAuth = async () => {
       if (!isSupabaseConfigured() || !supabase) {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
         return;
       }
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // 1. Get initial session
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (mounted) {
+          if (session?.user) {
+            await refreshUser();
+          } else {
+            setUser(null);
+            setIsLoading(false);
+          }
+        }
+      } catch (e) {
+        console.error("Auth init session error:", e);
+        if (mounted) setIsLoading(false);
+      }
+
+      // 2. Listen for changes
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('🔔 Mudança no estado de autenticação:', event, session?.user?.id);
-        if (session?.user) {
-          await refreshUser();
-        } else {
-          setUser(null);
-          setIsLoading(false);
+        if (mounted) {
+          if (session?.user) {
+            await refreshUser();
+          } else {
+            setUser(null);
+            setIsLoading(false);
+          }
         }
       });
-
-      await refreshUser();
-
-      return () => {
-        subscription.unsubscribe();
-      };
+      subscription = data.subscription;
     };
 
     initAuth();
-  }, [refreshUser]);
+
+    return () => {
+      mounted = false;
+      if (subscription) subscription.unsubscribe();
+    };
+  }, []); // Remove refreshUser from dependencies to avoid loops
 
   const cadastrarUsuario = async (data: RegisterData): Promise<AuthResponse> => {
     setIsLoading(true);
