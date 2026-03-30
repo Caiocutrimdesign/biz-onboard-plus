@@ -142,14 +142,18 @@ export default function TechniciansPage() {
 
     try {
       if (editingTech) {
-        await unifiedDataService.saveTecnico({
+        const updateData: any = {
           id: editingTech.id,
           name: formData.name,
           email: formData.email.toLowerCase().trim(),
           phone: formData.phone,
           cpf: formData.cpf,
           active: formData.active,
-        });
+        };
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
+        await unifiedDataService.saveTecnico(updateData);
       } else {
         const newTecnico = await unifiedDataService.saveTecnico({
           name: formData.name,
@@ -157,6 +161,7 @@ export default function TechniciansPage() {
           phone: formData.phone,
           cpf: formData.cpf,
           active: formData.active,
+          password: formData.password,
         });
         
         setSuccessData({ email: newTecnico.email, password: formData.password });
