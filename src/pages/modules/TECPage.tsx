@@ -124,6 +124,14 @@ export default function TECPage() {
       setLoading(true);
       console.log('TECPage: Saving client', clientData);
       
+      // Validate required fields
+      if (!clientData.name?.trim()) {
+        throw new Error('Nome é obrigatório');
+      }
+      if (!clientData.phone?.trim()) {
+        throw new Error('Telefone é obrigatório');
+      }
+      
       const result = await crmService.createCliente({
         full_name: clientData.name,
         phone: clientData.phone,
@@ -135,18 +143,23 @@ export default function TECPage() {
         city: clientData.city || null,
         state: clientData.state || null,
         status: 'active',
-        technician_id: clientData.technician_id || user?.id,
-        technician_name: clientData.technician_name || user?.name || ''
+        technician_id: clientData.technician_id || user?.id || null,
+        technician_name: clientData.technician_name || user?.name || null
       });
 
-      if (!result.success) throw new Error(result.error || 'Erro ao cadastrar cliente');
+      console.log('TECPage: Create client result:', result);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao cadastrar cliente');
+      }
       
       console.log('TECPage: Client saved with ID:', result.data?.id);
 
       setCurrentClient({ ...clientData, id: result.data?.id });
       goTo('vendas');
+      toast.success('Cliente cadastrado com sucesso!');
     } catch (error: any) {
-      console.error('TECPage: Error saving client', error);
+      console.error('TECPage: Error saving client:', error);
       toast.error(error.message || 'Erro ao cadastrar cliente');
     } finally {
       setLoading(false);

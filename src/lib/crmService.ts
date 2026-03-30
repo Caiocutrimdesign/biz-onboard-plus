@@ -99,18 +99,29 @@ class CRMService {
 
   async createCliente(cliente: Omit<Cliente, 'id' | 'created_at' | 'updated_at'>) {
     try {
+      console.log('CRMService: Creating cliente with data:', JSON.stringify(cliente));
+      
+      const clientId = generateUUID();
+      const insertData = { ...cliente, id: clientId };
+      console.log('CRMService: Inserting with ID:', clientId);
+      
       const { data, error } = await supabase
         .from('customers')
-        .insert([{ ...cliente, id: generateUUID() }])
+        .insert([insertData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('CRMService: customers table error:', error.message, error.details);
+        throw new Error(`Erro ao cadastrar cliente: ${error.message}`);
+      }
+      
+      console.log('CRMService: Cliente created successfully:', data);
       toast.success('Cliente cadastrado com sucesso!');
       return { success: true, data };
     } catch (error: any) {
-      console.error('Error creating cliente:', error.message);
-      toast.error('Erro ao cadastrar cliente');
+      console.error('CRMService: Error creating cliente:', error.message);
+      toast.error(error.message || 'Erro ao cadastrar cliente');
       return { success: false, error: error.message };
     }
   }
