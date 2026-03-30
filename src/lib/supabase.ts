@@ -1,7 +1,8 @@
 // Unified Supabase client - re-exports from integrations to avoid duplicate instances
-import { supabase } from '@/integrations/supabase/client';
+import { supabase as typedSupabase } from '@/integrations/supabase/client';
 
-export { supabase };
+// Export as SupabaseClient (untyped) so existing code with dynamic tables/columns keeps working
+export const supabase = typedSupabase as any;
 
 export const isSupabaseConfigured = (): boolean => {
   return !!supabase;
