@@ -181,8 +181,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
       if (profileError) {
-        console.log('❌ Erro ao criar perfil:', profileError.message);
-        alert("Erro ao salvar perfil: " + profileError.message);
+        console.log('⚠️ Erro ao criar perfil (possível RLS recursion):', profileError.message);
+        // We don't alert here because we have fallback to metadata in AuthContext
+        // which allows the user to log in and work normally.
       }
 
       const newUser: User = {
