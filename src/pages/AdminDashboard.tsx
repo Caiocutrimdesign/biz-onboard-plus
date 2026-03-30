@@ -4,7 +4,7 @@ import {
   LogOut, LayoutDashboard, Users, Car, DollarSign, Settings, Bell, 
   Menu, X, ChevronRight, TrendingUp, ShieldCheck, Phone, Mail, Calendar,
   BarChart3, Target, Zap, CalendarCheck, GitBranch, Bot, HelpCircle,
-  MessageSquare, Send, Gift, Wrench, ClipboardList, Cake
+  MessageSquare, Send, Gift, Wrench, ClipboardList, Cake, Building2
 } from 'lucide-react';
 import TechniciansPage from './modules/TechniciansPage';
 import ServicesPage from './modules/ServicesPage';
@@ -18,7 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Logo3D } from '@/components/ui/Logo3D';
 import { useData } from '@/contexts/DataContext';
 
-type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'config' | 'tecnicos' | 'servicos' | 'aniversarios';
+type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'config' | 'tecnicos' | 'servicos' | 'aniversarios' | 'empresa';
 
 interface NavItem {
   id: Module;
@@ -36,6 +36,7 @@ const navItems: NavItem[] = [
   { id: 'veiculos', label: 'Veículos', icon: Car, path: '/admin?tab=veiculos' },
   { id: 'financeiro', label: 'Financeiro', icon: DollarSign, path: '/admin?tab=financeiro' },
   { id: 'agendamentos', label: 'Agendamentos', icon: CalendarCheck, path: '/admin?tab=agendamentos' },
+  { id: 'empresa', label: 'A Empresa', icon: Building2, path: '/empresa' },
   { id: 'config', label: 'Configurações', icon: Settings, path: '/admin?tab=config' },
 ];
 
@@ -50,7 +51,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'clientes', 'aniversarios', 'tecnicos', 'servicos', 'veiculos', 'financeiro', 'agendamentos', 'config'].includes(tab)) {
+    if (tab && ['dashboard', 'clientes', 'aniversarios', 'tecnicos', 'servicos', 'veiculos', 'financeiro', 'agendamentos', 'empresa', 'config'].includes(tab)) {
       setActiveModule(tab as Module);
     }
   }, [searchParams]);

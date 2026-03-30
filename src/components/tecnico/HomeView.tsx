@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Wrench, Plus, Clock, CheckCircle, 
-  Package, DollarSign, Loader2
+  Package, DollarSign, Loader2, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Service } from '@/types/tec';
@@ -15,9 +15,10 @@ interface HomeViewProps {
   onNewClient: () => void;
   userName?: string;
   goTo: (view: TECView) => void;
+  onNavigateToEmpresa?: () => void;
 }
 
-export function HomeView({ services, loading, onNewClient, userName, goTo }: HomeViewProps) {
+export function HomeView({ services, loading, onNewClient, userName, goTo, onNavigateToEmpresa }: HomeViewProps) {
   const stats = {
     pending: services.filter(s => s.status === 'pendente').length,
     in_progress: services.filter(s => s.status === 'em_andamento').length,
@@ -101,6 +102,14 @@ export function HomeView({ services, loading, onNewClient, userName, goTo }: Hom
         >
           <Wrench className="w-6 h-6" />
           Agenda de Serviços
+        </Button>
+        <Button 
+          variant="outline"
+          className="h-24 text-lg font-bold gap-3 rounded-2xl border-2 hover:bg-gradient-to-r hover:from-orange-500 hover:to-red-600 hover:text-white hover:border-transparent transition-all"
+          onClick={onNavigateToEmpresa}
+        >
+          <Building2 className="w-6 h-6" />
+          A Empresa
         </Button>
       </div>
 

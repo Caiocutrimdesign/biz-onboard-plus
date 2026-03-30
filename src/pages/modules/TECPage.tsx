@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, AlertCircle, User as UserIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -35,6 +36,7 @@ import type { Service, ServiceStatus, PhotoType, Technician } from '@/types/tec'
 export default function TECPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { saveCustomer, isLoading: dataLoading, refreshServices } = useData();
+  const navigate = useNavigate();
   const [view, setView] = useState<TECView>('home');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -369,6 +371,7 @@ export default function TECPage() {
                 userName={(user as any).full_name || user.name || 'Técnico'}
                 onNewClient={startNewClient}
                 goTo={goTo}
+                onNavigateToEmpresa={() => navigate('/empresa')}
               />
             )}
 
