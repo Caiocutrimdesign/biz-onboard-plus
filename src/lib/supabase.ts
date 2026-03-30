@@ -10,6 +10,9 @@ const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 const finalUrl = supabaseUrl || DEFAULT_SUPABASE_URL;
 const finalKey = supabaseAnonKey || DEFAULT_SUPABASE_KEY;
 
+console.log('🔧 Supabase URL:', finalUrl);
+console.log('🔧 Supabase configured:', !!(finalUrl && finalKey));
+
 export const supabase: SupabaseClient = createClient(finalUrl, finalKey);
 
 export const isSupabaseConfigured = (): boolean => {
