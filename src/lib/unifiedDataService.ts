@@ -525,10 +525,18 @@ class UnifiedDataService {
       })
       .subscribe();
 
+    const usersChannel = supabase
+      .channel('users-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_users' }, () => {
+        // User changes don't need automatic refresh
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(customersChannel);
       supabase.removeChannel(tecnicosChannel);
       supabase.removeChannel(servicesChannel);
+      supabase.removeChannel(usersChannel);
     };
   }
 
