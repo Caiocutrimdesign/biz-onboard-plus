@@ -1,4 +1,4 @@
-export type ServiceStatus = 'pendente' | 'em_andamento' | 'concluido' | 'cancelado';
+export type ServiceStatus = 'pendente' | 'designado' | 'em_andamento' | 'concluido' | 'finalizado' | 'cancelado';
 export type ServiceType = 'instalacao' | 'manutencao' | 'retirada' | 'suporte';
 export type PhotoType = 'antes' | 'durante' | 'depois';
 
@@ -58,15 +58,19 @@ export interface TECAgent {
 
 export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = {
   pendente: 'Pendente',
+  designado: 'Designado',
   em_andamento: 'Em Andamento',
   concluido: 'Concluído',
+  finalizado: 'Concluído',
   cancelado: 'Cancelado',
 };
 
 export const SERVICE_STATUS_COLORS: Record<ServiceStatus, string> = {
   pendente: 'bg-yellow-100 text-yellow-800',
+  designado: 'bg-purple-100 text-purple-800',
   em_andamento: 'bg-blue-100 text-blue-800',
   concluido: 'bg-green-100 text-green-800',
+  finalizado: 'bg-green-100 text-green-800',
   cancelado: 'bg-red-100 text-red-800',
 };
 

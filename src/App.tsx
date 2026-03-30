@@ -77,7 +77,7 @@ function AppRoutes() {
         <Route
           path="/tecnico"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'tecnico', 'technician']}>
+            <ProtectedRoute allowedRoles={['admin', 'tecnico']}>
               <TECPage />
             </ProtectedRoute>
           }
@@ -86,7 +86,7 @@ function AppRoutes() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'tecnico', 'technician']}>
+            <ProtectedRoute allowedRoles={['admin', 'tecnico']}>
               <DashboardPage />
             </ProtectedRoute>
           }
@@ -122,7 +122,7 @@ function AppRoutes() {
         <Route
           path="/tec"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'tecnico', 'technician']}>
+            <ProtectedRoute allowedRoles={['admin', 'tecnico']}>
               <TECPage />
             </ProtectedRoute>
           }

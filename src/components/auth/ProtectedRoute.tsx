@@ -5,12 +5,12 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'tecnico' | 'user' | 'technician')[];
+  allowedRoles?: ('admin' | 'tecnico' | 'user')[];
 }
 
 export function ProtectedRoute({ 
   children, 
-  allowedRoles = ['admin', 'tecnico', 'user', 'technician'] 
+  allowedRoles = ['admin', 'tecnico', 'user'] 
 }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export function ProtectedRoute({
       const userRole = user.tipo || user.role;
       if (!allowedRoles.includes(userRole as any)) {
         // Redirection based on role if access denied
-        if (userRole === 'tecnico' || userRole === 'technician') {
+        if (userRole === 'tecnico') {
           navigate('/tecnico', { replace: true });
         } else if (userRole === 'admin') {
           navigate('/admin', { replace: true });
@@ -79,7 +79,7 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
     if (!isLoading && isAuthenticated && user) {
       const userRole = user.tipo || user.role;
       let redirectTo = '/admin';
-      if (userRole === 'tecnico' || userRole === 'technician') {
+      if (userRole === 'tecnico') {
         redirectTo = '/tecnico';
       }
       navigate(redirectTo, { replace: true });
