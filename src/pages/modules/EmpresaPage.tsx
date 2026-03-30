@@ -16,13 +16,21 @@ import { Badge } from '@/components/ui/badge';
 
 // Logo imports
 const logos = {
-  'gps-my': '/ABA DA EMPRESA/IMAGENS/Gps my.png',
+  'gps-my': '/ABA DA EMPRESA/IMAGENS/Gps My Verde.png',
+  'gps-my-alt': '/ABA DA EMPRESA/IMAGENS/Gps my.png',
   'gps-love': '/ABA DA EMPRESA/IMAGENS/gps love logo.png',
+  'gps-love-alt': '/ABA DA EMPRESA/IMAGENS/Gps love.png',
+  'gps-love-alt2': '/ABA DA EMPRESA/IMAGENS/Gps joy.png',
   'rastremix': '/ABA DA EMPRESA/IMAGENS/RASTREMIX 1.png',
+  'rastremix-alt': '/ABA DA EMPRESA/IMAGENS/RASTREMIX 2.png',
   'telensat': '/ABA DA EMPRESA/IMAGENS/tel logo.png',
+  'telensat-alt': '/ABA DA EMPRESA/IMAGENS/TELENSAT AZUL.png',
   'topy-pro': '/ABA DA EMPRESA/IMAGENS/LOGO TOPY PRO.webp',
+  'topy-pro-alt': '/ABA DA EMPRESA/IMAGENS/TOPY PRO BRANCA.png',
   'valeteck': '/ABA DA EMPRESA/IMAGENS/Valeteck Preto.png',
+  'valeteck-alt': '/ABA DA EMPRESA/IMAGENS/Valeteck Branco.png',
   'facilit': '/ABA DA EMPRESA/IMAGENS/lOGO FACILIT CORP.png',
+  'webtrak': '/ABA DA EMPRESA/IMAGENS/Logo Webtrak.png',
 };
 
 // Company comprehensive data
@@ -36,6 +44,7 @@ const companies = [
     logo: logos['facilit'],
     icon: Building2,
     heroImage: '/ABA DA EMPRESA/IMAGENS/RASTREMIX 1.png',
+    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/lOGO FACILIT CORP.png'],
     whoAreWe: `A Facilit Corp não é apenas uma empresa; somos um ecossistema de proteção que nasceu das ruas do Brasil. Somos feitos de pessoas que entendem a dor de quem trabalha duro e merece o melhor.
 
 Somos uma multinacional brasileira que reúne as mais avançadas tecnologias de rastreamento e segurança para proteger o patrimônio de milhares de famílias e empresas. Nossa missão é democratizar a segurança de alto nível.`,
@@ -65,7 +74,8 @@ Nosso propósito é claro: proteger o patrimônio nacional com tecnologia de pon
     gradient: 'from-green-500 via-emerald-500 to-teal-500',
     logo: logos['gps-my'],
     icon: Shield,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/Gps my.png',
+    heroImage: '/ABA DA EMPRESA/IMAGENS/Gps My Verde.png',
+    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/Gps my.png'],
     whoAreWe: `A GPS MY não nasceu em escritórios de vidro; nascemos no asfalto quente, sentindo o cheiro do óleo e o peso da mochila que nunca fica leve.
 
 Somos uma multinacional que fala a língua de quem sabe que, no Brasil, nada vem de gratuita. Para nós, você não é um 'cliente', você é um sobrevivente.`,
@@ -119,6 +129,7 @@ Nossa missão é acabar com a era dos aluguéis eternos, onde você paga a vida 
     logo: logos['gps-love'],
     icon: Heart,
     heroImage: '/ABA DA EMPRESA/IMAGENS/gps love logo.png',
+    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/Gps love.png', '/ABA DA EMPRESA/IMAGENS/Gps joy.png'],
     whoAreWe: `A GPS LOVE não nasceu de engenheiros; nascemos do medo real de quem já perdeu o sono esperando um filho chegar.
 
 Nascemos da angústia de uma filha que viu o pai idoso esquecer o caminho de casa. Nascemos do luto de quem teve o melhor amigo de quatro patas arrancado do quintal.
@@ -174,6 +185,7 @@ Nossa missão é valorizar a vida em sua forma mais frágil e preciosa.`,
     logo: logos['rastremix'],
     icon: Radar,
     heroImage: '/ABA DA EMPRESA/IMAGENS/RASTREMIX 1.png',
+    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/RASTREMIX 2.png'],
     whoAreWe: `A Rastremix não é feita de chips e satélites; somos feitos de pessoas que acreditam que o amor é o maior patrimônio.
 
 Somos uma família global que cuida da sua. Trazemos a força de uma multinacional para o portão da sua casa, com o carinho de quem sabe o seu nome.
@@ -229,6 +241,7 @@ Nossa missão é transformar a incerteza das ruas na paz da sua sala de estar.`,
     logo: logos['telensat'],
     icon: Cpu,
     heroImage: '/ABA DA EMPRESA/IMAGENS/tel logo.png',
+    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/TELENSAT AZUL.png'],
     whoAreWe: `A Telensat é uma multinacional de tecnologia telemática e IOT com padrão internacional.
 
 Nascemos para resolver o que ninguém mais resolve: a entrega da frota 100% pronta para a inspeção Vale.
@@ -284,6 +297,7 @@ Nossa missão é eliminar a incerteza do gestor e proteger o seu contrato.`,
     logo: logos['topy-pro'],
     icon: ShieldAlert,
     heroImage: '/ABA DA EMPRESA/IMAGENS/LOGO TOPY PRO.webp',
+    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/TOPY PRO BRANCA.png'],
     whoAreWe: `A TOPY PRO não é apenas tecnologia; somos o parceiro de estrada de quem acorda antes do sol.
 
 Somos feitos da fibra do trabalhador brasileiro que não tem medo de cara feia e enfrenta o trânsito para levar o pão.
@@ -339,6 +353,7 @@ Nossa missão é ser o escudo invisível que te protege nos semáforos, nas viel
     logo: logos['valeteck'],
     icon: HeartHandshake,
     heroImage: '/ABA DA EMPRESA/IMAGENS/Valeteck Preto.png',
+    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/Valeteck Branco.png'],
     whoAreWe: `A Valeteck nasceu do respeito profundo por quem conhece o brilho do dia e o peso do trabalho.
 
 Somos a solução que destrava o pátio com o rigor técnico exigido pela Vale, mas com a malícia da rua que só quem entende o "ganha-pão" consegue entregar.
