@@ -176,7 +176,7 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
               {photosByType('antes').map(photo => (
                 <div key={photo.id} className="relative min-w-[100px] h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                  <img src={photo.url} alt="Antes" className="w-full h-full object-cover" onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/100x96?text=Erro'} />
+                  <img src={photo.url} alt="Antes" className="w-full h-full object-cover" />
                   {!isCompleted && (
                     <button 
                       className="absolute top-1 right-1 p-1 bg-red-500/80 rounded-full text-white hover:bg-red-600"
@@ -215,7 +215,7 @@ export function ServiceView({ service, onBack, onUpdate, onUploadPhoto, onStartS
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
               {photosByType('durante').map(photo => (
                 <div key={photo.id} className="relative min-w-[100px] h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                  <img src={photo.url} alt="Durante" className="w-full h-full object-cover" onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/100x96?text=Erro'} />
+                  <img src={photo.url} alt="Durante" className="w-full h-full object-cover" />
                   {!isCompleted && (
                     <button 
                       className="absolute top-1 right-1 p-1 bg-red-500/80 rounded-full text-white hover:bg-red-600"

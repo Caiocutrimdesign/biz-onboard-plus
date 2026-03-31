@@ -586,9 +586,6 @@ export default function ServiceDetailPage({
                           src={foto} 
                           alt={`Foto início ${index + 1}`}
                           className="w-full h-full object-cover" 
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/200?text=Erro+ao+carregar';
-                          }}
                         />
                       </div>
                     ))}
@@ -616,9 +613,6 @@ export default function ServiceDetailPage({
                           src={foto} 
                           alt={`Foto final ${index + 1}`}
                           className="w-full h-full object-cover" 
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/200?text=Erro+ao+carregar';
-                          }}
                         />
                       </div>
                     ))}
