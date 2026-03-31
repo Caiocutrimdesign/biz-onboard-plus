@@ -20,7 +20,8 @@ import {
   Phone as PhoneIcon, Mail, Clock as ClockIcon, Calendar,
   Video, Image, FileText, Download, Share2, ExternalLink,
   ChevronDown, ChevronUp, Plus, Minus, RefreshCw, Maximize2,
-  Minimize2, ZoomIn, ZoomOut, Move, RotateCcw, Pause, Play as PlayIcon
+  Minimize2, ZoomIn, ZoomOut, Move, RotateCcw, Pause, Play as PlayIcon,
+  Brain
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -589,7 +590,7 @@ function TimelineItem({ year, event, isActive, color }: { year: string; event: s
           transition={{ duration: 1, repeat: Infinity }}
         />
         {isActive && (
-          <div
+          <motion.div
             className="absolute inset-0 rounded-full"
             style={{ backgroundColor: color, opacity: 0.3 }}
             animate={{ scale: [1, 2, 1], opacity: [0.3, 0, 0.3] }}
@@ -605,9 +606,9 @@ function TimelineItem({ year, event, isActive, color }: { year: string; event: s
   );
 }
 
-function InfinityIcon() {
+function InfinityIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5">
+    <svg viewBox="0 0 24 24" className={className}>
       <motion.path
         d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"
         fill="none"
