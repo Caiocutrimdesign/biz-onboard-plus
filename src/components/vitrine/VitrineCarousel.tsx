@@ -5,7 +5,7 @@ import {
   Shield, MapPin, Zap, BarChart3, Users, Car, Bell, Check, 
   ArrowRight, X, ChevronRight, Phone, Video, MessageCircle,
   Lock, Eye, Globe, Clock, AlertTriangle, CheckCircle2,
-  Target, Key, FileText, Heart, Star, Award, Truck, Building2
+  Target, Key, FileText, Heart, Star, Award, Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo3D } from '@/components/ui/Logo3D';
@@ -684,19 +684,6 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                     >
                       <Eye className="mr-2 w-5 h-5" />
                       saiba mais
-                    </Button>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      onClick={() => navigate('/empresa')}
-                      size="lg"
-                      className="h-14 px-8 text-lg bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl hover:bg-white/30 border-2 border-white/40 transition-all"
-                    >
-                      <Building2 className="mr-2 w-5 h-5" />
-                      A Empresa
                     </Button>
                   </motion.div>
                 </motion.div>
