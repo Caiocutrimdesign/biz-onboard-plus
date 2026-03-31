@@ -8,7 +8,7 @@ import {
   HeartHandshake, Cpu, Wifi, Fingerprint, EyeOff,
   TrendingUp, Building2, Users2, ShieldAlert,
   Radar, Compass, Layers, Hexagon, CircleDot, Radio, Siren,
-  ChevronDown, Menu, X, ExternalLink, Download, EyeCandy
+  ChevronDown, Menu, X, ExternalLink, Download
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,39 +16,39 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const logos = {
-  'gps-my': '/ABA DA EMPRESA/IMAGENS/Gps my.png',
-  'gps-my-verde': '/ABA DA EMPRESA/IMAGENS/Gps My Verde.png',
-  'gps-love': '/ABA DA EMPRESA/IMAGENS/gps love logo.png',
-  'gps-love-img': '/ABA DA EMPRESA/IMAGENS/Gps love.png',
-  'gps-joy': '/ABA DA EMPRESA/IMAGENS/Gps joy.png',
-  'rastremix': '/ABA DA EMPRESA/IMAGENS/RASTREMIX 1.png',
-  'rastremix-2': '/ABA DA EMPRESA/IMAGENS/RASTREMIX 2.png',
-  'telensat': '/ABA DA EMPRESA/IMAGENS/tel logo.png',
-  'telensat-azul': '/ABA DA EMPRESA/IMAGENS/TELENSAT AZUL.png',
-  'topy-pro': '/ABA DA EMPRESA/IMAGENS/LOGO TOPY PRO.webp',
-  'topy-pro-branca': '/ABA DA EMPRESA/IMAGENS/TOPY PRO BRANCA.png',
-  'valeteck': '/ABA DA EMPRESA/IMAGENS/Valeteck Preto.png',
-  'valeteck-branco': '/ABA DA EMPRESA/IMAGENS/Valeteck Branco.png',
-  'facilit': '/ABA DA EMPRESA/IMAGENS/lOGO FACILIT CORP.png',
-  'webtrak': '/ABA DA EMPRESA/IMAGENS/Logo Webtrak.png',
+  'gps-my': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20my.png',
+  'gps-my-verde': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20My%20Verde.png',
+  'gps-love': '/ABA%20DA%20EMPRESA/IMAGENS/gps%20love%20logo.png',
+  'gps-love-img': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20love.png',
+  'gps-joy': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20joy.png',
+  'rastremix': '/ABA%20DA%20EMPRESA/IMAGENS/RASTREMIX%201.png',
+  'rastremix-2': '/ABA%20DA%20EMPRESA/IMAGENS/RASTREMIX%202.png',
+  'telensat': '/ABA%20DA%20EMPRESA/IMAGENS/tel%20logo.png',
+  'telensat-azul': '/ABA%20DA%20EMPRESA/IMAGENS/TELENSAT%20AZUL.png',
+  'topy-pro': '/ABA%20DA%20EMPRESA/IMAGENS/LOGO%20TOPY%20PRO.webp',
+  'topy-pro-branca': '/ABA%20DA%20EMPRESA/IMAGENS/TOPY%20PRO%20BRANCA.png',
+  'valeteck': '/ABA%20DA%20EMPRESA/IMAGENS/Valeteck%20Preto.png',
+  'valeteck-branco': '/ABA%20DA%20EMPRESA/IMAGENS/Valeteck%20Branco.png',
+  'facilit': '/ABA%20DA%20EMPRESA/IMAGENS/lOGO%20FACILIT%20CORP.png',
+  'webtrak': '/ABA%20DA%20EMPRESA/IMAGENS/Logo%20Webtrak.png',
 };
 
 const productImages = {
   gpsLove: [
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/Arte feed gps love.png',
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/CÂMERA.jpeg',
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/PORTÁTIL.png',
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/TAG LOCALIZADORA.jpeg',
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/coleira.jpeg',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Arte%20feed%20gps%20love.png',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/CÂMERA.jpeg',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/PORTÁTIL.png',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/TAG%20LOCALIZADORA.jpeg',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/coleira.jpeg',
   ],
   gpsMy: [
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTO GPS MY/Obd.png',
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTO GPS MY/Portátil.png',
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTO GPS MY/Tag.png',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Obd.png',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Portátil.png',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Tag.png',
   ],
   rastremix: [
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/Replace_the_red_Rastremix_t-shirt_with_the_blue_an-1772898819844 (3).png',
-    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/WhatsApp Image 2026-03-03 at 18.17.58.jpeg',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Replace_the_red_Rastremix_t-shirt_with_the_blue_an-1772898819844%20(3).png',
+    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/WhatsApp%20Image%202026-03-03%20at%2018.17.58.jpeg',
   ],
 };
 
