@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, Heart, Shield, 
@@ -8,43 +8,35 @@ import {
   HeartHandshake, Cpu, Wifi, Fingerprint, EyeOff,
   TrendingUp, Building2, Users2, ShieldAlert,
   Radar, Compass, Layers, Hexagon, CircleDot, Radio, Siren,
-  ChevronDown, Menu, X, ExternalLink, Download, Play, CheckCircle
+  Play, CheckCircle, Activity, Cpu as Chip, Database, Server,
+  Link2, Wifi as WifiIcon, Bluetooth, Antenna, Satellite,
+  Fingerprint as Finger, Key, Zap as Bolt, Gauge, Timer,
+  AlertTriangle, TrendingUp as Trend, BarChart3, PieChart,
+  Rocket as RocketIcon, ShieldPlus, ShieldCheck as ShieldTick,
+  Check, X, Menu, Star as StarIcon, Award as AwardIcon,
+  Users as UsersIcon, Building as BuildingIcon, Car as CarIcon,
+  Bike, Truck as TruckIcon, Dog, Home, HeartPulse, Baby,
+  Eye as EyeIcon, Bell, MessageCircle, Navigation, MapPin as Pin,
+  Phone as PhoneIcon, Mail, Clock as ClockIcon, Calendar,
+  Video, Image, FileText, Download, Share2, ExternalLink,
+  ChevronDown, ChevronUp, Plus, Minus, RefreshCw, Maximize2,
+  Minimize2, ZoomIn, ZoomOut, Move, RotateCcw, Pause, Play as PlayIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const encodePath = (path) => {
-  return path.split('/').map(part => encodeURIComponent(part)).join('/');
-};
+import { Progress } from '@/components/ui/progress';
 
 const logos = {
-  'gps-my': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20my.png',
-  'gps-my-verde': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20My%20Verde.png',
+  'gps-my': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20My%20Verde.png',
   'gps-love': '/ABA%20DA%20EMPRESA/IMAGENS/gps%20love%20logo.png',
-  'gps-love-img': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20love.png',
-  'gps-joy': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20joy.png',
   'rastremix': '/ABA%20DA%20EMPRESA/IMAGENS/RASTREMIX%201.png',
-  'rastremix-2': '/ABA%20DA%20EMPRESA/IMAGENS/RASTREMIX%202.png',
   'telensat': '/ABA%20DA%20EMPRESA/IMAGENS/tel%20logo.png',
-  'telensat-azul': '/ABA%20DA%20EMPRESA/IMAGENS/TELENSAT%20AZUL.png',
   'topy-pro': '/ABA%20DA%20EMPRESA/IMAGENS/LOGO%20TOPY%20PRO.webp',
-  'topy-pro-branca': '/ABA%20DA%20EMPRESA/IMAGENS/TOPY%20PRO%20BRANCA.png',
   'valeteck': '/ABA%20DA%20EMPRESA/IMAGENS/Valeteck%20Preto.png',
-  'valeteck-branco': '/ABA%20DA%20EMPRESA/IMAGENS/Valeteck%20Branco.png',
   'facilit': '/ABA%20DA%20EMPRESA/IMAGENS/lOGO%20FACILIT%20CORP.png',
   'webtrak': '/ABA%20DA%20EMPRESA/IMAGENS/Logo%20Webtrak.png',
-  'gps-my-obd': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Obd.png',
-  'gps-my-portatil': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Port%C3%A1til.png',
-  'gps-my-tag': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Tag.png',
-  'gps-love-arte': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Arte%20feed%20gps%20love.png',
-  'gps-love-camera': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/C%C3%82MERA.jpeg',
-  'gps-love-portatil': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/PORT%C3%81TIL.png',
-  'gps-love-tag': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/TAG%20LOCALIZADORA.jpeg',
-  'gps-love-coleira': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/coleira.jpeg',
-  'rastremix-camiseta': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Replace_the_red_Rastremix_t-shirt_with_the_blue_an-1772898819844%20(3).png',
-  'rastremix-whatsapp': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/WhatsApp%20Image%202026-03-03%20at%2018.17.58.jpeg',
 };
 
 const companies = [
@@ -52,523 +44,688 @@ const companies = [
     id: 'facilit',
     name: 'FACILIT CORP',
     tagline: 'O Grupo Que Move o Brasil.',
-    description: 'Multinacional brasileira que reúne as mais avançadas tecnologias de rastreamento e segurança.',
+    shortDesc: 'Matriz do ecossistema de proteção.',
+    description: 'A Facilit Corp é a holding multinacional brasileira que reúne todas as empresas do grupo Rastremix. Somos um ecossistema de proteção que nasceu das ruas do Brasil, feitos de pessoas que entendem a dor de quem trabalha duro e merece o melhor.',
     color: '#FFD700',
     colorRgb: '255, 215, 0',
-    gradient: 'from-yellow-500 via-amber-500 to-orange-600',
-    darkGradient: 'from-yellow-900/80 via-amber-900/80 to-orange-900/80',
-    logo: `/${logos['facilit']}`,
-    alternateLogos: [`/${logos['facilit']}`],
+    gradient: 'linear-gradient(135deg, #FFD700, #FFA500, #FF8C00)',
     icon: Building2,
-    features: ['Tecnologia Multinacional', 'Equipe Especializada', 'Resposta Imediata', 'Cobertura Nacional', 'Certificações ISO', 'Atendimento 24/7'],
+    founded: '2018',
+    employees: '500+',
+    clients: '50.000+',
+    presence: ['Brasil', 'América Latina'],
+    certifications: ['ISO 27001', 'LGPD Compliant', 'ANVISA'],
+    services: ['Rastreamento Veicular', 'Proteção Patrimonial', 'Telemetria', 'IoT'],
+    technologies: ['GPS', 'Satélite', 'IoT', 'AI', 'Cloud'],
     stats: [
-      { value: '50K+', label: 'Clientes' },
-      { value: '98.7%', label: 'Taxa de Recuperação' },
-      { value: '24/7', label: 'Monitoramento' },
-      { value: '500+', label: 'Profissionais' },
+      { value: '50K+', label: 'Clientes', icon: UsersIcon },
+      { value: '500+', label: 'Profissionais', icon: Users2 },
+      { value: '98.7%', label: 'Taxa de Recuperação', icon: ShieldCheck },
+      { value: '24/7', label: 'Central Online', icon: ClockIcon },
     ],
-    products: [],
+    timeline: [
+      { year: '2018', event: 'Fundação da Facilit Corp' },
+      { year: '2019', event: 'Expansão para 5 estados' },
+      { year: '2021', event: '50.000 clientes atendidos' },
+      { year: '2023', event: 'Lançamento do app Rastremix' },
+      { year: '2026', event: '1.000.000 de dispositivos ativos' },
+    ],
   },
   {
     id: 'gps-my',
     name: 'GPS MY',
     tagline: 'O Rastreador Que É Seu.',
-    description: 'Tecnologia de rastreamento com propriedade definitiva - você é dono do equipamento, sem mensalidades.',
+    shortDesc: 'Tecnologia com propriedade definitiva.',
+    description: 'A GPS MY não nasceu em escritórios de vidro; nascemos no asfalto quente, sentindo o cheiro do óleo e o peso da mochila que nunca fica leve. Vendemos tecnologia, não alugamos. Você é dono do equipamento 100%. Sem mensalidades, sem surpresas.',
     color: '#22C55E',
     colorRgb: '34, 197, 94',
-    gradient: 'from-green-500 via-emerald-500 to-teal-600',
-    darkGradient: 'from-green-900/80 via-emerald-900/80 to-teal-900/80',
-    logo: `/${logos['gps-my-verde']}`,
-    alternateLogos: [`/${logos['gps-my']}`, `/${logos['gps-my-verde']}`],
+    gradient: 'linear-gradient(135deg, #22C55E, #16A34A, #15803D)',
     icon: Shield,
-    features: ['Propriedade Definitiva', 'Chip Multioperadora', 'Bloqueio Remoto', 'Anti-Furto Automático', 'Rastreamento GPS', 'Instalação Estratégica'],
-    stats: [
-      { value: '100%', label: 'Propriedade' },
-      { value: 'R$0', label: 'Mensalidades' },
-      { value: '<30s', label: 'Tempo de Bloqueio' },
-      { value: '∞', label: 'Sem Limites' },
+    founded: '2019',
+    employees: '150+',
+    clients: '20.000+',
+    presence: ['Brasil', 'Portugal', 'Espanha'],
+    certifications: ['Anatel', 'CE', 'FCC'],
+    services: ['Rastreador Veicular', 'Bloqueio Remoto', 'Chip Multioperadora', 'App GPS'],
+    technologies: ['GPS', 'GSM', '4G', 'Bluetooth', 'RFID'],
+    products: [
+      { name: 'Rastreador Portátil', desc: 'Compacto e discreto', image: '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Port%C3%A1til.png' },
+      { name: 'Rastreador OBD', desc: 'Plug & Play', image: '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Obd.png' },
+      { name: 'Tag Localizadora', desc: 'Para objetos e pets', image: '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Tag.png' },
     ],
-    products: [`/${logos['gps-my-obd']}`, `/${logos['gps-my-portatil']}`, `/${logos['gps-my-tag']}`],
+    stats: [
+      { value: '100%', label: 'Propriedade', icon: Key },
+      { value: 'R$0', label: 'Mensalidades', icon: StarIcon },
+      { value: '<30s', label: 'Tempo de Bloqueio', icon: Zap },
+      { value: '∞', label: 'Sem Limites', icon: Infinity },
+    ],
+    features: [
+      { name: 'Propriedade Definitiva', progress: 100, desc: 'Equipamento é seu para sempre' },
+      { name: 'Chip Multioperadora', progress: 95, desc: 'Sinal em qualquer lugar' },
+      { name: 'Bloqueio Remoto', progress: 98, desc: 'Corte motor em 30 segundos' },
+      { name: 'Anti-Furto Automático', progress: 92, desc: 'Detecção inteligente' },
+      { name: 'Rastreamento GPS', progress: 99, desc: 'Precisão de metros' },
+      { name: 'Instalação Escondida', progress: 88, desc: 'Proteção contra bandidos' },
+    ],
+    timeline: [
+      { year: '2019', event: 'Lançamento do GPS MY' },
+      { year: '2020', event: 'Primeiro rastreador sem mensalidade' },
+      { year: '2022', event: 'Chip multioperadora nacional' },
+      { year: '2024', event: 'App com 100K downloads' },
+      { year: '2026', event: '1M de dispositivos ativos' },
+    ],
   },
   {
     id: 'gps-love',
     name: 'GPS LOVE',
     tagline: 'Rastreamos Quem Você Ama.',
-    description: 'Proteção para sua família, idosos, pets e veículos com amor e tecnologia de ponta.',
+    shortDesc: 'Proteção para família e pets.',
+    description: 'A GPS LOVE não nasceu de engenheiros; nascemos do medo real de quem já perdeu o sono esperando um filho chegar. Nascemos da angústia de uma filha que viu o pai idoso esquecer o caminho de casa. Nascemos do luto de quem teve o melhor amigo de quatro patas arrancado do quintal.',
     color: '#EC4899',
     colorRgb: '236, 72, 153',
-    gradient: 'from-pink-500 via-rose-500 to-red-500',
-    darkGradient: 'from-pink-900/80 via-rose-900/80 to-red-900/80',
-    logo: `/${logos['gps-love']}`,
-    alternateLogos: [`/${logos['gps-love']}`, `/${logos['gps-love-img']}`, `/${logos['gps-joy']}`],
+    gradient: 'linear-gradient(135deg, #EC4899, #DB2777, #BE185D)',
     icon: Heart,
-    features: ['Câmera com Visor', 'Tags Localizadoras', 'Rastreamento Familiar', 'Alertas Inteligentes', 'Histórico de Rota', 'SOS Emergencial'],
-    stats: [
-      { value: '🏠', label: 'Doméstico' },
-      { value: '👴', label: 'Idosos' },
-      { value: '🐕', label: 'Pets' },
-      { value: '🚗', label: 'Veículos' },
+    founded: '2020',
+    employees: '80+',
+    clients: '15.000+',
+    presence: ['Brasil', 'América Latina'],
+    certifications: ['Anatel', 'CE'],
+    services: ['Rastreador Familiar', 'Câmera IP', 'Tags Localizadoras', 'SOS Emergencial'],
+    technologies: ['GPS', 'WiFi', 'Bluetooth', '4G', 'AI'],
+    products: [
+      { name: 'Câmera IP', desc: 'Visão noturna e alertas', image: '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/C%C3%82MERA.jpeg' },
+      { name: 'Portátil GPS', desc: 'Para idosos e crianças', image: '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/PORT%C3%81TIL.png' },
+      { name: 'Tag Pet', desc: 'Rastreador para animais', image: '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/coleira.jpeg' },
+      { name: 'Tag Localizadora', desc: 'Para objetos preciosos', image: '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/TAG%20LOCALIZADORA.jpeg' },
     ],
-    products: [`/${logos['gps-love-arte']}`, `/${logos['gps-love-camera']}`, `/${logos['gps-love-portatil']}`, `/${logos['gps-love-tag']}`, `/${logos['gps-love-coleira']}`],
+    stats: [
+      { value: '🏠', label: 'Doméstico', icon: Home },
+      { value: '👴', label: 'Idosos', icon: HeartPulse },
+      { value: '🐕', label: 'Pets', icon: Dog },
+      { value: '🚗', label: 'Veículos', icon: CarIcon },
+    ],
+    features: [
+      { name: 'Câmera com Visor', progress: 95, desc: 'Veja em tempo real' },
+      { name: 'Tags Localizadoras', progress: 90, desc: 'Localize o precioso' },
+      { name: 'Rastreamento Familiar', progress: 92, desc: 'Proteja quem ama' },
+      { name: 'Alertas Inteligentes', progress: 88, desc: 'Notificações push' },
+      { name: 'Histórico de Rota', progress: 85, desc: 'Saiba por onde andaram' },
+      { name: 'SOS Emergencial', progress: 97, desc: 'Um toque para ajuda' },
+    ],
+    timeline: [
+      { year: '2020', event: 'Lançamento GPS LOVE' },
+      { year: '2021', event: 'Câmera IP nacional' },
+      { year: '2022', event: 'Tag Pet no mercado' },
+      { year: '2024', event: 'App com SOS integrado' },
+      { year: '2026', event: '500K famílias protegidas' },
+    ],
   },
   {
     id: 'rastremix',
     name: 'RASTREMIX',
     tagline: 'Proteção Veicular Inteligente.',
-    description: 'Família global que cuida da sua com amor, rastreamento total e central 24h.',
+    shortDesc: 'A proteção do seu patrimônio.',
+    description: 'A Rastremix não é feita de chips e satélites; somos feitos de pessoas que acreditam que o amor é o maior patrimônio. Somos uma família global que cuida da sua. Trazemos a força de uma multinacional para o portão da sua casa, com o carinho de quem sabe o seu nome.',
     color: '#F97316',
     colorRgb: '249, 115, 22',
-    gradient: 'from-orange-500 via-orange-600 to-red-500',
-    darkGradient: 'from-orange-900/80 via-orange-900/80 to-red-900/80',
-    logo: `/${logos['rastremix']}`,
-    alternateLogos: [`/${logos['rastremix']}`, `/${logos['rastremix-2']}`],
+    gradient: 'linear-gradient(135deg, #F97316, #EA580C, #DC2626)',
     icon: Radar,
-    features: ['Rastreamento Total', 'Central 24h', 'Resposta Rápida', 'Olhos de Anjo', 'Bloqueio Imediato', 'Cobertura Total'],
+    founded: '2018',
+    employees: '300+',
+    clients: '35.000+',
+    presence: ['Brasil', 'América Latina', 'EUA'],
+    certifications: ['ISO 9001', 'Anatel', 'ABVA'],
+    services: ['Proteção Veicular', 'Rastreador', 'Assistência 24h', 'Guincho'],
+    technologies: ['GPS', 'Satélite', '4G', 'IoT', 'AI'],
     stats: [
-      { value: '24/7', label: 'Central' },
-      { value: '<2min', label: 'Resposta' },
-      { value: '100%', label: 'Brasil' },
-      { value: '∞', label: 'Famílias' },
+      { value: '24/7', label: 'Central', icon: Bell },
+      { value: '<2min', label: 'Resposta', icon: Timer },
+      { value: '100%', label: 'Brasil', icon: Globe },
+      { value: '∞', label: 'Famílias', icon: UsersIcon },
     ],
-    products: [`/${logos['rastremix-camiseta']}`, `/${logos['rastremix-whatsapp']}`],
+    features: [
+      { name: 'Rastreamento Total', progress: 99, desc: 'Veículos e pessoas' },
+      { name: 'Central 24h', progress: 100, desc: 'SOC especializado' },
+      { name: 'Resposta Rápida', progress: 95, desc: 'Média 2 minutos' },
+      { name: 'Olhos de Anjo', progress: 92, desc: 'Vigilância permanente' },
+      { name: 'Bloqueio Imediato', progress: 98, desc: 'Controle total' },
+      { name: 'Cobertura Total', progress: 100, desc: '100% do Brasil' },
+    ],
+    timeline: [
+      { year: '2018', event: 'Fundação Rastremix' },
+      { year: '2019', event: 'Primeira central 24h' },
+      { year: '2021', event: '30.000 associados' },
+      { year: '2023', event: 'Expansão internacional' },
+      { year: '2026', event: 'Líder no Brasil' },
+    ],
   },
   {
     id: 'telensat',
     name: 'TELENSAT',
     tagline: 'Autoridade Global do Seu Pátio.',
-    description: 'Multinacional de tecnologia telemática e IoT com padrão internacional para frotas.',
+    shortDesc: 'Telemetria para frotas pesadas.',
+    description: 'A Telensat é uma multinacional de tecnologia telemática e IoT com padrão internacional. Nascemos para resolver o que ninguém mais resolve: a entrega da frota 100% pronta para a inspeção Vale. Rotagrama configurado, Gestão de Multas Automatizada e instalação completa.',
     color: '#3B82F6',
     colorRgb: '59, 130, 246',
-    gradient: 'from-blue-500 via-blue-600 to-indigo-600',
-    darkGradient: 'from-blue-900/80 via-blue-900/80 to-indigo-900/80',
-    logo: `/${logos['telensat']}`,
-    alternateLogos: [`/${logos['telensat']}`, `/${logos['telensat-azul']}`],
+    gradient: 'linear-gradient(135deg, #3B82F6, #2563EB, #1D4ED8)',
     icon: Cpu,
-    features: ['Leitor RFID', 'Sensor de Fadiga', 'Gestão de Multas', 'Padrão Vale', 'Rotagrama Config', 'Telemetria Avançada'],
+    founded: '2019',
+    employees: '120+',
+    clients: '5.000+',
+    presence: ['Brasil', 'Chile', 'Peru'],
+    certifications: ['ISO 9001', 'Vale Approved', 'ANP'],
+    services: ['Telemetria', 'Gestão de Frotas', 'Sensor de Fadiga', 'RFID'],
+    technologies: ['RFID', 'AI', 'IoT', 'Cloud', 'Big Data'],
     stats: [
-      { value: '100%', label: 'Padrão Vale' },
-      { value: 'RFID', label: 'Identificação' },
-      { value: 'IA', label: 'Preventiva' },
-      { value: '24/7', label: 'Suporte' },
+      { value: '100%', label: 'Padrão Vale', icon: AwardIcon },
+      { value: 'RFID', label: 'Identificação', icon: Finger },
+      { value: 'IA', label: 'Preventiva', icon: Brain },
+      { value: '24/7', label: 'Suporte', icon: PhoneIcon },
     ],
-    products: [],
+    features: [
+      { name: 'Leitor RFID', progress: 98, desc: 'Identificação de condutores' },
+      { name: 'Sensor de Fadiga', progress: 95, desc: 'IA preventiva' },
+      { name: 'Gestão de Multas', progress: 92, desc: 'Automatizada' },
+      { name: 'Padrão Vale', progress: 100, desc: 'Certificado' },
+      { name: 'Rotagrama Config', progress: 90, desc: 'Personalizado' },
+      { name: 'Telemetria Avançada', progress: 94, desc: 'Dados em tempo real' },
+    ],
+    timeline: [
+      { year: '2019', event: 'Lançamento TELENSAT' },
+      { year: '2020', event: 'Aprovação Vale' },
+      { year: '2022', event: 'Sensor de fadiga' },
+      { year: '2024', event: 'Expansão para mineração' },
+      { year: '2026', event: '1.000 frotas gerenciadas' },
+    ],
   },
   {
     id: 'topy-pro',
     name: 'TOPY PRO',
     tagline: 'O Escudo do Motociclista.',
-    description: 'Parceiro de estrada de quem acorda antes do sol. Proteção completa para motos.',
+    shortDesc: 'Proteção completa para motos.',
+    description: 'A TOPY PRO não é apenas tecnologia; somos o parceiro de estrada de quem acorda antes do sol. Somos feitos da fibra do trabalhador brasileiro que não tem medo de cara feia e enfrenta o trânsito para levar o pão. Garantia FIPE, rastreador escondido e SOC 24h.',
     color: '#A855F7',
     colorRgb: '168, 85, 247',
-    gradient: 'from-purple-500 via-purple-600 to-violet-600',
-    darkGradient: 'from-purple-900/80 via-purple-900/80 to-violet-900/80',
-    logo: `/${logos['topy-pro']}`,
-    alternateLogos: [`/${logos['topy-pro']}`, `/${logos['topy-pro-branca']}`],
+    gradient: 'linear-gradient(135deg, #A855F7, #9333EA, #7E22CE)',
     icon: ShieldAlert,
-    features: ['Garantia FIPE', 'Rastreador Escondido', 'Central 24h', 'Cobertura Nacional', 'App Inteligente', 'Instalação Profissional'],
+    founded: '2020',
+    employees: '90+',
+    clients: '12.000+',
+    presence: ['Brasil'],
+    certifications: ['Anatel', 'INMETRO'],
+    services: ['Rastreador Moto', 'Garantia FIPE', 'Assistência 24h', 'App Moto'],
+    technologies: ['GPS', '4G', 'Bluetooth', 'AI'],
     stats: [
-      { value: 'FIPE', label: 'Garantia' },
-      { value: '100%', label: 'Escondido' },
-      { value: '24/7', label: 'SOC' },
-      { value: '∞', label: 'Km Protegidos' },
+      { value: 'FIPE', label: 'Garantia', icon: AwardIcon },
+      { value: '100%', label: 'Escondido', icon: EyeOff },
+      { value: '24/7', label: 'SOC', icon: Bell },
+      { value: '∞', label: 'Km Protegidos', icon: Gauge },
     ],
-    products: [],
+    features: [
+      { name: 'Garantia FIPE', progress: 100, desc: 'Se não recuperar, pagamos' },
+      { name: 'Rastreador Escondido', progress: 95, desc: '100% invisível' },
+      { name: 'Central 24h', progress: 100, desc: 'SOC motociclista' },
+      { name: 'Cobertura Nacional', progress: 98, desc: 'Brasil inteiro' },
+      { name: 'App Inteligente', progress: 90, desc: 'Interface moto' },
+      { name: 'Instalação Profissional', progress: 92, desc: 'Técnicos especializados' },
+    ],
+    timeline: [
+      { year: '2020', event: 'Lançamento TOPY PRO' },
+      { year: '2021', event: 'Garantia FIPE' },
+      { year: '2022', event: '10.000 motos protegidas' },
+      { year: '2024', event: 'App motoqueiro' },
+      { year: '2026', event: '200K motos rastreadas' },
+    ],
   },
   {
     id: 'valeteck',
     name: 'VALETECK',
     tagline: 'Controle Total do Seu Pátio.',
-    description: 'Solução completa para controle de pátio com telemetria avançada e padrão Vale.',
+    shortDesc: 'Telemetria para pesados e empilhadeiras.',
+    description: 'A Valeteck nasceu do respeito profundo por quem conhece o brilho do dia e o peso do trabalho. Somos a solução que destrava o pátio com o rigor técnico exigido pela Vale, mas com a malícia da rua que só quem entende o "ganha-pão" consegue entregar.',
     color: '#06B6D4',
     colorRgb: '6, 182, 212',
-    gradient: 'from-cyan-500 via-cyan-600 to-blue-600',
-    darkGradient: 'from-cyan-900/80 via-cyan-900/80 to-blue-900/80',
-    logo: `/${logos['valeteck']}`,
-    alternateLogos: [`/${logos['valeteck']}`, `/${logos['valeteck-branco']}`],
+    gradient: 'linear-gradient(135deg, #06B6D4, #0891B2, #0E7490)',
     icon: Radio,
-    features: ['Partida Remota', 'Antifurto Automático', 'Câmera de Ré', 'Telemetria Avançada', 'Instalação Profissional', 'Padrão Vale'],
+    founded: '2019',
+    employees: '70+',
+    clients: '2.000+',
+    presence: ['Brasil'],
+    certifications: ['ISO 9001', 'Vale Approved', 'NR'],
+    services: ['Partida Remota', 'Telemetria', 'Gestão de Pátio', 'Câmera de Ré'],
+    technologies: ['RFID', 'IoT', '4G', 'AI', 'Cloud'],
     stats: [
-      { value: '100m', label: 'Alcance' },
-      { value: '24/7', label: 'Monitoramento' },
-      { value: 'Vale', label: 'Certificado' },
-      { value: '∞', label: 'Veículos' },
+      { value: '100m', label: 'Alcance', icon: Antenna },
+      { value: '24/7', label: 'Monitoramento', icon: EyeIcon },
+      { value: 'Vale', label: 'Certificado', icon: AwardIcon },
+      { value: '∞', label: 'Veículos', icon: TruckIcon },
     ],
-    products: [],
+    features: [
+      { name: 'Partida Remota', progress: 95, desc: 'Controle até 100m' },
+      { name: 'Antifurto Automático', progress: 92, desc: 'Proteção inteligente' },
+      { name: 'Câmera de Ré', progress: 88, desc: 'Elimina pontos cegos' },
+      { name: 'Telemetria Avançada', progress: 94, desc: 'Dados em tempo real' },
+      { name: 'Instalação Profissional', progress: 90, desc: 'Perfeito para Vale' },
+      { name: 'Gestão de Pátio', progress: 85, desc: 'Controle total' },
+    ],
+    timeline: [
+      { year: '2019', event: 'Lançamento VALETECK' },
+      { year: '2020', event: 'Partida remota' },
+      { year: '2022', event: 'Aprovação Vale' },
+      { year: '2024', event: 'Gestão de pátio' },
+      { year: '2026', event: '10.000 equipamentos' },
+    ],
   },
   {
     id: 'webtrak',
     name: 'WEBTRAK',
     tagline: 'Gestão Inteligente de Frotas.',
-    description: 'Plataforma web completa para gestão de frotas com rastreamento em tempo real.',
+    shortDesc: 'Plataforma web completa.',
+    description: 'A WebTrak é a plataforma web completa para gestão de frotas com rastreamento em tempo real. Relatórios PDF, geofencing, alertas inteligentes e multi-usuários. Tudo em um só lugar, acessível de qualquer dispositivo.',
     color: '#8B5CF6',
     colorRgb: '139, 92, 246',
-    gradient: 'from-violet-500 via-violet-600 to-purple-600',
-    darkGradient: 'from-violet-900/80 via-violet-900/80 to-purple-900/80',
-    logo: `/${logos['webtrak']}`,
-    alternateLogos: [`/${logos['webtrak']}`],
+    gradient: 'linear-gradient(135deg, #8B5CF6, #7C3AED, #6D28D9)',
     icon: Globe,
-    features: ['Gestão de Frotas', 'Rastreamento Web', 'Relatórios PDF', 'Geofencing', 'Alertas Inteligentes', 'Multi-usuários'],
+    founded: '2020',
+    employees: '50+',
+    clients: '3.000+',
+    presence: ['Brasil', 'América Latina'],
+    certifications: ['ISO 27001', 'SOC 2'],
+    services: ['Gestão de Frotas', 'Rastreamento Web', 'Relatórios', 'Geofencing'],
+    technologies: ['Cloud', 'Big Data', 'AI', 'Real-time'],
     stats: [
-      { value: 'Web', label: 'Plataforma' },
-      { value: 'PDF', label: 'Relatórios' },
-      { value: '∞', label: 'Usuários' },
-      { value: '24/7', label: 'Acesso' },
+      { value: 'Web', label: 'Plataforma', icon: Globe },
+      { value: 'PDF', label: 'Relatórios', icon: FileText },
+      { value: '∞', label: 'Usuários', icon: UsersIcon },
+      { value: '24/7', label: 'Acesso', icon: ClockIcon },
     ],
-    products: [],
+    features: [
+      { name: 'Gestão de Frotas', progress: 95, desc: 'Controle total' },
+      { name: 'Rastreamento Web', progress: 98, desc: 'Tempo real' },
+      { name: 'Relatórios PDF', progress: 92, desc: 'Exportação fácil' },
+      { name: 'Geofencing', progress: 90, desc: 'Cercas virtuais' },
+      { name: 'Alertas Inteligentes', progress: 88, desc: 'Notificações push' },
+      { name: 'Multi-usuários', progress: 94, desc: 'Até 50 usuários' },
+    ],
+    timeline: [
+      { year: '2020', event: 'Lançamento WebTrak' },
+      { year: '2021', event: 'Relatórios PDF' },
+      { year: '2023', event: 'Geofencing' },
+      { year: '2025', event: 'App mobile' },
+      { year: '2026', event: 'IA para decisões' },
+    ],
   },
 ];
 
-function FloatingOrb({ delay, duration, size, color, top, left, right, bottom }: any) {
-  return (
-    <motion.div
-      className="absolute rounded-full blur-3xl opacity-30 pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        top, left, right, bottom,
-      }}
-      animate={{
-        y: [0, -30, 0],
-        x: [0, 15, 0],
-        scale: [1, 1.1, 1],
-        opacity: [0.2, 0.4, 0.2],
-      }}
-      transition={{
-        duration,
-        repeat: Infinity,
-        delay,
-        ease: "easeInOut",
-      }}
-    />
-  );
-}
-
-function ImageWithFallback({ src, alt, className, style, onClick }: { src: string; alt: string; className?: string; style?: any; onClick?: () => void }) {
-  const [error, setError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  
-  const handleError = () => {
-    console.log('Image error for:', src);
-    setError(true);
+function CyberButton({ children, onClick, variant = 'primary', size = 'md', icon: Icon, disabled }: any) {
+  const variants = {
+    primary: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/30',
+    secondary: 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 shadow-lg shadow-purple-500/30',
+    outline: 'border-2 border-cyan-500/50 bg-transparent hover:bg-cyan-500/10',
   };
   
-  const handleLoad = () => {
-    console.log('Image loaded:', src);
-    setLoaded(true);
+  const sizes = {
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-6 py-3 text-base',
+    lg: 'px-8 py-4 text-lg',
   };
   
-  if (error) {
-    return (
-      <div className={`flex items-center justify-center bg-gray-800 ${className}`} style={style}>
-        <div className="text-center p-4">
-          <Package className="w-12 h-12 text-gray-500 mx-auto mb-2" />
-          <span className="text-xs text-gray-500">{alt}</span>
-        </div>
-      </div>
-    );
-  }
-  
-  return (
-    <motion.img
-      src={src}
-      alt={alt}
-      className={`${className} ${loaded ? '' : 'opacity-50'}`}
-      style={style}
-      onError={handleError}
-      onLoad={handleLoad}
-      onClick={onClick}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: loaded ? 1 : 0.5, scale: 1 }}
-    />
-  );
-}
-
-function LogoCard({ logo, name, isActive, onClick, color }: { logo: string; name: string; isActive: boolean; onClick: () => void; color: string }) {
   return (
     <motion.button
       onClick={onClick}
-      className={`relative p-4 rounded-2xl transition-all duration-500 ${
-        isActive 
-          ? 'bg-white/20 backdrop-blur-xl shadow-2xl scale-110' 
-          : 'bg-white/5 hover:bg-white/10 backdrop-blur-sm'
-      }`}
-      whileHover={{ scale: 1.05, y: -5 }}
+      disabled={disabled}
+      className={`
+        relative overflow-hidden rounded-xl font-bold text-white
+        transition-all duration-300
+        ${variants[variant]} ${sizes[size]}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+      `}
+      whileHover={{ scale: 1.05, y: -2 }}
       whileTap={{ scale: 0.95 }}
     >
-      <div className="relative z-10">
-        <ImageWithFallback 
-          src={logo} 
-          alt={name}
-          className={`w-full h-16 object-contain filter drop-shadow-lg transition-all duration-500 ${
-            isActive ? 'brightness-110 saturate-125' : 'brightness-75 saturate-75'
-          }`}
-        />
-      </div>
-      {isActive && (
-        <motion.div
-          layoutId="activeLogo"
-          className="absolute inset-0 rounded-2xl border-2"
-          style={{ borderColor: color }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        />
-      )}
+      <span className="relative z-10 flex items-center justify-center gap-2">
+        {Icon && <Icon className="w-5 h-5" />}
+        {children}
+      </span>
+      <motion.div
+        className="absolute inset-0 bg-white/20"
+        initial={{ x: '-100%' }}
+        whileHover={{ x: '100%' }}
+        transition={{ duration: 0.5 }}
+      />
     </motion.button>
   );
 }
 
-function ProductGallery({ products, companyColor }: { products: string[]; companyColor: string }) {
-  const [selected, setSelected] = useState(0);
-  
-  if (!products || products.length === 0) return null;
-  
+function GlitchText({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="space-y-4">
-      <h4 className="text-lg font-bold text-white flex items-center gap-2">
-        <Package className="w-5 h-5" style={{ color: companyColor }} />
-        Produtos
-      </h4>
-      
-      <div className="grid grid-cols-3 gap-3">
-        {products.map((img, idx) => (
-          <motion.button
-            key={idx}
-            onClick={() => setSelected(idx)}
-            className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-              selected === idx ? 'border-white shadow-lg shadow-white/20' : 'border-white/20 hover:border-white/50'
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ImageWithFallback src={img} alt={`Produto ${idx + 1}`} className="w-full h-full object-cover" />
-          </motion.button>
-        ))}
-      </div>
-      
-      <motion.div
-        key={selected}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative aspect-video rounded-2xl overflow-hidden bg-black/30"
-      >
-        <ImageWithFallback 
-          src={products[selected]} 
-          alt={`Produto ${selected + 1}`}
-          className="w-full h-full object-contain"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-      </motion.div>
-    </div>
-  );
-}
-
-function Stats3D({ stats, color }: { stats: { value: string; label: string }[]; color: string }) {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((stat, idx) => (
-        <motion.div
-          key={idx}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: idx * 0.1 }}
-          className="relative group"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl blur-xl group-hover:from-white/20 transition-all" />
-          <div className="relative p-4 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-white/30 transition-all">
-            <motion.div
-              className="text-3xl md:text-4xl font-black text-transparent bg-clip-text"
-              style={{ backgroundImage: `linear-gradient(135deg, ${color}, white)` }}
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              {stat.value}
-            </motion.div>
-            <div className="text-sm text-white/70 mt-1">{stat.label}</div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function FeatureCard({ feature, icon: Icon, color, index }: { feature: string; icon: any; color: string; index: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all group"
-    >
-      <div 
-        className="w-10 h-10 rounded-lg flex items-center justify-center"
-        style={{ backgroundColor: `${color}20` }}
-      >
-        <Icon className="w-5 h-5" style={{ color }} />
-      </div>
-      <span className="text-sm text-white/90 group-hover:text-white transition-colors">{feature}</span>
-    </motion.div>
-  );
-}
-
-function MindMapNode({ company, index, total, onClick, isActive, isCenter }: { company: any; index: number; total: number; onClick: () => void; isActive: boolean; isCenter?: boolean }) {
-  const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
-  const radius = isCenter ? 0 : 280;
-  const x = Math.cos(angle) * radius;
-  const y = Math.sin(angle) * radius;
-  
-  if (isCenter) {
-    return (
-      <div className="absolute flex flex-col items-center justify-center">
-        <motion.div
-          className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl shadow-orange-500/50"
-          animate={{ 
-            scale: [1, 1.05, 1],
-            boxShadow: [
-              '0 0 30px rgba(249, 115, 22, 0.5)',
-              '0 0 60px rgba(249, 115, 22, 0.8)',
-              '0 0 30px rgba(249, 115, 22, 0.5)',
-            ]
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          <ImageWithFallback src={company.logo} alt={company.name} className="w-20 h-20 object-contain" />
-        </motion.div>
-        <span className="mt-2 text-white font-bold text-sm">{company.name}</span>
-      </div>
-    );
-  }
-  
-  return (
-    <motion.div
-      className="absolute"
-      style={{
-        transform: `translate(${x}px, ${y}px)`,
+    <motion.span
+      className={`relative ${className}`}
+      animate={{
+        textShadow: [
+          '2px 2px 0px rgba(0,255,255,0.7), -2px -2px 0px rgba(255,0,255,0.7)',
+          '2px 2px 0px rgba(255,0,255,0.7), -2px -2px 0px rgba(0,255,255,0.7)',
+          '2px 2px 0px rgba(0,255,255,0.7), -2px -2px 0px rgba(255,0,255,0.7)',
+        ],
       }}
-      initial={{ opacity: 0, scale: 0 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.1 }}
+      transition={{ duration: 0.3, repeat: Infinity }}
     >
-      <motion.button
-        onClick={onClick}
-        className={`relative cursor-pointer`}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <div 
-          className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-            isActive ? 'scale-125' : 'grayscale hover:grayscale-0'
-          }`}
-          style={{ 
-            background: `linear-gradient(135deg, ${company.color}, ${company.color}80)`,
-            boxShadow: isActive ? `0 0 40px ${company.color}80` : `0 10px 30px rgba(0,0,0,0.3)`,
-          }}
-        >
-          <ImageWithFallback src={company.logo} alt={company.name} className="w-14 h-14 object-contain" />
-        </div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileHover={{ opacity: 1, y: 0 }}
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 bg-black/80 backdrop-blur rounded-lg whitespace-nowrap"
-        >
-          <span className="text-sm font-bold" style={{ color: company.color }}>{company.name}</span>
-        </motion.div>
-      </motion.button>
+      {children}
+    </motion.span>
+  );
+}
+
+function HolographicCard({ children, color, className }: { children: React.ReactNode; color: string; className?: string }) {
+  return (
+    <motion.div
+      className={`
+        relative rounded-3xl overflow-hidden
+        bg-gradient-to-br from-gray-900/90 to-gray-950/90
+        backdrop-blur-xl border border-white/10
+        ${className}
+      `}
+      whileHover={{ scale: 1.02 }}
+    >
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          background: `linear-gradient(135deg, ${color}40, transparent, ${color}20)`,
+        }}
+      />
+      <motion.div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background: `linear-gradient(45deg, transparent 40%, ${color}20 50%, transparent 60%)`,
+        }}
+        animate={{
+          x: ['-100%', '200%'],
+        }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+      />
+      <div className="relative z-10">{children}</div>
     </motion.div>
   );
 }
 
-function AlternatingLogosCarousel({ logos, companyName, color }: { logos: string[]; companyName: string; color: string }) {
-  const [current, setCurrent] = useState(0);
-  
-  useEffect(() => {
-    setCurrent(0);
-  }, [companyName]);
-  
-  useEffect(() => {
-    if (logos.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrent((c) => (c + 1) % logos.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [logos.length]);
-  
-  if (logos.length === 0) return null;
-  
+function ScanLine() {
   return (
-    <div className="relative h-40">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={current}
-          initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}
-          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-          exit={{ opacity: 0, scale: 0.8, rotateY: 90 }}
-          transition={{ duration: 0.5 }}
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <ImageWithFallback 
-            src={logos[current]} 
-            alt={`${companyName} logo ${current + 1}`}
-            className="max-h-32 object-contain drop-shadow-2xl"
-          />
-        </motion.div>
-      </AnimatePresence>
-      
-      {logos.length > 1 && (
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-          {logos.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrent(idx)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                idx === current ? 'w-6' : 'bg-white/30 hover:bg-white/50'
-              }`}
-              style={{ backgroundColor: idx === current ? color : undefined }}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <motion.div
+      className="absolute inset-0 pointer-events-none overflow-hidden"
+      style={{ zIndex: 100 }}
+    >
+      <motion.div
+        className="w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"
+        animate={{
+          y: ['0%', '100%'],
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+      />
+    </motion.div>
   );
 }
 
-function ParticleField() {
+function ParticleExplosion({ color, count = 20 }: { color: string; count?: number }) {
   const particles = useMemo(() => {
-    return Array.from({ length: 50 }, (_, i) => ({
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      duration: Math.random() * 20 + 10,
-      delay: Math.random() * 5,
+      angle: (i / count) * 360,
+      delay: Math.random() * 0.5,
     }));
-  }, []);
+  }, [count]);
   
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div className="absolute inset-0 pointer-events-none">
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full bg-white/20"
+          className="absolute w-2 h-2 rounded-full"
           style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.size,
+            background: color,
+            boxShadow: `0 0 10px ${color}`,
+            left: '50%',
+            top: '50%',
           }}
+          initial={{ scale: 0, opacity: 1 }}
           animate={{
-            y: [-20, 20, -20],
-            x: [-10, 10, -10],
-            opacity: [0.2, 0.5, 0.2],
+            scale: [0, 1, 0],
+            opacity: [1, 0.5, 0],
+            x: Math.cos((p.angle * Math.PI) / 180) * 100,
+            y: Math.sin((p.angle * Math.PI) / 180) * 100,
           }}
           transition={{
-            duration: p.duration,
-            repeat: Infinity,
+            duration: 1,
             delay: p.delay,
-            ease: "easeInOut",
+            ease: 'easeOut',
           }}
         />
       ))}
+    </div>
+  );
+}
+
+function AnimatedCounter({ value, duration = 2 }: { value: string; duration?: number }) {
+  const [displayValue, setDisplayValue] = useState('0');
+  
+  useEffect(() => {
+    const numericMatch = value.match(/[\d,.]+/);
+    if (!numericMatch) {
+      setDisplayValue(value);
+      return;
+    }
+    
+    const targetNum = parseFloat(numericMatch[0].replace(/,/g, ''));
+    const prefix = value.substring(0, value.indexOf(numericMatch[0]));
+    const suffix = value.substring(value.indexOf(numericMatch[0]) + numericMatch[0].length);
+    
+    const isDecimal = numericMatch[0].includes('.') || numericMatch[0].includes(',');
+    const decimals = isDecimal ? (numericMatch[0].split(/[.,]/)[1]?.length || 0) : 0;
+    
+    let start = 0;
+    const increment = targetNum / (duration * 60);
+    
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= targetNum) {
+        setDisplayValue(value);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(prefix + start.toFixed(decimals).replace('.', ',') + suffix);
+      }
+    }, 1000 / 60);
+    
+    return () => clearInterval(timer);
+  }, [value, duration]);
+  
+  return <span>{displayValue}</span>;
+}
+
+function TechIcon({ icon: Icon, color, size = 'md' }: { icon: any; color: string; size?: 'sm' | 'md' | 'lg' }) {
+  const sizes = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-16 h-16' };
+  
+  return (
+    <motion.div
+      className={`${sizes[size]} rounded-xl flex items-center justify-center`}
+      style={{ backgroundColor: `${color}20` }}
+      whileHover={{ rotate: 360 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Icon className={`${sizes[size].replace('w-', 'w-').replace(' h-', ' h-').split(' ')[0]}`} style={{ color }} />
+    </motion.div>
+  );
+}
+
+function ProgressBar({ progress, color, label }: { progress: number; color: string; label: string }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between text-sm">
+        <span className="text-white/80">{label}</span>
+        <span style={{ color }}>{progress}%</span>
+      </div>
+      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: `linear-gradient(90deg, ${color}, ${color}80)` }}
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TimelineItem({ year, event, isActive, color }: { year: string; event: string; isActive: boolean; color: string }) {
+  return (
+    <motion.div
+      className="flex gap-4 items-start"
+      initial={{ opacity: 0.5, x: -20 }}
+      animate={{ opacity: isActive ? 1 : 0.5, x: 0 }}
+    >
+      <div className="relative">
+        <motion.div
+          className="w-4 h-4 rounded-full"
+          style={{ backgroundColor: isActive ? color : '#374151' }}
+          animate={isActive ? { scale: [1, 1.5, 1] } : {}}
+          transition={{ duration: 1, repeat: Infinity }}
+        />
+        {isActive && (
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{ backgroundColor: color, opacity: 0.3 }}
+            animate={{ scale: [1, 2, 1], opacity: [0.3, 0, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        )}
+      </div>
+      <div className="pb-6">
+        <span className="text-sm font-mono" style={{ color }}>{year}</span>
+        <p className="text-white/80 text-sm mt-1">{event}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function InfinityIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5">
+      <motion.path
+        d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        animate={{ pathLength: [0, 1, 0] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+    </svg>
+  );
+}
+
+function LogoGrid({ onSelect, selectedId }: { onSelect: (id: string) => void; selectedId: string }) {
+  return (
+    <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
+      {companies.map((c) => (
+        <motion.button
+          key={c.id}
+          onClick={() => onSelect(c.id)}
+          className={`
+            relative p-3 rounded-2xl transition-all duration-500
+            ${selectedId === c.id ? 'bg-white/20 scale-110' : 'bg-white/5 hover:bg-white/10'}
+          `}
+          whileHover={{ scale: 1.1, y: -5 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <div className="relative z-10">
+            <img 
+              src={logos[c.id as keyof typeof logos]} 
+              alt={c.name}
+              className={`w-full h-12 object-contain transition-all duration-500 ${
+                selectedId === c.id ? 'brightness-110 saturate-125' : 'brightness-75 saturate-75'
+              }`}
+            />
+          </div>
+          {selectedId === c.id && (
+            <motion.div
+              layoutId="activeLogo"
+              className="absolute inset-0 rounded-2xl border-2"
+              style={{ borderColor: c.color }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
+function ProductCard({ product, color }: { product: any; color: string }) {
+  return (
+    <motion.div
+      className="relative group"
+      whileHover={{ y: -10 }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl blur-xl group-hover:from-white/10 transition-all" />
+      <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-950/90 rounded-2xl overflow-hidden border border-white/10">
+        <div className="aspect-video bg-black/50">
+          <img 
+            src={product.image} 
+            alt={product.name}
+            className="w-full h-full object-contain p-4"
+          />
+        </div>
+        <div className="p-4">
+          <h4 className="font-bold text-white text-sm">{product.name}</h4>
+          <p className="text-white/60 text-xs mt-1">{product.desc}</p>
+        </div>
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1"
+          style={{ background: color }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+function MatrixRain() {
+  const columns = 20;
+  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ';
+  
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
+      {Array.from({ length: columns }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute top-0 text-cyan-400 text-xs font-mono"
+          style={{ left: `${(i / columns) * 100}%` }}
+          animate={{
+            y: ['-100%', '100vh'],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 2,
+            repeat: Infinity,
+            delay: Math.random() * 2,
+            ease: 'linear',
+          }}
+        >
+          {Array.from({ length: 50 }).map((_, j) => (
+            <div key={j}>{chars[Math.floor(Math.random() * chars.length)]}</div>
+          ))}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function GridLines() {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      <svg className="w-full h-full opacity-10">
+        <defs>
+          <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+            <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(0,255,255,0.3)" strokeWidth="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+      </svg>
     </div>
   );
 }
@@ -578,447 +735,478 @@ interface EmpresaPageProps {
 }
 
 export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
-  const [selectedCompany, setSelectedCompany] = useState(0);
-  const [viewMode, setViewMode] = useState<'carousel' | 'mindmap'>('carousel');
+  const [selectedCompanyId, setSelectedCompanyId] = useState('facilit');
+  const [activeTab, setActiveTab] = useState('info');
+  const [hoveredStat, setHoveredStat] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const company = companies[selectedCompany];
-  const centerCompany = companies.find(c => c.id === 'rastremix') || companies[0];
+  const company = companies.find(c => c.id === selectedCompanyId) || companies[0];
   
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 overflow-auto">
-      <ParticleField />
-      
-      <motion.div 
-        className="fixed inset-0 pointer-events-none z-0"
-      >
-        <FloatingOrb delay={0} duration={6} size={400} color={`rgba(${company.colorRgb}, 0.3)`} top="10%" left="5%" />
-        <FloatingOrb delay={2} duration={8} size={300} color="rgba(249, 115, 22, 0.2)" bottom="20%" right="10%" />
-        <FloatingOrb delay={4} duration={7} size={350} color="rgba(59, 130, 246, 0.2)" top="40%" right="30%" />
-      </motion.div>
+    <div ref={containerRef} className="min-h-screen bg-gray-950 text-white overflow-auto">
+      <MatrixRain />
+      <GridLines />
       
       <div className="relative z-10">
-        <header className="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-xl border-b border-white/10">
+        <header className="sticky top-0 z-50 bg-gray-950/90 backdrop-blur-xl border-b border-cyan-500/20">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {onBack && (
-                  <Button variant="ghost" size="sm" onClick={onBack} className="text-white hover:bg-white/10">
-                    <ChevronLeft className="w-5 h-5 mr-1" />
+                  <CyberButton variant="outline" size="sm" icon={ChevronLeft} onClick={onBack}>
                     Voltar
-                  </Button>
+                  </CyberButton>
                 )}
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-white" />
-                  </div>
+                  <motion.div
+                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30"
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Building2 className="w-7 h-7" />
+                  </motion.div>
                   <div>
-                    <h1 className="text-xl font-black text-white">A EMPRESA</h1>
-                    <p className="text-xs text-white/60">Ecossistema Rastremix</p>
+                    <h1 className="text-2xl font-black tracking-wider">
+                      <GlitchText className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                        A EMPRESA
+                      </GlitchText>
+                    </h1>
+                    <p className="text-xs text-cyan-400/70 font-mono tracking-widest">ECOSSISTEMA RASTRAMIX</p>
                   </div>
                 </div>
               </div>
               
               <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'carousel' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('carousel')}
-                  className={viewMode === 'carousel' ? 'bg-orange-500' : 'text-white border-white/20'}
-                >
-                  Carousel
-                </Button>
-                <Button
-                  variant={viewMode === 'mindmap' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('mindmap')}
-                  className={viewMode === 'mindmap' ? 'bg-orange-500' : 'text-white border-white/20'}
-                >
-                  Mind Map
-                </Button>
+                <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-cyan-500/10 rounded-full border border-cyan-500/30">
+                  <motion.div
+                    className="w-2 h-2 rounded-full bg-green-400"
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  />
+                  <span className="text-xs font-mono text-cyan-400">ONLINE</span>
+                </div>
               </div>
             </div>
           </div>
         </header>
         
-        <section className="min-h-[70vh] flex items-center justify-center py-20 px-4">
-          <div className="text-center max-w-4xl mx-auto">
+        <section className="py-8 px-4">
+          <div className="container mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              className="text-center mb-8"
             >
-              <Badge className="mb-6 px-4 py-2 text-lg bg-white/10 text-white border-white/20 backdrop-blur">
-                Ecossistema de Proteção
+              <Badge className="mb-4 px-6 py-2 text-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-cyan-500/50 text-cyan-400 backdrop-blur">
+                <motion.span
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="mr-2"
+                >
+                  ▸
+                </motion.span>
+                ECOSSISTEMA DE PROTEÇÃO
               </Badge>
-              <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/60 mb-6">
-                O Grupo Que Move o Brasil
+              <h2 className="text-4xl md:text-6xl font-black mb-4">
+                <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+                  O Grupo Que Move
+                </span>
+                <br />
+                <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  o Brasil
+                </span>
               </h2>
-              <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg text-white/60 max-w-2xl mx-auto">
                 8 empresas.unidas pela missão de proteger o patrimônio nacional com tecnologia de ponta e coração de brasileiro.
               </p>
-              
-              <motion.div
-                className="flex flex-wrap justify-center gap-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                {companies.map((c, idx) => (
-                  <motion.div
-                    key={c.id}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.6 + idx * 0.1 }}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedCompany(idx)}
-                  >
-                    <ImageWithFallback 
-                      src={c.logo} 
-                      alt={c.name}
-                      className="w-12 h-12 object-contain hover:scale-110 transition-transform"
-                      style={{ filter: selectedCompany === idx ? 'none' : 'grayscale(50%)' }}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
             </motion.div>
-          </div>
-        </section>
-        
-        {viewMode === 'carousel' ? (
-          <section className="py-20 px-4">
-            <div className="container mx-auto">
-              <div className="grid lg:grid-cols-5 gap-8">
-                <div className="lg:col-span-1 space-y-3">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-orange-500" />
-                    Empresas
-                  </h3>
-                  {companies.map((c, idx) => (
-                    <LogoCard
-                      key={c.id}
-                      logo={c.logo}
-                      name={c.name}
-                      isActive={selectedCompany === idx}
-                      onClick={() => setSelectedCompany(idx)}
-                      color={c.color}
-                    />
-                  ))}
-                </div>
-                
-                <div className="lg:col-span-4">
-                  <AnimatePresence mode="wait">
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex justify-center mb-12"
+            >
+              <LogoGrid onSelect={setSelectedCompanyId} selectedId={selectedCompanyId} />
+            </motion.div>
+            
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <HolographicCard color={company.color} className="p-8">
+                  <ScanLine />
+                  <div className="flex items-start gap-6">
                     <motion.div
-                      key={company.id}
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      transition={{ duration: 0.5 }}
-                      className={`rounded-3xl bg-gradient-to-br ${company.darkGradient} backdrop-blur-xl border border-white/10 overflow-hidden`}
+                      className="w-32 h-32 rounded-2xl overflow-hidden flex items-center justify-center"
+                      style={{ background: `${company.color}20` }}
+                      animate={{ rotate: [0, 5, 0, -5, 0] }}
+                      transition={{ duration: 5, repeat: Infinity }}
                     >
-                      <div className={`h-2 bg-gradient-to-r ${company.gradient}`} />
+                      <img 
+                        src={logos[company.id as keyof typeof logos]} 
+                        alt={company.name}
+                        className="w-28 h-28 object-contain"
+                      />
+                    </motion.div>
+                    <div className="flex-1">
+                      <motion.h3
+                        className="text-4xl font-black mb-2"
+                        style={{
+                          background: `linear-gradient(135deg, ${company.color}, white)`,
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        }}
+                        animate={{ textShadow: [`0 0 20px ${company.color}50`, `0 0 40px ${company.color}80`, `0 0 20px ${company.color}50`] }}
+                      >
+                        {company.name}
+                      </motion.h3>
+                      <p className="text-xl text-white/80 font-semibold mb-2">{company.tagline}</p>
+                      <p className="text-white/60">{company.description}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-8">
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                      <TabsList className="bg-white/5 border border-white/10">
+                        <TabsTrigger value="info" className="data-[state=active]:bg-cyan-500/20">Info</TabsTrigger>
+                        <TabsTrigger value="tech" className="data-[state=active]:bg-cyan-500/20">Tech</TabsTrigger>
+                        <TabsTrigger value="products" className="data-[state=active]:bg-cyan-500/20">Produtos</TabsTrigger>
+                        <TabsTrigger value="timeline" className="data-[state=active]:bg-cyan-500/20">Timeline</TabsTrigger>
+                      </TabsList>
                       
-                      <div className="p-8">
-                        <div className="grid md:grid-cols-2 gap-12">
-                          <div className="space-y-6">
-                            <div>
-                              <AlternatingLogosCarousel 
-                                logos={company.alternateLogos} 
-                                companyName={company.name}
-                                color={company.color}
-                              />
-                            </div>
-                            
-                            <div>
-                              <h3 className="text-4xl font-black text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(135deg, ${company.color}, white)` }}>
-                                {company.name}
-                              </h3>
-                              <p className="text-2xl text-white/80 font-semibold mt-2">{company.tagline}</p>
-                              <p className="text-white/60 mt-4">{company.description}</p>
-                            </div>
-                            
-                            <div>
-                              <Stats3D stats={company.stats} color={company.color} />
+                      <TabsContent value="info" className="mt-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <h4 className="text-lg font-bold text-cyan-400">Estatísticas</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                              {company.stats.map((stat, idx) => (
+                                <motion.div
+                                  key={idx}
+                                  className="p-4 bg-white/5 rounded-xl border border-white/10 hover:border-cyan-500/50 transition-all cursor-pointer"
+                                  onMouseEnter={() => setHoveredStat(idx)}
+                                  onMouseLeave={() => setHoveredStat(null)}
+                                  whileHover={{ scale: 1.05 }}
+                                >
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <stat.icon className="w-5 h-5" style={{ color: company.color }} />
+                                    <span className="text-2xl font-black" style={{ color: company.color }}>
+                                      <AnimatedCounter value={stat.value} />
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-white/60">{stat.label}</p>
+                                  {hoveredStat === idx && (
+                                    <ParticleExplosion color={company.color} count={10} />
+                                  )}
+                                </motion.div>
+                              ))}
                             </div>
                           </div>
-                          
-                          <div className="space-y-6">
-                            <div>
-                              <h4 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                                <Sparkles className="w-5 h-5" style={{ color: company.color }} />
-                                Funcionalidades
-                              </h4>
-                              <div className="grid grid-cols-2 gap-2">
-                                {company.features.map((feature, idx) => (
-                                  <FeatureCard 
-                                    key={idx}
-                                    feature={feature}
-                                    icon={company.icon}
-                                    color={company.color}
-                                    index={idx}
-                                  />
-                                ))}
+                          <div className="space-y-4">
+                            <h4 className="text-lg font-bold text-cyan-400">Informações</h4>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                <span className="text-white/60">Fundação</span>
+                                <span className="font-bold" style={{ color: company.color }}>{company.founded}</span>
+                              </div>
+                              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                <span className="text-white/60">Funcionários</span>
+                                <span className="font-bold" style={{ color: company.color }}>{company.employees}</span>
+                              </div>
+                              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                <span className="text-white/60">Clientes</span>
+                                <span className="font-bold" style={{ color: company.color }}>{company.clients}</span>
+                              </div>
+                              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                <span className="text-white/60">Presença</span>
+                                <span className="font-bold text-right text-sm" style={{ color: company.color }}>{company.presence.join(', ')}</span>
                               </div>
                             </div>
-                            
-                            {company.products && company.products.length > 0 && (
-                              <ProductGallery 
-                                products={company.products} 
-                                companyColor={company.color}
-                              />
-                            )}
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                  
-                  <div className="flex justify-center gap-4 mt-8">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setSelectedCompany((p) => (p - 1 + companies.length) % companies.length)}
-                      className="text-white border-white/20 hover:bg-white/10"
-                    >
-                      <ChevronLeft className="w-5 h-5 mr-2" />
-                      Anterior
-                    </Button>
-                    <div className="flex items-center gap-2 px-4">
-                      <span className="text-white font-bold">{selectedCompany + 1}</span>
-                      <span className="text-white/50">/</span>
-                      <span className="text-white/50">{companies.length}</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setSelectedCompany((p) => (p + 1) % companies.length)}
-                      className="text-white border-white/20 hover:bg-white/10"
-                    >
-                      Próximo
-                      <ChevronRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : (
-          <section className="py-20 px-4">
-            <div className="container mx-auto">
-              <div className="text-center mb-12">
-                <h3 className="text-4xl font-black text-white mb-4">Mapa de Empresas</h3>
-                <p className="text-white/60">Clique em uma empresa para saber mais</p>
-              </div>
-              
-              <div className="relative flex flex-col items-center justify-center min-h-[800px]">
-                <div className="relative w-[700px] h-[700px]">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg className="w-full h-full" viewBox="0 0 700 700">
-                      <circle cx="350" cy="350" r="280" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeDasharray="10 10" />
-                      <circle cx="350" cy="350" r="200" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                      <circle cx="350" cy="350" r="120" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                      {[...Array(8)].map((_, i) => {
-                        const angle = (i / 8) * 2 * Math.PI - Math.PI / 2;
-                        const x1 = 350 + Math.cos(angle) * 120;
-                        const y1 = 350 + Math.sin(angle) * 120;
-                        const x2 = 350 + Math.cos(angle) * 280;
-                        const y2 = 350 + Math.sin(angle) * 280;
-                        return (
-                          <line 
-                            key={i} 
-                            x1={x1} y1={y1} x2={x2} y2={y2}
-                            stroke="rgba(255,255,255,0.1)" 
-                            strokeWidth="1"
-                            strokeDasharray="5 5"
-                          />
-                        );
-                      })}
-                    </svg>
-                  </div>
-                  
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <MindMapNode
-                      company={centerCompany}
-                      index={0}
-                      total={1}
-                      onClick={() => setSelectedCompany(companies.indexOf(centerCompany))}
-                      isActive={selectedCompany === companies.indexOf(centerCompany)}
-                      isCenter={true}
-                    />
-                  </div>
-                  
-                  {companies.filter(c => c.id !== 'rastremix').map((c, idx) => (
-                    <MindMapNode
-                      key={c.id}
-                      company={c}
-                      index={idx}
-                      total={companies.length - 1}
-                      onClick={() => setSelectedCompany(companies.indexOf(c))}
-                      isActive={selectedCompany === companies.indexOf(c)}
-                      isCenter={false}
-                    />
-                  ))}
-                </div>
-                
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={selectedCompany}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="max-w-2xl w-full mt-12"
-                  >
-                    <Card className={`bg-gradient-to-br ${company.darkGradient} backdrop-blur-xl border-white/20`}>
-                      <CardHeader>
-                        <div className="flex items-center gap-4">
-                          <ImageWithFallback src={company.logo} alt={company.name} className="w-16 h-16 object-contain" />
-                          <div>
-                            <CardTitle className="text-3xl font-black text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(135deg, ${company.color}, white)` }}>
-                              {company.name}
-                            </CardTitle>
-                            <p className="text-white/80 text-lg">{company.tagline}</p>
+                      </TabsContent>
+                      
+                      <TabsContent value="tech" className="mt-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <h4 className="text-lg font-bold text-cyan-400">Tecnologias</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {company.technologies.map((tech, idx) => (
+                                <motion.span
+                                  key={idx}
+                                  className="px-4 py-2 rounded-full text-sm font-bold bg-white/5 border border-white/10"
+                                  style={{ borderColor: `${company.color}50` }}
+                                  whileHover={{ scale: 1.1, borderColor: company.color }}
+                                >
+                                  {tech}
+                                </motion.span>
+                              ))}
+                            </div>
+                            <h4 className="text-lg font-bold text-cyan-400 mt-6">Certificações</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {company.certifications?.map((cert, idx) => (
+                                <motion.span
+                                  key={idx}
+                                  className="px-4 py-2 rounded-lg text-sm font-mono bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30"
+                                  whileHover={{ scale: 1.05 }}
+                                >
+                                  ✓ {cert}
+                                </motion.span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-4">
+                            <h4 className="text-lg font-bold text-cyan-400">Serviços</h4>
+                            <div className="space-y-2">
+                              {company.services?.map((service, idx) => (
+                                <motion.div
+                                  key={idx}
+                                  className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
+                                  initial={{ x: -20, opacity: 0 }}
+                                  animate={{ x: 0, opacity: 1 }}
+                                  transition={{ delay: idx * 0.1 }}
+                                >
+                                  <Check className="w-5 h-5" style={{ color: company.color }} />
+                                  <span className="text-white/80">{service}</span>
+                                </motion.div>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-white/70">{company.description}</p>
-                        <Stats3D stats={company.stats} color={company.color} />
-                        {company.products && company.products.length > 0 && (
-                          <ProductGallery products={company.products} companyColor={company.color} />
-                        )}
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          </section>
-        )}
-        
-        <section className="py-20 px-4 bg-black/20">
-          <div className="container mx-auto">
-            <div className="text-center mb-12">
-              <h3 className="text-4xl font-black text-white mb-4">Produtos em Destaque</h3>
-              <p className="text-white/60">Conheça os produtos de cada empresa do ecossistema</p>
-            </div>
-            
-            <Tabs defaultValue="gps-love" className="w-full">
-              <TabsList className="flex flex-wrap justify-center gap-2 bg-white/5 backdrop-blur mb-8">
-                {companies.filter(c => c.products && c.products.length > 0).map((c) => (
-                  <TabsTrigger 
-                    key={c.id} 
-                    value={c.id}
-                    className="data-[state=active]:bg-white/20 text-white"
-                  >
-                    {c.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              
-              {companies.filter(c => c.products && c.products.length > 0).map((c) => (
-                <TabsContent key={c.id} value={c.id}>
-                  <Card className={`bg-gradient-to-br ${c.darkGradient} backdrop-blur-xl border-white/10`}>
-                    <CardContent className="p-8">
-                      <div className="grid md:grid-cols-2 gap-8">
-                        <div>
-                          <div className="flex items-center gap-4 mb-4">
-                            <ImageWithFallback src={c.logo} alt={c.name} className="w-12 h-12 object-contain" />
-                            <h4 className="text-2xl font-black text-white">{c.name}</h4>
-                          </div>
-                          <p className="text-white/70 mb-6">{c.description}</p>
-                          <div className="flex flex-wrap gap-2">
-                            {c.features.slice(0, 4).map((f, idx) => (
-                              <Badge key={idx} className="bg-white/10 text-white backdrop-blur">{f}</Badge>
+                      </TabsContent>
+                      
+                      <TabsContent value="products" className="mt-6">
+                        {company.products && company.products.length > 0 ? (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {company.products.map((product, idx) => (
+                              <ProductCard key={idx} product={product} color={company.color} />
                             ))}
                           </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          {c.products?.map((img, idx) => (
-                            <motion.div
+                        ) : (
+                          <div className="text-center py-12 text-white/40">
+                            <Package className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                            <p>Produtos em desenvolvimento</p>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="timeline" className="mt-6">
+                        <div className="relative pl-6">
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cyan-500 via-purple-500 to-pink-500" />
+                          {company.timeline.map((item, idx) => (
+                            <TimelineItem
                               key={idx}
-                              className="relative aspect-square rounded-xl overflow-hidden bg-black/30 group"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              <ImageWithFallback src={img} alt={`${c.name} produto`} className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                                <span className="text-white text-sm font-semibold">Produto {idx + 1}</span>
-                              </div>
-                            </motion.div>
+                              year={item.year}
+                              event={item.event}
+                              isActive={idx === company.timeline.length - 1}
+                              color={company.color}
+                            />
                           ))}
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              ))}
-            </Tabs>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </HolographicCard>
+              </div>
+              
+              <div className="space-y-6">
+                <HolographicCard color={company.color} className="p-6">
+                  <h4 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    Funcionalidades
+                  </h4>
+                  <div className="space-y-4">
+                    {company.features?.map((feature, idx) => (
+                      <ProgressBar
+                        key={idx}
+                        progress={feature.progress}
+                        color={company.color}
+                        label={feature.name}
+                      />
+                    ))}
+                  </div>
+                </HolographicCard>
+                
+                <HolographicCard color={company.color} className="p-6">
+                  <h4 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                    <Globe className="w-5 h-5" />
+                    Presença Global
+                  </h4>
+                  <div className="space-y-3">
+                    {company.presence?.map((place, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="flex items-center gap-3"
+                        initial={{ x: 20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: idx * 0.2 }}
+                      >
+                        <MapPin className="w-4 h-4" style={{ color: company.color }} />
+                        <span className="text-white/80">{place}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </HolographicCard>
+              </div>
+            </div>
           </div>
         </section>
         
-        <section className="py-20 px-4">
+        <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-gray-900">
           <div className="container mx-auto">
             <div className="text-center mb-12">
-              <h3 className="text-4xl font-black text-white mb-4">Galeria de Logos</h3>
-              <p className="text-white/60">Todas as marcas do ecossistema Rastremix</p>
+              <h3 className="text-4xl font-black mb-4">
+                <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                  Todas as Empresas
+                </span>
+              </h3>
+              <p className="text-white/60">Clique em uma empresa para explorar</p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {companies.map((c, idx) => (
                 <motion.div
                   key={c.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className={`p-6 rounded-3xl bg-gradient-to-br ${c.darkGradient} backdrop-blur-xl border border-white/10 hover:border-white/30 transition-all group cursor-pointer`}
-                  onClick={() => {
-                    setSelectedCompany(idx);
-                    setViewMode('carousel');
-                  }}
+                  onClick={() => setSelectedCompanyId(c.id)}
+                  className={`
+                    cursor-pointer p-6 rounded-3xl
+                    bg-gradient-to-br from-gray-900/80 to-gray-950/80
+                    backdrop-blur-xl border border-white/10
+                    hover:border-cyan-500/50 transition-all duration-300
+                    ${selectedCompanyId === c.id ? 'ring-2 ring-cyan-500' : ''}
+                  `}
+                  whileHover={{ y: -10 }}
                 >
-                  <div className="aspect-video flex items-center justify-center mb-4">
-                    <ImageWithFallback 
-                      src={c.logo} 
-                      alt={c.name}
-                      className="max-h-16 object-contain group-hover:scale-110 transition-transform"
-                    />
+                  <div className="flex flex-col items-center text-center">
+                    <motion.div
+                      className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4 overflow-hidden"
+                      style={{ background: `${c.color}20` }}
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <img src={logos[c.id as keyof typeof logos]} alt={c.name} className="w-16 h-16 object-contain" />
+                    </motion.div>
+                    <h4 className="font-bold text-white mb-1">{c.name}</h4>
+                    <p className="text-xs text-white/50">{c.shortDesc}</p>
+                    <div
+                      className="mt-4 px-3 py-1 rounded-full text-xs font-bold"
+                      style={{ background: `${c.color}20`, color: c.color }}
+                    >
+                      {c.tagline}
+                    </div>
                   </div>
-                  <h4 className="text-lg font-bold text-white text-center">{c.name}</h4>
-                  <p className="text-sm text-white/60 text-center mt-1">{c.tagline}</p>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
         
-        <footer className="py-12 px-4 border-t border-white/10 bg-black/30">
+        <section className="py-20 px-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10" />
+          <div className="container mx-auto relative z-10">
+            <div className="text-center mb-12">
+              <h3 className="text-4xl font-black mb-4">
+                <GlitchText className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Ecossistema Conectado
+                </GlitchText>
+              </h3>
+              <p className="text-white/60">Todas as empresas trabalhando juntas para sua proteção</p>
+            </div>
+            
+            <div className="flex justify-center">
+              <div className="relative">
+                <motion.div
+                  className="w-40 h-40 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl shadow-orange-500/50"
+                  animate={{ 
+                    scale: [1, 1.05, 1],
+                    boxShadow: [
+                      '0 0 40px rgba(249, 115, 22, 0.5)',
+                      '0 0 80px rgba(249, 115, 22, 0.8)',
+                      '0 0 40px rgba(249, 115, 22, 0.5)',
+                    ]
+                  }}
+                >
+                  <img src={logos['rastremix']} alt="Rastremix" className="w-28 h-28 object-contain" />
+                </motion.div>
+                
+                <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
+                  <circle
+                    cx="50%"
+                    cy="50%"
+                    r="150"
+                    fill="none"
+                    stroke="url(#gradient)"
+                    strokeWidth="1"
+                    strokeDasharray="10 10"
+                    className="animate-spin"
+                    style={{ transformOrigin: 'center', animationDuration: '20s' }}
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#06B6D4" />
+                      <stop offset="50%" stopColor="#A855F7" />
+                      <stop offset="100%" stopColor="#EC4899" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                
+                <div className="absolute inset-0" style={{ zIndex: -1 }}>
+                  {companies.slice(0, 7).map((c, idx) => {
+                    const angle = (idx / 7) * 2 * Math.PI - Math.PI / 2;
+                    const x = Math.cos(angle) * 180;
+                    const y = Math.sin(angle) * 180;
+                    return (
+                      <motion.div
+                        key={c.id}
+                        className="absolute cursor-pointer"
+                        style={{ left: `calc(50% + ${x}px - 30px)`, top: `calc(50% + ${y}px - 30px)` }}
+                        whileHover={{ scale: 1.2 }}
+                        onClick={() => setSelectedCompanyId(c.id)}
+                      >
+                        <div
+                          className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
+                          style={{ background: `${c.color}30`, boxShadow: `0 0 20px ${c.color}50` }}
+                        >
+                          <img src={logos[c.id as keyof typeof logos]} alt={c.name} className="w-12 h-12 object-contain" />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <footer className="py-12 px-4 border-t border-cyan-500/20 bg-black/50">
           <div className="container mx-auto">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <ImageWithFallback src={logos['rastremix'].startsWith('/') ? logos['rastremix'] : `/${logos['rastremix']}`} alt="Rastremix" className="h-12 object-contain" />
+                <img src={logos['rastremix']} alt="Rastremix" className="h-12 object-contain" />
                 <div>
-                  <h4 className="font-bold text-white">RASTREMIX</h4>
-                  <p className="text-sm text-white/60">Proteção Veicular Inteligente</p>
+                  <h4 className="font-bold">RASTRAMIX</h4>
+                  <p className="text-sm text-white/50">Proteção Veicular Inteligente</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-4">
                 {companies.slice(0, 5).map((c) => (
-                  <ImageWithFallback 
+                  <motion.img
                     key={c.id}
-                    src={c.logo} 
+                    src={logos[c.id as keyof typeof logos]}
                     alt={c.name}
                     className="h-8 object-contain opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
-                    onClick={() => setSelectedCompany(companies.indexOf(c))}
+                    onClick={() => setSelectedCompanyId(c.id)}
+                    whileHover={{ scale: 1.2 }}
                   />
                 ))}
               </div>
             </div>
             
             <div className="mt-8 pt-8 border-t border-white/10 text-center">
-              <p className="text-white/40 text-sm">
-                2026 Rastremix - O Grupo Que Move o Brasil. Todos os direitos reservados.
+              <p className="text-white/30 text-sm font-mono">
+                © 2026 RASTRAMIX - O Grupo Que Move o Brasil. Todos os direitos reservados.
               </p>
             </div>
           </div>
