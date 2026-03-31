@@ -686,47 +686,174 @@ function ProductCard({ product, color }: { product: any; color: string }) {
   );
 }
 
-function MatrixRain() {
-  const columns = 20;
-  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ';
-  
+function SpaceBackground() {
+  const stars = useMemo(() => {
+    return Array.from({ length: 200 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 3 + 2,
+      delay: Math.random() * 5,
+    }));
+  }, []);
+
+  const satellites = useMemo(() => {
+    return Array.from({ length: 5 }, (_, i) => ({
+      id: i,
+      angle: (i / 5) * 360,
+      speed: 20 + Math.random() * 30,
+    }));
+  }, []);
+
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
-      {Array.from({ length: columns }).map((_, i) => (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      <div className="absolute inset-0 bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950" />
+      
+      <svg className="absolute inset-0 w-full h-full">
+        <defs>
+          <radialGradient id="nebula1" cx="20%" cy="30%" r="40%">
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="nebula2" cx="80%" cy="60%" r="35%">
+            <stop offset="0%" stopColor="#ec4899" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="nebula3" cx="50%" cy="80%" r="30%">
+            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        
+        <rect width="100%" height="100%" fill="url(#nebula1)" />
+        <rect width="100%" height="100%" fill="url(#nebula2)" />
+        <rect width="100%" height="100%" fill="url(#nebula3)" />
+      </svg>
+      
+      {stars.map((star) => (
         <motion.div
-          key={i}
-          className="absolute top-0 text-cyan-400 text-xs font-mono"
-          style={{ left: `${(i / columns) * 100}%` }}
+          key={star.id}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: star.size,
+            height: star.size,
+          }}
           animate={{
-            y: ['-100%', '100vh'],
+            opacity: [0.3, 1, 0.3],
+            scale: [1, 1.5, 1],
           }}
           transition={{
-            duration: 3 + Math.random() * 2,
+            duration: star.duration,
             repeat: Infinity,
-            delay: Math.random() * 2,
-            ease: 'linear',
+            delay: star.delay,
           }}
-        >
-          {Array.from({ length: 50 }).map((_, j) => (
-            <div key={j}>{chars[Math.floor(Math.random() * chars.length)]}</div>
-          ))}
-        </motion.div>
+        />
       ))}
-    </div>
-  );
-}
-
-function GridLines() {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0">
-      <svg className="w-full h-full opacity-10">
+      
+      <svg className="absolute inset-0 w-full h-full opacity-20">
+        {[...Array(3)].map((_, i) => (
+          <circle
+            key={i}
+            cx="50%"
+            cy="50%"
+            r={150 + i * 100}
+            fill="none"
+            stroke="url(#nebulaGradient)"
+            strokeWidth="0.5"
+            strokeDasharray="5 10"
+            className="animate-spin"
+            style={{ transformOrigin: 'center', animationDuration: `${30 + i * 10}s` }}
+          />
+        ))}
         <defs>
-          <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
-            <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(0,255,255,0.3)" strokeWidth="0.5" />
-          </pattern>
+          <linearGradient id="nebulaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#06b6d4" />
+            <stop offset="50%" stopColor="#a855f7" />
+            <stop offset="100%" stopColor="#ec4899" />
+          </linearGradient>
         </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
       </svg>
+
+      <svg className="absolute inset-0 w-full h-full opacity-30">
+        {[...Array(5)].map((_, i) => (
+          <line
+            key={i}
+            x1="0%"
+            y1={`${20 + i * 15}%`}
+            x2="100%"
+            y2={`${25 + i * 15}%`}
+            stroke="url(#lineGradient)"
+            strokeWidth="0.5"
+            strokeDasharray="20 30"
+          />
+        ))}
+        <defs>
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="50%" stopColor="#06b6d4" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {satellites.map((sat) => {
+        const angle = sat.angle;
+        const radius = 45;
+        const x = 50 + Math.cos((angle * Math.PI) / 180) * radius;
+        const y = 50 + Math.sin((angle * Math.PI) / 180) * radius;
+        return (
+          <motion.div
+            key={sat.id}
+            className="absolute"
+            style={{ left: `${x}%`, top: `${y}%` }}
+            animate={{
+              rotate: [0, 360],
+            }}
+            transition={{
+              duration: sat.speed,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          >
+            <div className="relative">
+              <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ filter: 'blur(1px)' }} />
+              <div className="absolute top-1/2 left-1/2 w-8 h-0.5 bg-gradient-to-r from-cyan-400 to-transparent -translate-y-1/2" />
+            </div>
+          </motion.div>
+        );
+      })}
+
+      {[...Array(3)].map((_, i) => (
+        <motion.div
+          key={`pulse-${i}`}
+          className="absolute rounded-full border border-cyan-500/30"
+          style={{
+            left: `${20 + i * 30}%`,
+            top: `${30 + i * 20}%`,
+            width: 100 + i * 50,
+            height: 100 + i * 50,
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.1, 0.3],
+          }}
+          transition={{
+            duration: 4 + i,
+            repeat: Infinity,
+            delay: i * 2,
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -745,8 +872,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
   
   return (
     <div ref={containerRef} className="min-h-screen bg-gray-950 text-white overflow-auto">
-      <MatrixRain />
-      <GridLines />
+      <SpaceBackground />
       
       <div className="relative z-10">
         <header className="sticky top-0 z-50 bg-gray-950/90 backdrop-blur-xl border-b border-cyan-500/20">
