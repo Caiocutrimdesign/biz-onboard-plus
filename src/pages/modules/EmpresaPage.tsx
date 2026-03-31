@@ -1,68 +1,75 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, Play, CheckCircle, Heart, Shield, 
   MapPin, Zap, Users, Eye, Car, Phone, Clock, Star, Award,
   Target, Lock, Camera, Package, Truck, Battery, Signal,
-  AlertCircle, Check, X, Menu, Globe, BatteryCharging, Navigation,
-  Wrench, Brain, Rocket, Globe2, Sparkles, Crown, ShieldCheck,
-  Handshake, HeartHandshake, Cpu, Wifi, Fingerprint, EyeOff,
-  TrendingUp, Building2, Users2, ShieldAlert, ShieldPlus,
-  Radar, Compass, Layers, Hexagon, CircleDot, Radio, Siren
+  Globe, Wrench, Rocket, Sparkles, Crown, ShieldCheck,
+  HeartHandshake, Cpu, Wifi, Fingerprint, EyeOff,
+  TrendingUp, Building2, Users2, ShieldAlert,
+  Radar, Compass, Layers, Hexagon, CircleDot, Radio, Siren,
+  ChevronDown, Menu, X, ExternalLink, Download, EyeCandy
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Logo imports
 const logos = {
-  'gps-my': '/ABA DA EMPRESA/IMAGENS/Gps My Verde.png',
-  'gps-my-alt': '/ABA DA EMPRESA/IMAGENS/Gps my.png',
+  'gps-my': '/ABA DA EMPRESA/IMAGENS/Gps my.png',
+  'gps-my-verde': '/ABA DA EMPRESA/IMAGENS/Gps My Verde.png',
   'gps-love': '/ABA DA EMPRESA/IMAGENS/gps love logo.png',
-  'gps-love-alt': '/ABA DA EMPRESA/IMAGENS/Gps love.png',
-  'gps-love-alt2': '/ABA DA EMPRESA/IMAGENS/Gps joy.png',
+  'gps-love-img': '/ABA DA EMPRESA/IMAGENS/Gps love.png',
+  'gps-joy': '/ABA DA EMPRESA/IMAGENS/Gps joy.png',
   'rastremix': '/ABA DA EMPRESA/IMAGENS/RASTREMIX 1.png',
-  'rastremix-alt': '/ABA DA EMPRESA/IMAGENS/RASTREMIX 2.png',
+  'rastremix-2': '/ABA DA EMPRESA/IMAGENS/RASTREMIX 2.png',
   'telensat': '/ABA DA EMPRESA/IMAGENS/tel logo.png',
-  'telensat-alt': '/ABA DA EMPRESA/IMAGENS/TELENSAT AZUL.png',
+  'telensat-azul': '/ABA DA EMPRESA/IMAGENS/TELENSAT AZUL.png',
   'topy-pro': '/ABA DA EMPRESA/IMAGENS/LOGO TOPY PRO.webp',
-  'topy-pro-alt': '/ABA DA EMPRESA/IMAGENS/TOPY PRO BRANCA.png',
+  'topy-pro-branca': '/ABA DA EMPRESA/IMAGENS/TOPY PRO BRANCA.png',
   'valeteck': '/ABA DA EMPRESA/IMAGENS/Valeteck Preto.png',
-  'valeteck-alt': '/ABA DA EMPRESA/IMAGENS/Valeteck Branco.png',
+  'valeteck-branco': '/ABA DA EMPRESA/IMAGENS/Valeteck Branco.png',
   'facilit': '/ABA DA EMPRESA/IMAGENS/lOGO FACILIT CORP.png',
   'webtrak': '/ABA DA EMPRESA/IMAGENS/Logo Webtrak.png',
 };
 
-// Company comprehensive data
+const productImages = {
+  gpsLove: [
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/Arte feed gps love.png',
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/CÂMERA.jpeg',
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/PORTÁTIL.png',
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/TAG LOCALIZADORA.jpeg',
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/coleira.jpeg',
+  ],
+  gpsMy: [
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTO GPS MY/Obd.png',
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTO GPS MY/Portátil.png',
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTO GPS MY/Tag.png',
+  ],
+  rastremix: [
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/Replace_the_red_Rastremix_t-shirt_with_the_blue_an-1772898819844 (3).png',
+    '/ABA DA EMPRESA/IMAGENS/IMAGENS PRODUTOS/WhatsApp Image 2026-03-03 at 18.17.58.jpeg',
+  ],
+};
+
 const companies = [
   {
     id: 'facilit',
     name: 'FACILIT CORP',
     tagline: 'O Grupo Que Move o Brasil.',
+    description: 'Multinacional brasileira que reúne as mais avançadas tecnologias de rastreamento e segurança.',
     color: '#FFD700',
-    gradient: 'from-yellow-500 via-amber-500 to-orange-500',
+    colorRgb: '255, 215, 0',
+    gradient: 'from-yellow-500 via-amber-500 to-orange-600',
+    darkGradient: 'from-yellow-900/80 via-amber-900/80 to-orange-900/80',
     logo: logos['facilit'],
+    alternateLogos: [logos['facilit']],
     icon: Building2,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/RASTREMIX 1.png',
-    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/lOGO FACILIT CORP.png'],
-    whoAreWe: `A Facilit Corp não é apenas uma empresa; somos um ecossistema de proteção que nasceu das ruas do Brasil. Somos feitos de pessoas que entendem a dor de quem trabalha duro e merece o melhor.
-
-Somos uma multinacional brasileira que reúne as mais avançadas tecnologias de rastreamento e segurança para proteger o patrimônio de milhares de famílias e empresas. Nossa missão é democratizar a segurança de alto nível.`,
-    whyExist: `Existimos para transformar a insegurança em oportunidade. Para que cada brasileiro possa dormir tranquilo sabendo que tem uma gigante protegendo o que ele construiu com tanto suor.
-
-Nosso propósito é claro: proteger o patrimônio nacional com tecnologia de ponta e coração de brasileiro.`,
-    howWeSolve: [
-      { icon: Shield, title: 'Tecnologia Multinacional', desc: 'Satélites e IOT de última geração' },
-      { icon: Users, title: 'Equipe Especializada', desc: 'Mais de 500 profissionais dedicados' },
-      { icon: Zap, title: 'Resposta Imediata', desc: 'Central 24h com tempo de resposta < 2min' },
-      { icon: Globe, title: 'Cobertura Nacional', desc: '100% do território brasileiro' },
-      { icon: Award, title: 'Certificações', desc: 'ISO 27001 e padrões internacionais' },
-      { icon: Heart, title: 'Cuidado Humano', desc: 'Atendimento humanizado 24/7' },
-    ],
+    features: ['Tecnologia Multinacional', 'Equipe Especializada', 'Resposta Imediata', 'Cobertura Nacional', 'Certificações ISO', 'Atendimento 24/7'],
     stats: [
-      { value: '50K+', label: 'Clientes Protegidos' },
+      { value: '50K+', label: 'Clientes' },
       { value: '98.7%', label: 'Taxa de Recuperação' },
-      { value: '24/7', label: 'Central de Monitoramento' },
+      { value: '24/7', label: 'Monitoramento' },
       { value: '500+', label: 'Profissionais' },
     ],
   },
@@ -70,906 +77,865 @@ Nosso propósito é claro: proteger o patrimônio nacional com tecnologia de pon
     id: 'gps-my',
     name: 'GPS MY',
     tagline: 'O Rastreador Que É Seu.',
+    description: 'Tecnologia de rastreamento com propriedade definitiva - você é dono do equipamento, sem mensalidades.',
     color: '#22C55E',
-    gradient: 'from-green-500 via-emerald-500 to-teal-500',
-    logo: logos['gps-my'],
+    colorRgb: '34, 197, 94',
+    gradient: 'from-green-500 via-emerald-500 to-teal-600',
+    darkGradient: 'from-green-900/80 via-emerald-900/80 to-teal-900/80',
+    logo: logos['gps-my-verde'],
+    alternateLogos: [logos['gps-my'], logos['gps-my-verde']],
     icon: Shield,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/Gps My Verde.png',
-    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/Gps my.png'],
-    whoAreWe: `A GPS MY não nasceu em escritórios de vidro; nascemos no asfalto quente, sentindo o cheiro do óleo e o peso da mochila que nunca fica leve.
-
-Somos uma multinacional que fala a língua de quem sabe que, no Brasil, nada vem de gratuita. Para nós, você não é um 'cliente', você é um sobrevivente.`,
-    whyExist: `Existimos porque estamos cansados de ver o trabalhador ser enganado. Sabemos a dor de comprar algo com tanto sacrifício e receber uma caixa vazia.
-
-Nossa missão é acabar com a era dos aluguéis eternos, onde você paga a vida toda e nunca é dono de nada.`,
-    howWeSolve: [
-      { icon: Crown, title: 'Propriedade Definitiva', desc: 'Você é dono do equipamento' },
-      { icon: Signal, title: 'Chip Multioperadora', desc: 'Sinal em qualquer lugar' },
-      { icon: Lock, title: 'Bloqueio Remoto', desc: 'Controle na palma da mão' },
-      { icon: EyeOff, title: 'Anti-Furto Automático', desc: 'Proteção que nunca dorme' },
-      { icon: MapPin, title: 'Rastreamento GPS', desc: 'Localização precisa' },
-      { icon: Zap, title: 'Instalação Estratégica', desc: 'Escondido do crime' },
-    ],
+    features: ['Propriedade Definitiva', 'Chip Multioperadora', 'Bloqueio Remoto', 'Anti-Furto Automático', 'Rastreamento GPS', 'Instalação Estratégica'],
     stats: [
       { value: '100%', label: 'Propriedade' },
-      { value: '0', label: 'Mensalidades' },
+      { value: 'R$0', label: 'Mensalidades' },
       { value: '<30s', label: 'Tempo de Bloqueio' },
       { value: '∞', label: 'Sem Limites' },
     ],
-    stories: [
-      { 
-        title: 'O Fim da Frustração', 
-        subtitle: 'A Vitória do Dinheiro Suado',
-        pain: 'Você comprou um rastreador barato que não funciona. O chip não pegava, o suporte sumiu.',
-        solution: 'Com a GPS MY, a tecnologia conecta no primeiro segundo. Chip multioperadora busca sinal em qualquer lugar.',
-        result: 'Você vê o ponto brilhando no mapa e o sorriso volta ao rosto. A paz conquistada.'
-      },
-      { 
-        title: 'O Direito de Ser Dono', 
-        subtitle: 'A Quebra das Correntes',
-        pain: 'Todo mês a fatura de aluguel chega. Você já pagou 3x o equipamento e ele ainda não é seu.',
-        solution: 'Na GPS MY, você adquire o equipamento e ele é seu patrimônio definitivo. Sem mensalidades.',
-        result: 'Você olha pro veículo e bate no peito: "Isso aqui é MEU!"'
-      },
-      { 
-        title: 'Bloqueio Implacável', 
-        subtitle: 'O Crime Termina Aqui',
-        pain: 'O assalto. O ladrão levando o fruto de meses de trabalho.',
-        solution: 'Com um toque no app, o motor é cortado à distância. O crime termina sob seu comando.',
-        result: 'A justiça é feita no tempo de um clique. Você retoma o que é seu.'
-      },
-    ],
+    products: productImages.gpsMy,
   },
   {
     id: 'gps-love',
     name: 'GPS LOVE',
     tagline: 'Rastreamos Quem Você Ama.',
+    description: 'Proteção para sua família, idosos, pets e veículos com amor e tecnologia de ponta.',
     color: '#EC4899',
+    colorRgb: '236, 72, 153',
     gradient: 'from-pink-500 via-rose-500 to-red-500',
+    darkGradient: 'from-pink-900/80 via-rose-900/80 to-red-900/80',
     logo: logos['gps-love'],
+    alternateLogos: [logos['gps-love'], logos['gps-love-img'], logos['gps-joy']],
     icon: Heart,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/gps love logo.png',
-    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/Gps love.png', '/ABA DA EMPRESA/IMAGENS/Gps joy.png'],
-    whoAreWe: `A GPS LOVE não nasceu de engenheiros; nascemos do medo real de quem já perdeu o sono esperando um filho chegar.
-
-Nascemos da angústia de uma filha que viu o pai idoso esquecer o caminho de casa. Nascemos do luto de quem teve o melhor amigo de quatro patas arrancado do quintal.
-
-Somos a força global protegendo o que é sagrado: a sua família.`,
-    whyExist: `Existimos porque o mundo lá fora é cruel e não avisa quando vai bater. Existimos para que o 'e se?' nunca mais encerre a sua história.
-
-Nossa missão é valorizar a vida em sua forma mais frágil e preciosa.`,
-    howWeSolve: [
-      { icon: Camera, title: 'Câmera com Visor', desc: 'Veja tudo em tempo real' },
-      { icon: Target, title: 'Tags Localizadoras', desc: 'Localize o precioso' },
-      { icon: Heart, title: 'Rastreamento Familiar', desc: 'Proteja quem ama' },
-      { icon: Radar, title: 'Alertas Inteligentes', desc: 'Notificações instantâneas' },
-      { icon: MapPin, title: 'Histórico de Rota', desc: 'Saiba por onde andaram' },
-      { icon: Siren, title: 'SOS Emergencial', desc: 'Um toque para ajuda' },
-    ],
+    features: ['Câmera com Visor', 'Tags Localizadoras', 'Rastreamento Familiar', 'Alertas Inteligentes', 'Histórico de Rota', 'SOS Emergencial'],
     stats: [
-      { value: '🏠', label: 'Monitoramento Doméstico' },
-      { value: '👴', label: 'Proteção Idosos' },
-      { value: '🐕', label: 'Rastreador Pet' },
+      { value: '🏠', label: 'Doméstico' },
+      { value: '👴', label: 'Idosos' },
+      { value: '🐕', label: 'Pets' },
       { value: '🚗', label: 'Veículos' },
     ],
-    stories: [
-      { 
-        title: 'O Sequestro Relâmpago', 
-        subtitle: 'O Rastro que Salvou Meu Filho',
-        pain: 'Seu filho sumiu. Celular na caixa postal. O frio na espinha vira pânico.',
-        solution: 'O rastreador mostra a rota em tempo real. Você entrega o mapa para a polícia.',
-        result: 'A abordagem é feita a tempo. O abraço na delegacia é o momento que a vida recomeça.'
-      },
-      { 
-        title: 'O Idoso Perdido', 
-        subtitle: 'Quando a Rua Vira Labirinto',
-        pain: 'Seu pai saiu para comprar pão e não encontrou o caminho de volta.',
-        solution: 'O histórico mostra que ele está a 2km, sentado em uma praça.',
-        result: 'Você o encontra, dá um banho e o coloca pra descansar. A tecnologia salvou a dignidade.'
-      },
-      { 
-        title: 'O Pet Roubado', 
-        subtitle: 'O Resgate do Membro da Família',
-        pain: 'Pularam o muro e levaram o cachorro do seu filho.',
-        solution: 'A Tag GPS na coleira mostra: ele está numa feira do outro lado da cidade.',
-        result: 'O cachorro pula no seu colo. A família está completa de novo.'
-      },
-    ],
+    products: productImages.gpsLove,
   },
   {
     id: 'rastremix',
     name: 'RASTREMIX',
-    tagline: 'Tudo em Rastreamento.',
+    tagline: 'Proteção Veicular Inteligente.',
+    description: 'Família global que cuida da sua com amor, rastreamento total e central 24h.',
     color: '#F97316',
+    colorRgb: '249, 115, 22',
     gradient: 'from-orange-500 via-orange-600 to-red-500',
+    darkGradient: 'from-orange-900/80 via-orange-900/80 to-red-900/80',
     logo: logos['rastremix'],
+    alternateLogos: [logos['rastremix'], logos['rastremix-2']],
     icon: Radar,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/RASTREMIX 1.png',
-    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/RASTREMIX 2.png'],
-    whoAreWe: `A Rastremix não é feita de chips e satélites; somos feitos de pessoas que acreditam que o amor é o maior patrimônio.
-
-Somos uma família global que cuida da sua. Trazemos a força de uma multinacional para o portão da sua casa, com o carinho de quem sabe o seu nome.
-
-Somos o abraço invisível que te acompanha em cada curva.`,
-    whyExist: `Existimos para que o medo nunca seja o passageiro da sua jornada. Sabemos que, nas ruas do Brasil, cada saída de casa é um ato de coragem.
-
-Nossa missão é transformar a incerteza das ruas na paz da sua sala de estar.`,
-    howWeSolve: [
-      { icon: Car, title: 'Rastreamento Total', desc: 'Veículos e pessoas' },
-      { icon: ShieldCheck, title: 'Central 24h', desc: 'Monitoramento constante' },
-      { icon: Zap, title: 'Resposta Rápida', desc: 'Equipes especializadas' },
-      { icon: Eye, title: 'Olhos de Anjo', desc: 'Vigilância permanente' },
-      { icon: Lock, title: 'Bloqueio Imediato', desc: 'Controle total' },
-      { icon: Users2, title: 'Cobertura Total', desc: 'Família protegida' },
-    ],
+    features: ['Rastreamento Total', 'Central 24h', 'Resposta Rápida', 'Olhos de Anjo', 'Bloqueio Imediato', 'Cobertura Total'],
     stats: [
-      { value: '9', label: 'Histórias de Sucesso' },
-      { value: '100%', label: 'Cobertura Nacional' },
-      { value: '24/7', label: 'Central Ativa' },
-      { value: '∞', label: 'Proteção' },
+      { value: '24/7', label: 'Central' },
+      { value: '<2min', label: 'Resposta' },
+      { value: '100%', label: 'Brasil' },
+      { value: '∞', label: 'Famílias' },
     ],
-    stories: [
-      { 
-        title: 'Rastreamento Total', 
-        subtitle: 'O Reencontro Mais Esperado',
-        pain: '22h. O jantar está na mesa, mas a cadeira do seu filho está vazia. O carro sumiu.',
-        solution: 'A tecnologia global da Rastremix é a luz. O aplicativo mostra o caminho exato.',
-        result: 'O medo vira alívio. A polícia chega no lugar certo. O abraço na porta diz tudo.'
-      },
-      { 
-        title: 'Central 24h', 
-        subtitle: 'O Coração que Bate por Você',
-        pain: 'Madrugada. Você acorda com um barulho. Está sozinho no escuro.',
-        solution: 'Em nossa central, as luzes estão acesas. Tem alguém olhando por você.',
-        result: 'Você vira para o lado e volta a dormir. Você nunca está desamparado.'
-      },
-      { 
-        title: 'Anti-Furto Automático', 
-        subtitle: 'A Paz de Voltar e Encontrar',
-        pain: 'Você para pra comprar pão. Ao sair, o coração dispara: Cadê minha moto?',
-        solution: 'Assim que você desligou a chave, o anjo eletrônico travou tudo.',
-        result: 'Você coloca a sacola no banco e segue com um sorriso. O sustento está intacto.'
-      },
-    ],
+    products: productImages.rastremix,
   },
   {
     id: 'telensat',
     name: 'TELENSAT',
     tagline: 'Autoridade Global do Seu Pátio.',
+    description: 'Multinacional de tecnologia telemática e IoT com padrão internacional para frotas.',
     color: '#3B82F6',
+    colorRgb: '59, 130, 246',
     gradient: 'from-blue-500 via-blue-600 to-indigo-600',
+    darkGradient: 'from-blue-900/80 via-blue-900/80 to-indigo-900/80',
     logo: logos['telensat'],
+    alternateLogos: [logos['telensat'], logos['telensat-azul']],
     icon: Cpu,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/tel logo.png',
-    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/TELENSAT AZUL.png'],
-    whoAreWe: `A Telensat é uma multinacional de tecnologia telemática e IOT com padrão internacional.
-
-Nascemos para resolver o que ninguém mais resolve: a entrega da frota 100% pronta para a inspeção Vale.
-
-Nosso diferencial é a precisão: Rotagrama configurado, Gestão de Multas Automatizada e instalação completa com o rigor que a Vale exige.`,
-    whyExist: `Existimos para que o rigor do Padrão Vale deixe de ser um pesadelo logístico e se torne a sua maior vantagem competitiva.
-
-Nossa missão é eliminar a incerteza do gestor e proteger o seu contrato.`,
-    howWeSolve: [
-      { icon: Fingerprint, title: 'Leitor RFID', desc: 'Identificação de condutores' },
-      { icon: Brain, title: 'Sensor de Fadiga', desc: 'IA preventiva' },
-      { icon: Compass, title: 'Rotagrama', desc: 'Velocidade por trecho' },
-      { icon: TrendingUp, title: 'Gestão de Multas', desc: 'Automatizada' },
-      { icon: Users, title: 'Leitor Passageiros', desc: 'Gestão de vidas' },
-      { icon: Truck, title: 'Telemetria Completa', desc: 'Dados em tempo real' },
-    ],
+    features: ['Leitor RFID', 'Sensor de Fadiga', 'Gestão de Multas', 'Padrão Vale', 'Rotagrama Config', 'Telemetria Avançada'],
     stats: [
       { value: '100%', label: 'Padrão Vale' },
-      { value: '0', label: 'Multas Acessórias' },
-      { value: '24/7', label: 'Monitoramento' },
-      { value: '∞', label: 'Produtividade' },
-    ],
-    stories: [
-      { 
-        title: 'RFID - Identificação', 
-        subtitle: 'A Transparência no Volante',
-        pain: 'Incidente durante o turno. Sem RFID, quem estava operando? A empresa sem provas.',
-        solution: 'O veículo só ganha vida quando o condutor apresenta sua identidade digital.',
-        result: 'A dúvida dá lugar aos fatos. O gestor tem controle e o bom profissional é protegido.'
-      },
-      { 
-        title: 'Sensor de Fadiga', 
-        subtitle: 'O Cuidado que Antecipa',
-        pain: 'O turno avança e o cansaço cobra seu preço. O risco de falha humana é constante.',
-        solution: 'A IA monitora sinais de atenção. Ao detectar fadiga, alerta sonoro imediato.',
-        result: 'O condutor retoma o foco ou faz a pausa necessária. O risco é evitado.'
-      },
-      { 
-        title: 'Gestão de Multas', 
-        subtitle: 'A Blindagem do Caixa',
-        pain: 'A infração chega tarde. O prazo de indicação expira. Multa acessória por NIC.',
-        solution: 'Nossa gestão identifica a infração no sistema oficial antes mesmo da notificação.',
-        result: 'O financeiro ganha controle. O prejuízo vira economia real.'
-      },
+      { value: 'RFID', label: 'Identificação' },
+      { value: 'IA', label: 'Preventiva' },
+      { value: '24/7', label: 'Suporte' },
     ],
   },
   {
     id: 'topy-pro',
     name: 'TOPY PRO',
-    tagline: 'Proteção Veicular.',
+    tagline: 'O Escudo do Motociclista.',
+    description: 'Parceiro de estrada de quem acorda antes do sol. Proteção completa para motos.',
     color: '#A855F7',
+    colorRgb: '168, 85, 247',
     gradient: 'from-purple-500 via-purple-600 to-violet-600',
+    darkGradient: 'from-purple-900/80 via-purple-900/80 to-violet-900/80',
     logo: logos['topy-pro'],
+    alternateLogos: [logos['topy-pro'], logos['topy-pro-branca']],
     icon: ShieldAlert,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/LOGO TOPY PRO.webp',
-    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/TOPY PRO BRANCA.png'],
-    whoAreWe: `A TOPY PRO não é apenas tecnologia; somos o parceiro de estrada de quem acorda antes do sol.
-
-Somos feitos da fibra do trabalhador brasileiro que não tem medo de cara feia e enfrenta o trânsito para levar o pão.
-
-Trazemos a força de uma gigante global para o guidão da sua moto, com o respeito de quem sabe o seu nome.`,
-    whyExist: `Existimos porque sabemos que a rua é dura e não perdoa erros. Para você, a moto não é apenas veículo; é a sua independência, o sustento da família.
-
-Nossa missão é ser o escudo invisível que te protege nos semáforos, nas vielas e no descanso da noite.`,
-    howWeSolve: [
-      { icon: Award, title: 'Garantia FIPE', desc: 'Se não recuperar, pagamos' },
-      { icon: Siren, title: 'Equipe Tática', desc: 'Você nunca luta sozinho' },
-      { icon: Lock, title: 'Anti-Furto', desc: 'Proteção automática' },
-      { icon: Signal, title: 'Chip Multioperadora', desc: 'Sinal em qualquer lugar' },
-      { icon: MapPin, title: 'Rastreamento GPS', desc: 'Precisão global' },
-      { icon: Eye, title: 'Monitoramento 24h', desc: 'Central especializada' },
-    ],
+    features: ['Garantia FIPE', 'Rastreador Escondido', 'Central 24h', 'Cobertura Nacional', 'App Inteligente', 'Instalação Profissional'],
     stats: [
-      { value: '100%', label: 'Garantia FIPE' },
-      { value: '<2h', label: 'Tempo Médio Recuperação' },
-      { value: '24/7', label: 'Central Tática' },
-      { value: '100%', label: 'Propriedade' },
-    ],
-    stories: [
-      { 
-        title: 'Garantia FIPE', 
-        subtitle: 'O Recomeço Garantido',
-        pain: 'O pior aconteceu. Furto silencioso. A moto sumiu no mapa.',
-        solution: 'Se não recuperarmos, nós honramos o seu suor. Pagamos o valor da FIPE.',
-        result: 'O que seria o fim de um sonho vira um novo começo. O corre não para.'
-      },
-      { 
-        title: 'Bloqueio Remoto', 
-        subtitle: 'O Crime Termina Aqui',
-        pain: 'Noite de chuva. O susto do assalto. O ladrão levando o ganha-pão.',
-        solution: 'Um toque no app corta o motor à distância. O crime termina sob seu comando.',
-        result: 'Você retoma o que é seu. A justiça é feita no tempo de um clique.'
-      },
-      { 
-        title: 'Anti-Furto Automático', 
-        subtitle: 'O Guardião Silencioso',
-        pain: 'Você para a moto rapidinho. Na correria, o pensamento: Será que travei?',
-        solution: 'Desligou a moto? O sistema trava automaticamente. Você não precisa fazer nada.',
-        result: 'Você desce e ela está lá, firme e forte. O ladrão tentou, mas não conseguiu.'
-      },
+      { value: 'FIPE', label: 'Garantia' },
+      { value: '100%', label: 'Escondido' },
+      { value: '24/7', label: 'SOC' },
+      { value: '∞', label: 'Km Protegidos' },
     ],
   },
   {
     id: 'valeteck',
     name: 'VALETECK',
-    tagline: 'O Coração que Protege.',
-    color: '#14B8A6',
-    gradient: 'from-teal-500 via-teal-600 to-cyan-600',
+    tagline: 'Controle Total do Seu Pátio.',
+    description: 'Solução completa para controle de pátio com telemetria avançada e padrão Vale.',
+    color: '#06B6D4',
+    colorRgb: '6, 182, 212',
+    gradient: 'from-cyan-500 via-cyan-600 to-blue-600',
+    darkGradient: 'from-cyan-900/80 via-cyan-900/80 to-blue-900/80',
     logo: logos['valeteck'],
-    icon: HeartHandshake,
-    heroImage: '/ABA DA EMPRESA/IMAGENS/Valeteck Preto.png',
-    alternateLogos: ['/ABA DA EMPRESA/IMAGENS/Valeteck Branco.png'],
-    whoAreWe: `A Valeteck nasceu do respeito profundo por quem conhece o brilho do dia e o peso do trabalho.
-
-Somos a solução que destrava o pátio com o rigor técnico exigido pela Vale, mas com a malícia da rua que só quem entende o "ganha-pão" consegue entregar.
-
-Cuidamos da telemetria avançada com o mesmo amor que esconde um rastreador para que o crime não o desvende.`,
-    whyExist: `Existimos para devolver a paz de espírito a quem move o mundo. Para que o pai de família não perca o sono e o gerente de frota não tenha o coração na mão.
-
-Nossa razão de ser é transformar a ansiedade em tranquilidade, o risco em confiança.`,
-    howWeSolve: [
-      { icon: Radio, title: 'Partida Remota', desc: 'Controle até 100m' },
-      { icon: Shield, title: 'Antifurto Automático', desc: 'Proteção inteligente' },
-      { icon: Camera, title: 'Câmera de Ré', desc: 'Elimina pontos cegos' },
-      { icon: Cpu, title: 'Telemetria Avançada', desc: 'Dados em tempo real' },
-      { icon: Wrench, title: 'Instalação Profissional', desc: 'Perfeito para Vale' },
-      { icon: Heart, title: 'Suporte Dedicado', desc: 'Cuidado personalizado' },
-    ],
+    alternateLogos: [logos['valeteck'], logos['valeteck-branco']],
+    icon: Radio,
+    features: ['Partida Remota', 'Antifurto Automático', 'Câmera de Ré', 'Telemetria Avançada', 'Instalação Profissional', 'Padrão Vale'],
     stats: [
-      { value: '100m', label: 'Alcance Partida' },
-      { value: '0', label: 'Pontos Cegos' },
-      { value: '100%', label: 'Padrão Vale' },
-      { value: '24/7', label: 'Suporte' },
+      { value: '100m', label: 'Alcance' },
+      { value: '24/7', label: 'Monitoramento' },
+      { value: 'Vale', label: 'Certificado' },
+      { value: '∞', label: 'Veículos' },
     ],
-    stories: [
-      { 
-        title: 'Partida Remota', 
-        subtitle: 'O Coração da Moto no Seu Comando',
-        pain: 'Noite de chuva. Barulho na rua. Sua moto, seu ganha-pão, está lá fora.',
-        solution: 'Um toque no controle, até 100 metros, você tem o poder. Ligue ou bloqueie.',
-        result: 'O barulho agora é só barulho. Você olha pela janela e sente o motor vibrar.'
-      },
-      { 
-        title: 'Câmera de Ré', 
-        subtitle: 'Os Olhos que Cuidam',
-        pain: 'Garagem apertada. Rua movimentada. O medo de um toque inesperado.',
-        solution: 'Ao engatar a ré, a imagem clara surge. A câmera revela o que está escondido.',
-        result: 'A tensão dá lugar à confiança. Estacionar se torna um ato simples.'
-      },
-      { 
-        title: 'Antifurto Automático', 
-        subtitle: 'O Guardião Silencioso',
-        pain: 'Você desliga a moto e entra pra resolver. Minutos depois: Será que travei?',
-        solution: 'Ele não depende da sua memória. Ao desligar, o sistema trava automaticamente.',
-        result: 'A pressa não é mais inimiga. Você segue com a mente livre.'
-      },
+  },
+  {
+    id: 'webtrak',
+    name: 'WEBTRAK',
+    tagline: 'Gestão Inteligente de Frotas.',
+    description: 'Plataforma web completa para gestão de frotas com rastreamento em tempo real.',
+    color: '#8B5CF6',
+    colorRgb: '139, 92, 246',
+    gradient: 'from-violet-500 via-violet-600 to-purple-600',
+    darkGradient: 'from-violet-900/80 via-violet-900/80 to-purple-900/80',
+    logo: logos['webtrak'],
+    alternateLogos: [logos['webtrak']],
+    icon: Globe,
+    features: ['Gestão de Frotas', 'Rastreamento Web', 'Relatórios PDF', 'Geofencing', 'Alertas Inteligentes', 'Multi-usuários'],
+    stats: [
+      { value: 'Web', label: 'Plataforma' },
+      { value: 'PDF', label: 'Relatórios' },
+      { value: '∞', label: 'Usuários' },
+      { value: '24/7', label: 'Acesso' },
     ],
   },
 ];
+
+function FloatingOrb({ delay, duration, size, color, top, left, right, bottom }: any) {
+  return (
+    <motion.div
+      className="absolute rounded-full blur-3xl opacity-30"
+      style={{
+        width: size,
+        height: size,
+        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+        top, left, right, bottom,
+      }}
+      animate={{
+        y: [0, -30, 0],
+        x: [0, 15, 0],
+        scale: [1, 1.1, 1],
+        opacity: [0.2, 0.4, 0.2],
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        delay,
+        ease: "easeInOut",
+      }}
+    />
+  );
+}
+
+function LogoCard({ logo, name, isActive, onClick, color }: { logo: string; name: string; isActive: boolean; onClick: () => void; color: string }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      className={`relative p-4 rounded-2xl transition-all duration-500 ${
+        isActive 
+          ? 'bg-white/20 backdrop-blur-xl shadow-2xl scale-110' 
+          : 'bg-white/5 hover:bg-white/10 backdrop-blur-sm'
+      }`}
+      whileHover={{ scale: 1.05, y: -5 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <div className="relative z-10">
+        <img 
+          src={logo} 
+          alt={name}
+          className={`w-full h-16 object-contain filter drop-shadow-lg transition-all duration-500 ${
+            isActive ? 'brightness-110 saturate-125' : 'brightness-75 saturate-75'
+          }`}
+        />
+      </div>
+      {isActive && (
+        <motion.div
+          layoutId="activeLogo"
+          className="absolute inset-0 rounded-2xl border-2"
+          style={{ borderColor: color }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        />
+      )}
+    </motion.button>
+  );
+}
+
+function ProductGallery({ products, companyColor }: { products: string[]; companyColor: string }) {
+  const [selected, setSelected] = useState(0);
+  
+  if (!products || products.length === 0) return null;
+  
+  return (
+    <div className="space-y-4">
+      <h4 className="text-lg font-bold text-white flex items-center gap-2">
+        <Package className="w-5 h-5" style={{ color: companyColor }} />
+        Produtos
+      </h4>
+      
+      <div className="grid grid-cols-3 gap-3">
+        {products.map((img, idx) => (
+          <motion.button
+            key={idx}
+            onClick={() => setSelected(idx)}
+            className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+              selected === idx ? 'border-white shadow-lg shadow-white/20' : 'border-white/20 hover:border-white/50'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <img src={img} alt={`Produto ${idx + 1}`} className="w-full h-full object-cover" />
+          </motion.button>
+        ))}
+      </div>
+      
+      <motion.div
+        key={selected}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative aspect-video rounded-2xl overflow-hidden bg-black/30"
+      >
+        <img 
+          src={products[selected]} 
+          alt={`Produto ${selected + 1}`}
+          className="w-full h-full object-contain"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+      </motion.div>
+    </div>
+  );
+}
+
+function Stats3D({ stats, color }: { stats: { value: string; label: string }[]; color: string }) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {stats.map((stat, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: idx * 0.1 }}
+          className="relative group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl blur-xl group-hover:from-white/20 transition-all" />
+          <div className="relative p-4 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-white/30 transition-all">
+            <motion.div
+              className="text-3xl md:text-4xl font-black text-transparent bg-clip-text"
+              style={{ backgroundImage: `linear-gradient(135deg, ${color}, white)` }}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {stat.value}
+            </motion.div>
+            <div className="text-sm text-white/70 mt-1">{stat.label}</div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function FeatureCard({ feature, icon: Icon, color, index }: { feature: string; icon: any; color: string; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all group"
+    >
+      <div 
+        className="w-10 h-10 rounded-lg flex items-center justify-center"
+        style={{ backgroundColor: `${color}20` }}
+      >
+        <Icon className="w-5 h-5" style={{ color }} />
+      </div>
+      <span className="text-sm text-white/90 group-hover:text-white transition-colors">{feature}</span>
+    </motion.div>
+  );
+}
+
+function MindMapNode({ company, index, total, onClick, isActive }: { company: any; index: number; total: number; onClick: () => void; isActive: boolean }) {
+  const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
+  const radius = 280;
+  const x = Math.cos(angle) * radius;
+  const y = Math.sin(angle) * radius;
+  
+  return (
+    <motion.div
+      className="absolute"
+      style={{
+        transform: `translate(${x}px, ${y}px)`,
+      }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.1 }}
+    >
+      <motion.button
+        onClick={onClick}
+        className={`relative cursor-pointer group`}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <div 
+          className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
+            isActive ? 'scale-125 shadow-lg' : 'grayscale hover:grayscale-0'
+          }`}
+          style={{ 
+            background: `linear-gradient(135deg, ${company.color}, ${company.color}80)`,
+            boxShadow: isActive ? `0 0 40px ${company.color}80` : `0 10px 30px rgba(0,0,0,0.3)`,
+          }}
+        >
+          <img 
+            src={company.logo} 
+            alt={company.name}
+            className="w-14 h-14 object-contain"
+          />
+        </div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileHover={{ opacity: 1, y: 0 }}
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 bg-black/80 backdrop-blur rounded-lg whitespace-nowrap"
+        >
+          <span className="text-sm font-bold" style={{ color: company.color }}>{company.name}</span>
+        </motion.div>
+      </motion.button>
+    </motion.div>
+  );
+}
+
+function AlternatingLogosCarousel({ logos, companyName, color }: { logos: string[]; companyName: string; color: string }) {
+  const [current, setCurrent] = useState(0);
+  
+  useEffect(() => {
+    if (logos.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrent((c) => (c + 1) % logos.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [logos.length]);
+  
+  if (logos.length === 0) return null;
+  
+  return (
+    <div className="relative h-40">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current}
+          initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}
+          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+          exit={{ opacity: 0, scale: 0.8, rotateY: 90 }}
+          transition={{ duration: 0.5 }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <img 
+            src={logos[current]} 
+            alt={`${companyName} logo ${current + 1}`}
+            className="max-h-32 object-contain drop-shadow-2xl"
+          />
+        </motion.div>
+      </AnimatePresence>
+      
+      {logos.length > 1 && (
+        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+          {logos.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrent(idx)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                idx === current ? 'w-6' : 'bg-white/30 hover:bg-white/50'
+              }`}
+              style={{ backgroundColor: idx === current ? color : undefined }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ParticleField() {
+  const particles = useMemo(() => {
+    return Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      duration: Math.random() * 20 + 10,
+      delay: Math.random() * 5,
+    }));
+  }, []);
+  
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-white/20"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+          }}
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            opacity: [0.2, 0.5, 0.2],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 interface EmpresaPageProps {
   onBack?: () => void;
 }
 
 export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
-  const [currentCompany, setCurrentCompany] = useState(0);
-  const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'stories'>('hero');
-  const [expandedStory, setExpandedStory] = useState<number | null>(null);
-  const [showMindMap, setShowMindMap] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(0);
+  const [viewMode, setViewMode] = useState<'carousel' | 'mindmap'>('carousel');
+  const [showProducts, setShowProducts] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
-  
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-
-  const company = companies[currentCompany];
-  const companyIcon = company.icon;
-
-  const nextCompany = () => {
-    setCurrentCompany((prev) => (prev + 1) % companies.length);
-    setActiveTab('hero');
-    setExpandedStory(null);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  
+  const company = companies[selectedCompany];
+  
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    element?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  const prevCompany = () => {
-    setCurrentCompany((prev) => (prev - 1 + companies.length) % companies.length);
-    setActiveTab('hero');
-    setExpandedStory(null);
-  };
-
-  const selectCompany = (index: number) => {
-    setCurrentCompany(index);
-    setActiveTab('hero');
-    setExpandedStory(null);
-  };
-
+  
   return (
-    <div className="min-h-screen bg-gray-950 overflow-x-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <motion.div 
-          className="absolute w-[800px] h-[800px] rounded-full"
-          style={{ 
-            background: `radial-gradient(circle, ${company.color}20 0%, transparent 70%)`,
-            left: '50%',
-            top: '50%',
-            x: '-50%',
-            y: '-50%',
-          }}
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-        />
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-white rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              delay: i * 0.2,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-gray-950/90 backdrop-blur-xl border-b border-white/10">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={onBack} className="text-white hover:bg-white/10">
-              <ChevronLeft className="w-5 h-5 mr-1" />
-              Voltar
-            </Button>
-            <motion.h1 
-              className="text-lg font-bold text-white"
-              key={company.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-            >
-              <span style={{ color: company.color }}>Grupo</span> Rastremix
-            </motion.h1>
-            <Button 
-              variant="outline" 
-              className="border-white/20 text-white hover:bg-white/10"
-              onClick={() => setShowMindMap(!showMindMap)}
-            >
-              <Layers className="w-4 h-4 mr-1" />
-              {showMindMap ? 'Portfolio' : 'Mind Map'}
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Company Pills */}
-      <div className="sticky top-14 z-40 bg-gray-950/90 backdrop-blur-xl border-b border-white/10">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {companies.map((c, i) => (
-              <motion.button
-                key={c.id}
-                onClick={() => selectCompany(i)}
-                className={`px-4 py-2 rounded-full whitespace-nowrap transition-all font-medium ${
-                  currentCompany === i
-                    ? 'text-white shadow-lg'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
-                }`}
-                style={currentCompany === i ? { backgroundColor: c.color } : {}}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {c.name}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Mind Map View */}
-      <AnimatePresence>
-        {showMindMap && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="container mx-auto px-4 py-8"
-          >
-            <div className="relative min-h-[80vh] flex items-center justify-center">
-              {/* Central Hub */}
-              <motion.div 
-                className="absolute z-10 w-40 h-40 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-2xl"
-                animate={{ 
-                  scale: [1, 1.05, 1],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <div className="text-center">
-                  <Globe2 className="w-12 h-12 text-white mx-auto" />
-                  <span className="text-white font-bold text-sm mt-2 block">FACILIT</span>
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 overflow-hidden">
+      <ParticleField />
+      
+      <motion.div 
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{ y, opacity }}
+      >
+        <FloatingOrb delay={0} duration={6} size={400} color={`rgba(${company.colorRgb}, 0.3)`} top="10%" left="5%" />
+        <FloatingOrb delay={2} duration={8} size={300} color="rgba(249, 115, 22, 0.2)" bottom="20%" right="10%" />
+        <FloatingOrb delay={4} duration={7} size={350} color="rgba(59, 130, 246, 0.2)" top="40%" right="30%" />
+      </motion.div>
+      
+      <div className="relative z-10">
+        <header className="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-xl border-b border-white/10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {onBack && (
+                  <Button variant="ghost" size="sm" onClick={onBack} className="text-white hover:bg-white/10">
+                    <ChevronLeft className="w-5 h-5 mr-1" />
+                    Voltar
+                  </Button>
+                )}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-black text-white">A EMPRESA</h1>
+                    <p className="text-xs text-white/60">Ecossistema Rastremix</p>
+                  </div>
                 </div>
-              </motion.div>
-
-              {/* Orbiting Companies */}
-              {companies.slice(1).map((c, i) => {
-                const angle = (i * 360) / (companies.length - 1) - 90;
-                const radius = 280;
-                const x = Math.cos((angle * Math.PI) / 180) * radius;
-                const y = Math.sin((angle * Math.PI) / 180) * radius;
-                
-                return (
-                  <motion.div
-                    key={c.id}
-                    className="absolute"
-                    style={{ x, y }}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    <motion.button
-                      onClick={() => {
-                        selectCompany(i + 1);
-                        setShowMindMap(false);
-                      }}
-                      className="w-24 h-24 rounded-full flex items-center justify-center shadow-xl"
-                      style={{ backgroundColor: c.color }}
-                      whileHover={{ scale: 1.2, zIndex: 50 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <div className="text-center">
-                        <c.icon className="w-8 h-8 text-white mx-auto" />
-                        <span className="text-white text-[10px] font-bold mt-1 block">{c.name.split(' ')[0]}</span>
-                      </div>
-                    </motion.button>
-                    
-                    {/* Connection Line */}
-                    <svg className="absolute top-1/2 left-1/2 w-full h-full -z-10" style={{ overflow: 'visible' }}>
-                      <motion.line
-                        x1="50%"
-                        y1="50%"
-                        x2="50%"
-                        y2="50%"
-                        stroke={c.color}
-                        strokeWidth="2"
-                        strokeDasharray="5,5"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 1, delay: i * 0.2 }}
-                      />
-                    </svg>
-                  </motion.div>
-                );
-              })}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'carousel' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('carousel')}
+                  className={viewMode === 'carousel' ? 'bg-orange-500' : 'text-white border-white/20'}
+                >
+                  Carousel
+                </Button>
+                <Button
+                  variant={viewMode === 'mindmap' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('mindmap')}
+                  className={viewMode === 'mindmap' ? 'bg-orange-500' : 'text-white border-white/20'}
+                >
+                  Mind Map
+                </Button>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Portfolio View */}
-      {!showMindMap && (
-        <main className="container mx-auto px-4 py-8" ref={containerRef}>
-          <AnimatePresence mode="wait">
+          </div>
+        </header>
+        
+        <section className="min-h-[70vh] flex items-center justify-center py-20 px-4">
+          <div className="text-center max-w-4xl mx-auto">
             <motion.div
-              key={company.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
             >
-              {/* Hero Section */}
-              <motion.div 
-                className="text-center mb-12"
+              <Badge className="mb-6 px-4 py-2 text-lg bg-white/10 text-white border-white/20 backdrop-blur">
+                🌟 Ecossistema de Proteção
+              </Badge>
+              <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/60 mb-6">
+                O Grupo Que Move o Brasil
+              </h2>
+              <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
+                8 empresas.unidas pela missão de proteger o patrimônio nacional com tecnologia de ponta e coração de brasileiro.
+              </p>
+              
+              <motion.div
+                className="flex flex-wrap justify-center gap-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.5 }}
               >
-                {/* Floating Logo */}
-                <motion.div 
-                  className="relative inline-block mb-8"
-                  animate={{ 
-                    y: [0, -10, 0],
-                    rotate: [0, 2, -2, 0]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                >
-                  <div 
-                    className="w-40 h-40 rounded-3xl flex items-center justify-center mx-auto shadow-2xl"
-                    style={{ 
-                      backgroundColor: `${company.color}20`,
-                      border: `2px solid ${company.color}40`
-                    }}
+                {companies.map((c, idx) => (
+                  <motion.div
+                    key={c.id}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6 + idx * 0.1 }}
                   >
                     <img 
-                      src={company.logo} 
-                      alt={company.name}
-                      className="w-32 h-32 object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
+                      src={c.logo} 
+                      alt={c.name}
+                      className="w-12 h-12 object-contain hover:scale-110 transition-transform cursor-pointer"
+                      onClick={() => setSelectedCompany(idx)}
+                      style={{ filter: selectedCompany === idx ? 'none' : 'grayscale(50%)' }}
                     />
-                  </div>
-                  {/* Glow Effect */}
-                  <div 
-                    className="absolute inset-0 rounded-3xl blur-xl -z-10"
-                    style={{ backgroundColor: company.color, opacity: 0.3 }}
-                  />
-                </motion.div>
-
-                {/* Company Name & Tagline */}
-                <motion.h2 
-                  className="text-5xl md:text-7xl font-black text-white mb-2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  {company.name}
-                </motion.h2>
-                
-                <motion.p 
-                  className="text-2xl font-medium mb-8"
-                  style={{ color: company.color }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  {company.tagline}
-                </motion.p>
-
-                {/* Stats Cards */}
-                <motion.div 
-                  className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  {company.stats.map((stat, i) => (
-                    <motion.div
-                      key={i}
-                      className="bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-white/10"
-                      whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    >
-                      <p className="text-3xl font-black text-white">{stat.value}</p>
-                      <p className="text-sm text-white/60">{stat.label}</p>
-                    </motion.div>
-                  ))}
-                </motion.div>
+                  </motion.div>
+                ))}
               </motion.div>
-
-              {/* Navigation Tabs */}
-              <div className="flex justify-center gap-2 mb-8">
-                {[
-                  { id: 'hero', label: 'Início' },
-                  { id: 'about', label: 'Sobre' },
-                  { id: 'stories', label: 'Histórias' },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`px-6 py-2 rounded-full transition-all font-medium ${
-                      activeTab === tab.id
-                        ? 'text-white shadow-lg'
-                        : 'bg-white/5 text-white/60 hover:bg-white/10'
-                    }`}
-                    style={activeTab === tab.id ? { backgroundColor: company.color } : {}}
-                  >
-                    {tab.label}
-                  </button>
+            </motion.div>
+          </div>
+        </section>
+        
+        {viewMode === 'carousel' ? (
+          <section className="py-20 px-4">
+            <div className="container mx-auto">
+              <div className="grid lg:grid-cols-5 gap-8">
+                <div className="lg:col-span-1 space-y-3">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-orange-500" />
+                    Empresas
+                  </h3>
+                  {companies.map((c, idx) => (
+                    <LogoCard
+                      key={c.id}
+                      logo={c.logo}
+                      name={c.name}
+                      isActive={selectedCompany === idx}
+                      onClick={() => setSelectedCompany(idx)}
+                      color={c.color}
+                    />
+                  ))}
+                </div>
+                
+                <div className="lg:col-span-4">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={company.id}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.5 }}
+                      className={`rounded-3xl bg-gradient-to-br ${company.darkGradient} backdrop-blur-xl border border-white/10 overflow-hidden`}
+                    >
+                      <div className={`h-2 bg-gradient-to-r ${company.gradient}`} />
+                      
+                      <div className="p-8">
+                        <div className="grid md:grid-cols-2 gap-12">
+                          <div className="space-y-6">
+                            <div>
+                              <AlternatingLogosCarousel 
+                                logos={company.alternateLogos} 
+                                companyName={company.name}
+                                color={company.color}
+                              />
+                            </div>
+                            
+                            <div>
+                              <h3 className="text-4xl font-black text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(135deg, ${company.color}, white)` }}>
+                                {company.name}
+                              </h3>
+                              <p className="text-2xl text-white/80 font-semibold mt-2">{company.tagline}</p>
+                              <p className="text-white/60 mt-4">{company.description}</p>
+                            </div>
+                            
+                            <div>
+                              <Stats3D stats={company.stats} color={company.color} />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-6">
+                            <div>
+                              <h4 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                                <Sparkles className="w-5 h-5" style={{ color: company.color }} />
+                                Funcionalidades
+                              </h4>
+                              <div className="grid grid-cols-2 gap-2">
+                                {company.features.map((feature, idx) => (
+                                  <FeatureCard 
+                                    key={idx}
+                                    feature={feature}
+                                    icon={company.icon}
+                                    color={company.color}
+                                    index={idx}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            
+                            {company.products && (
+                              <ProductGallery 
+                                products={company.products} 
+                                companyColor={company.color}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                  
+                  <div className="flex justify-center gap-4 mt-8">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setSelectedCompany((p) => (p - 1 + companies.length) % companies.length)}
+                      className="text-white border-white/20 hover:bg-white/10"
+                    >
+                      <ChevronLeft className="w-5 h-5 mr-2" />
+                      Anterior
+                    </Button>
+                    <div className="flex items-center gap-2 px-4">
+                      <span className="text-white font-bold">{selectedCompany + 1}</span>
+                      <span className="text-white/50">/</span>
+                      <span className="text-white/50">{companies.length}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setSelectedCompany((p) => (p + 1) % companies.length)}
+                      className="text-white border-white/20 hover:bg-white/10"
+                    >
+                      Próximo
+                      <ChevronRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="py-20 px-4">
+            <div className="container mx-auto">
+              <div className="text-center mb-12">
+                <h3 className="text-4xl font-black text-white mb-4">Mapa de Empresas</h3>
+                <p className="text-white/60">Clique em uma empresa para saber mais</p>
+              </div>
+              
+              <div className="relative flex items-center justify-center min-h-[700px]">
+                <div className="absolute w-32 h-32 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl shadow-orange-500/50">
+                  <img src={logos['rastremix']} alt="Rastremix" className="w-20 h-20 object-contain" />
+                </div>
+                
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg className="w-[600px] h-[600px]" viewBox="0 0 600 600">
+                    <circle cx="300" cy="300" r="280" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeDasharray="10 10" />
+                    <circle cx="300" cy="300" r="200" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                    <circle cx="300" cy="300" r="120" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                  </svg>
+                </div>
+                
+                {companies.map((c, idx) => (
+                  <MindMapNode
+                    key={c.id}
+                    company={c}
+                    index={idx}
+                    total={companies.length}
+                    onClick={() => setSelectedCompany(idx)}
+                    isActive={selectedCompany === idx}
+                  />
                 ))}
               </div>
-
-              {/* About Section */}
+              
               <AnimatePresence mode="wait">
-                {activeTab === 'about' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="max-w-5xl mx-auto space-y-8"
+                <motion.div
+                  key={selectedCompany}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="max-w-2xl mx-auto mt-12"
+                >
+                  <Card className={`bg-gradient-to-br ${company.darkGradient} backdrop-blur-xl border-white/20`}>
+                    <CardHeader>
+                      <CardTitle className="text-3xl font-black text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(135deg, ${company.color}, white)` }}>
+                        {company.name}
+                      </CardTitle>
+                      <p className="text-white/80 text-lg">{company.tagline}</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-white/70">{company.description}</p>
+                      <Stats3D stats={company.stats} color={company.color} />
+                      {company.products && (
+                        <ProductGallery products={company.products} companyColor={company.color} />
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </section>
+        )}
+        
+        <section className="py-20 px-4 bg-black/20">
+          <div className="container mx-auto">
+            <div className="text-center mb-12">
+              <h3 className="text-4xl font-black text-white mb-4">Produtos em Destaque</h3>
+              <p className="text-white/60">Conheça os produtos de cada empresa do ecossistema</p>
+            </div>
+            
+            <Tabs defaultValue="gps-love" className="w-full">
+              <TabsList className="flex flex-wrap justify-center gap-2 bg-white/5 backdrop-blur mb-8">
+                {companies.filter(c => c.products).map((c) => (
+                  <TabsTrigger 
+                    key={c.id} 
+                    value={c.id}
+                    className="data-[state=active]:bg-white/20 text-white"
                   >
-                    {/* Who We Are */}
-                    <Card className="bg-white/5 backdrop-blur-xl border-white/10 overflow-hidden">
-                      <div 
-                        className="h-2"
-                        style={{ backgroundColor: company.color }}
-                      />
-                      <CardContent className="p-8">
-                        <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                          <Users className="w-8 h-8" style={{ color: company.color }} />
-                          Quem Somos
-                        </h3>
-                        <div className="text-white/80 leading-relaxed whitespace-pre-line">
-                          {company.whoAreWe}
+                    {c.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {companies.filter(c => c.products).map((c) => (
+                <TabsContent key={c.id} value={c.id}>
+                  <Card className={`bg-gradient-to-br ${c.darkGradient} backdrop-blur-xl border-white/10`}>
+                    <CardContent className="p-8">
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div>
+                          <h4 className="text-2xl font-black text-white mb-4">{c.name}</h4>
+                          <p className="text-white/70 mb-6">{c.description}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {c.features.slice(0, 4).map((f, idx) => (
+                              <Badge key={idx} className="bg-white/10 text-white backdrop-blur">{f}</Badge>
+                            ))}
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Why We Exist */}
-                    <Card className="bg-white/5 backdrop-blur-xl border-white/10 overflow-hidden">
-                      <div 
-                        className="h-2"
-                        style={{ backgroundColor: company.color }}
-                      />
-                      <CardContent className="p-8">
-                        <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                          <Target className="w-8 h-8" style={{ color: company.color }} />
-                          Por que Existimos
-                        </h3>
-                        <div className="text-white/80 leading-relaxed whitespace-pre-line">
-                          {company.whyExist}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* How We Solve */}
-                    <Card className="bg-white/5 backdrop-blur-xl border-white/10 overflow-hidden">
-                      <div 
-                        className="h-2"
-                        style={{ backgroundColor: company.color }}
-                      />
-                      <CardContent className="p-8">
-                        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                          <Shield className="w-8 h-8" style={{ color: company.color }} />
-                          Como Resolvemos
-                        </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          {company.howWeSolve.map((feature, i) => (
+                        <div className="grid grid-cols-2 gap-4">
+                          {c.products?.map((img, idx) => (
                             <motion.div
-                              key={i}
-                              className="bg-white/5 rounded-xl p-4 border border-white/10"
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: i * 0.1 }}
-                              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                              key={idx}
+                              className="relative aspect-square rounded-xl overflow-hidden bg-black/30 group"
+                              whileHover={{ scale: 1.05 }}
                             >
-                              <feature.icon 
-                                className="w-8 h-8 mb-3" 
-                                style={{ color: company.color }} 
-                              />
-                              <h4 className="font-bold text-white mb-1">{feature.title}</h4>
-                              <p className="text-sm text-white/60">{feature.desc}</p>
+                              <img src={img} alt={`${c.name} produto`} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                                <span className="text-white text-sm font-semibold">Produto {idx + 1}</span>
+                              </div>
                             </motion.div>
                           ))}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Stories Section */}
-              <AnimatePresence mode="wait">
-                {activeTab === 'stories' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="max-w-4xl mx-auto space-y-6"
-                  >
-                    <h3 className="text-2xl font-bold text-white text-center mb-8">
-                      As Histórias de {company.name}
-                    </h3>
-                    
-                    {company.stories?.map((story, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                      >
-                        <Card 
-                          className="bg-white/5 backdrop-blur-xl border-white/10 overflow-hidden cursor-pointer"
-                          onClick={() => setExpandedStory(expandedStory === i ? null : i)}
-                        >
-                          <div 
-                            className="h-1"
-                            style={{ backgroundColor: company.color }}
-                          />
-                          <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <motion.div 
-                                  className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl"
-                                  style={{ backgroundColor: company.color }}
-                                  animate={expandedStory === i ? { rotate: [0, -5, 5, 0] } : {}}
-                                >
-                                  {i + 1}
-                                </motion.div>
-                                <div>
-                                  <CardTitle className="text-white text-xl">{story.title}</CardTitle>
-                                  <p className="text-white/60">{story.subtitle}</p>
-                                </div>
-                              </div>
-                              <motion.div
-                                animate={{ rotate: expandedStory === i ? 180 : 0 }}
-                                transition={{ duration: 0.3 }}
-                              >
-                                <ChevronRight className="w-6 h-6 text-white/60" />
-                              </motion.div>
-                            </div>
-                          </CardHeader>
-                          
-                          <AnimatePresence>
-                            {expandedStory === i && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                              >
-                                <CardContent className="space-y-6 pb-6">
-                                  {/* Pain */}
-                                  <div className="border-l-4 border-red-500/50 pl-4">
-                                    <h4 className="text-red-400 font-bold mb-2 flex items-center gap-2">
-                                      <AlertCircle className="w-5 h-5" />
-                                      O Cenário (A Dor)
-                                    </h4>
-                                    <p className="text-white/80">{story.pain}</p>
-                                  </div>
-                                  
-                                  {/* Solution */}
-                                  <div className="border-l-4 border-green-500/50 pl-4">
-                                    <h4 className="text-green-400 font-bold mb-2 flex items-center gap-2">
-                                      <CheckCircle className="w-5 h-5" />
-                                      Como Funciona (A Solução)
-                                    </h4>
-                                    <p className="text-white/80">{story.solution}</p>
-                                  </div>
-                                  
-                                  {/* Result */}
-                                  <div 
-                                    className="border-l-4 pl-4"
-                                    style={{ borderColor: company.color }}
-                                  >
-                                    <h4 
-                                      className="font-bold mb-2 flex items-center gap-2"
-                                      style={{ color: company.color }}
-                                    >
-                                      <Star className="w-5 h-5" />
-                                      A Transformação
-                                    </h4>
-                                    <p className="text-white/80">{story.result}</p>
-                                  </div>
-                                </CardContent>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      )}
-
-      {/* Navigation Arrows */}
-      {!showMindMap && (
-        <>
-          <motion.button
-            onClick={prevCompany}
-            className="fixed left-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all z-50"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <ChevronLeft className="w-8 h-8" />
-          </motion.button>
-          
-          <motion.button
-            onClick={nextCompany}
-            className="fixed right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all z-50"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <ChevronRight className="w-8 h-8" />
-          </motion.button>
-        </>
-      )}
-
-      {/* Progress Dots */}
-      {!showMindMap && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-50">
-          {companies.map((c, i) => (
-            <motion.button
-              key={c.id}
-              onClick={() => selectCompany(i)}
-              className="h-3 rounded-full transition-all"
-              style={{ 
-                backgroundColor: currentCompany === i ? c.color : 'rgba(255,255,255,0.3)',
-                width: currentCompany === i ? '32px' : '12px'
-              }}
-              whileHover={{ scale: 1.2 }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Footer */}
-      <footer className="py-12 text-center border-t border-white/10 mt-12">
-        <div className="flex justify-center gap-4 mb-6">
-          {companies.map((c) => (
-            <div
-              key={c.id}
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${c.color}20` }}
-            >
-              <c.icon className="w-5 h-5" style={{ color: c.color }} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </div>
+        </section>
+        
+        <section className="py-20 px-4">
+          <div className="container mx-auto">
+            <div className="text-center mb-12">
+              <h3 className="text-4xl font-black text-white mb-4">Galeria de Logos</h3>
+              <p className="text-white/60">Todas as marcas do ecossistema Rastremix</p>
             </div>
-          ))}
-        </div>
-        <p className="text-white/40 text-sm">
-          Grupo Rastremix - Tecnologia e Segurança para Todos
-        </p>
-        <p className="text-white/20 text-xs mt-2">
-          Protegendo o patrimônio nacional com coração brasileiro
-        </p>
-      </footer>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {companies.map((c, idx) => (
+                <motion.div
+                  key={c.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className={`p-6 rounded-3xl bg-gradient-to-br ${c.darkGradient} backdrop-blur-xl border border-white/10 hover:border-white/30 transition-all group cursor-pointer`}
+                  onClick={() => {
+                    setSelectedCompany(idx);
+                    setViewMode('carousel');
+                  }}
+                >
+                  <div className="aspect-video flex items-center justify-center mb-4">
+                    <img 
+                      src={c.logo} 
+                      alt={c.name}
+                      className="max-h-16 object-contain group-hover:scale-110 transition-transform"
+                    />
+                  </div>
+                  <h4 className="text-lg font-bold text-white text-center">{c.name}</h4>
+                  <p className="text-sm text-white/60 text-center mt-1">{c.tagline}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+        
+        <footer className="py-12 px-4 border-t border-white/10 bg-black/30">
+          <div className="container mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <img src={logos['rastremix']} alt="Rastremix" className="h-12 object-contain" />
+                <div>
+                  <h4 className="font-bold text-white">RASTREMIX</h4>
+                  <p className="text-sm text-white/60">Proteção Veicular Inteligente</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                {companies.slice(0, 5).map((c) => (
+                  <img 
+                    key={c.id}
+                    src={c.logo} 
+                    alt={c.name}
+                    className="h-8 object-contain opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+                    onClick={() => setSelectedCompany(companies.indexOf(c))}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <div className="mt-8 pt-8 border-t border-white/10 text-center">
+              <p className="text-white/40 text-sm">
+                © 2026 Rastremix - O Grupo Que Move o Brasil. Todos os direitos reservados.
+              </p>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
