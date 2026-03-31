@@ -1,19 +1,23 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { 
-  ChevronLeft, ChevronRight, Play, CheckCircle, Heart, Shield, 
+  ChevronLeft, ChevronRight, Heart, Shield, 
   MapPin, Zap, Users, Eye, Car, Phone, Clock, Star, Award,
   Target, Lock, Camera, Package, Truck, Battery, Signal,
   Globe, Wrench, Rocket, Sparkles, Crown, ShieldCheck,
   HeartHandshake, Cpu, Wifi, Fingerprint, EyeOff,
   TrendingUp, Building2, Users2, ShieldAlert,
   Radar, Compass, Layers, Hexagon, CircleDot, Radio, Siren,
-  ChevronDown, Menu, X, ExternalLink, Download
+  ChevronDown, Menu, X, ExternalLink, Download, Play, CheckCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const encodePath = (path) => {
+  return path.split('/').map(part => encodeURIComponent(part)).join('/');
+};
 
 const logos = {
   'gps-my': '/ABA%20DA%20EMPRESA/IMAGENS/Gps%20my.png',
@@ -31,25 +35,16 @@ const logos = {
   'valeteck-branco': '/ABA%20DA%20EMPRESA/IMAGENS/Valeteck%20Branco.png',
   'facilit': '/ABA%20DA%20EMPRESA/IMAGENS/lOGO%20FACILIT%20CORP.png',
   'webtrak': '/ABA%20DA%20EMPRESA/IMAGENS/Logo%20Webtrak.png',
-};
-
-const productImages = {
-  gpsLove: [
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Arte%20feed%20gps%20love.png',
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/CÂMERA.jpeg',
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/PORTÁTIL.png',
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/TAG%20LOCALIZADORA.jpeg',
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/coleira.jpeg',
-  ],
-  gpsMy: [
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Obd.png',
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Portátil.png',
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Tag.png',
-  ],
-  rastremix: [
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Replace_the_red_Rastremix_t-shirt_with_the_blue_an-1772898819844%20(3).png',
-    '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/WhatsApp%20Image%202026-03-03%20at%2018.17.58.jpeg',
-  ],
+  'gps-my-obd': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Obd.png',
+  'gps-my-portatil': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Port%C3%A1til.png',
+  'gps-my-tag': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTO%20GPS%20MY/Tag.png',
+  'gps-love-arte': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Arte%20feed%20gps%20love.png',
+  'gps-love-camera': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/C%C3%82MERA.jpeg',
+  'gps-love-portatil': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/PORT%C3%81TIL.png',
+  'gps-love-tag': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/TAG%20LOCALIZADORA.jpeg',
+  'gps-love-coleira': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/coleira.jpeg',
+  'rastremix-camiseta': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/Replace_the_red_Rastremix_t-shirt_with_the_blue_an-1772898819844%20(3).png',
+  'rastremix-whatsapp': '/ABA%20DA%20EMPRESA/IMAGENS/IMAGENS%20PRODUTOS/WhatsApp%20Image%202026-03-03%20at%2018.17.58.jpeg',
 };
 
 const companies = [
@@ -62,8 +57,8 @@ const companies = [
     colorRgb: '255, 215, 0',
     gradient: 'from-yellow-500 via-amber-500 to-orange-600',
     darkGradient: 'from-yellow-900/80 via-amber-900/80 to-orange-900/80',
-    logo: logos['facilit'],
-    alternateLogos: [logos['facilit']],
+    logo: `/${logos['facilit']}`,
+    alternateLogos: [`/${logos['facilit']}`],
     icon: Building2,
     features: ['Tecnologia Multinacional', 'Equipe Especializada', 'Resposta Imediata', 'Cobertura Nacional', 'Certificações ISO', 'Atendimento 24/7'],
     stats: [
@@ -72,6 +67,7 @@ const companies = [
       { value: '24/7', label: 'Monitoramento' },
       { value: '500+', label: 'Profissionais' },
     ],
+    products: [],
   },
   {
     id: 'gps-my',
@@ -82,8 +78,8 @@ const companies = [
     colorRgb: '34, 197, 94',
     gradient: 'from-green-500 via-emerald-500 to-teal-600',
     darkGradient: 'from-green-900/80 via-emerald-900/80 to-teal-900/80',
-    logo: logos['gps-my-verde'],
-    alternateLogos: [logos['gps-my'], logos['gps-my-verde']],
+    logo: `/${logos['gps-my-verde']}`,
+    alternateLogos: [`/${logos['gps-my']}`, `/${logos['gps-my-verde']}`],
     icon: Shield,
     features: ['Propriedade Definitiva', 'Chip Multioperadora', 'Bloqueio Remoto', 'Anti-Furto Automático', 'Rastreamento GPS', 'Instalação Estratégica'],
     stats: [
@@ -92,7 +88,7 @@ const companies = [
       { value: '<30s', label: 'Tempo de Bloqueio' },
       { value: '∞', label: 'Sem Limites' },
     ],
-    products: productImages.gpsMy,
+    products: [`/${logos['gps-my-obd']}`, `/${logos['gps-my-portatil']}`, `/${logos['gps-my-tag']}`],
   },
   {
     id: 'gps-love',
@@ -103,8 +99,8 @@ const companies = [
     colorRgb: '236, 72, 153',
     gradient: 'from-pink-500 via-rose-500 to-red-500',
     darkGradient: 'from-pink-900/80 via-rose-900/80 to-red-900/80',
-    logo: logos['gps-love'],
-    alternateLogos: [logos['gps-love'], logos['gps-love-img'], logos['gps-joy']],
+    logo: `/${logos['gps-love']}`,
+    alternateLogos: [`/${logos['gps-love']}`, `/${logos['gps-love-img']}`, `/${logos['gps-joy']}`],
     icon: Heart,
     features: ['Câmera com Visor', 'Tags Localizadoras', 'Rastreamento Familiar', 'Alertas Inteligentes', 'Histórico de Rota', 'SOS Emergencial'],
     stats: [
@@ -113,7 +109,7 @@ const companies = [
       { value: '🐕', label: 'Pets' },
       { value: '🚗', label: 'Veículos' },
     ],
-    products: productImages.gpsLove,
+    products: [`/${logos['gps-love-arte']}`, `/${logos['gps-love-camera']}`, `/${logos['gps-love-portatil']}`, `/${logos['gps-love-tag']}`, `/${logos['gps-love-coleira']}`],
   },
   {
     id: 'rastremix',
@@ -124,8 +120,8 @@ const companies = [
     colorRgb: '249, 115, 22',
     gradient: 'from-orange-500 via-orange-600 to-red-500',
     darkGradient: 'from-orange-900/80 via-orange-900/80 to-red-900/80',
-    logo: logos['rastremix'],
-    alternateLogos: [logos['rastremix'], logos['rastremix-2']],
+    logo: `/${logos['rastremix']}`,
+    alternateLogos: [`/${logos['rastremix']}`, `/${logos['rastremix-2']}`],
     icon: Radar,
     features: ['Rastreamento Total', 'Central 24h', 'Resposta Rápida', 'Olhos de Anjo', 'Bloqueio Imediato', 'Cobertura Total'],
     stats: [
@@ -134,7 +130,7 @@ const companies = [
       { value: '100%', label: 'Brasil' },
       { value: '∞', label: 'Famílias' },
     ],
-    products: productImages.rastremix,
+    products: [`/${logos['rastremix-camiseta']}`, `/${logos['rastremix-whatsapp']}`],
   },
   {
     id: 'telensat',
@@ -145,8 +141,8 @@ const companies = [
     colorRgb: '59, 130, 246',
     gradient: 'from-blue-500 via-blue-600 to-indigo-600',
     darkGradient: 'from-blue-900/80 via-blue-900/80 to-indigo-900/80',
-    logo: logos['telensat'],
-    alternateLogos: [logos['telensat'], logos['telensat-azul']],
+    logo: `/${logos['telensat']}`,
+    alternateLogos: [`/${logos['telensat']}`, `/${logos['telensat-azul']}`],
     icon: Cpu,
     features: ['Leitor RFID', 'Sensor de Fadiga', 'Gestão de Multas', 'Padrão Vale', 'Rotagrama Config', 'Telemetria Avançada'],
     stats: [
@@ -155,6 +151,7 @@ const companies = [
       { value: 'IA', label: 'Preventiva' },
       { value: '24/7', label: 'Suporte' },
     ],
+    products: [],
   },
   {
     id: 'topy-pro',
@@ -165,8 +162,8 @@ const companies = [
     colorRgb: '168, 85, 247',
     gradient: 'from-purple-500 via-purple-600 to-violet-600',
     darkGradient: 'from-purple-900/80 via-purple-900/80 to-violet-900/80',
-    logo: logos['topy-pro'],
-    alternateLogos: [logos['topy-pro'], logos['topy-pro-branca']],
+    logo: `/${logos['topy-pro']}`,
+    alternateLogos: [`/${logos['topy-pro']}`, `/${logos['topy-pro-branca']}`],
     icon: ShieldAlert,
     features: ['Garantia FIPE', 'Rastreador Escondido', 'Central 24h', 'Cobertura Nacional', 'App Inteligente', 'Instalação Profissional'],
     stats: [
@@ -175,6 +172,7 @@ const companies = [
       { value: '24/7', label: 'SOC' },
       { value: '∞', label: 'Km Protegidos' },
     ],
+    products: [],
   },
   {
     id: 'valeteck',
@@ -185,8 +183,8 @@ const companies = [
     colorRgb: '6, 182, 212',
     gradient: 'from-cyan-500 via-cyan-600 to-blue-600',
     darkGradient: 'from-cyan-900/80 via-cyan-900/80 to-blue-900/80',
-    logo: logos['valeteck'],
-    alternateLogos: [logos['valeteck'], logos['valeteck-branco']],
+    logo: `/${logos['valeteck']}`,
+    alternateLogos: [`/${logos['valeteck']}`, `/${logos['valeteck-branco']}`],
     icon: Radio,
     features: ['Partida Remota', 'Antifurto Automático', 'Câmera de Ré', 'Telemetria Avançada', 'Instalação Profissional', 'Padrão Vale'],
     stats: [
@@ -195,6 +193,7 @@ const companies = [
       { value: 'Vale', label: 'Certificado' },
       { value: '∞', label: 'Veículos' },
     ],
+    products: [],
   },
   {
     id: 'webtrak',
@@ -205,8 +204,8 @@ const companies = [
     colorRgb: '139, 92, 246',
     gradient: 'from-violet-500 via-violet-600 to-purple-600',
     darkGradient: 'from-violet-900/80 via-violet-900/80 to-purple-900/80',
-    logo: logos['webtrak'],
-    alternateLogos: [logos['webtrak']],
+    logo: `/${logos['webtrak']}`,
+    alternateLogos: [`/${logos['webtrak']}`],
     icon: Globe,
     features: ['Gestão de Frotas', 'Rastreamento Web', 'Relatórios PDF', 'Geofencing', 'Alertas Inteligentes', 'Multi-usuários'],
     stats: [
@@ -215,13 +214,14 @@ const companies = [
       { value: '∞', label: 'Usuários' },
       { value: '24/7', label: 'Acesso' },
     ],
+    products: [],
   },
 ];
 
 function FloatingOrb({ delay, duration, size, color, top, left, right, bottom }: any) {
   return (
     <motion.div
-      className="absolute rounded-full blur-3xl opacity-30"
+      className="absolute rounded-full blur-3xl opacity-30 pointer-events-none"
       style={{
         width: size,
         height: size,
@@ -244,6 +244,46 @@ function FloatingOrb({ delay, duration, size, color, top, left, right, bottom }:
   );
 }
 
+function ImageWithFallback({ src, alt, className, style, onClick }: { src: string; alt: string; className?: string; style?: any; onClick?: () => void }) {
+  const [error, setError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  
+  const handleError = () => {
+    console.log('Image error for:', src);
+    setError(true);
+  };
+  
+  const handleLoad = () => {
+    console.log('Image loaded:', src);
+    setLoaded(true);
+  };
+  
+  if (error) {
+    return (
+      <div className={`flex items-center justify-center bg-gray-800 ${className}`} style={style}>
+        <div className="text-center p-4">
+          <Package className="w-12 h-12 text-gray-500 mx-auto mb-2" />
+          <span className="text-xs text-gray-500">{alt}</span>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <motion.img
+      src={src}
+      alt={alt}
+      className={`${className} ${loaded ? '' : 'opacity-50'}`}
+      style={style}
+      onError={handleError}
+      onLoad={handleLoad}
+      onClick={onClick}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: loaded ? 1 : 0.5, scale: 1 }}
+    />
+  );
+}
+
 function LogoCard({ logo, name, isActive, onClick, color }: { logo: string; name: string; isActive: boolean; onClick: () => void; color: string }) {
   return (
     <motion.button
@@ -257,7 +297,7 @@ function LogoCard({ logo, name, isActive, onClick, color }: { logo: string; name
       whileTap={{ scale: 0.95 }}
     >
       <div className="relative z-10">
-        <img 
+        <ImageWithFallback 
           src={logo} 
           alt={name}
           className={`w-full h-16 object-contain filter drop-shadow-lg transition-all duration-500 ${
@@ -300,7 +340,7 @@ function ProductGallery({ products, companyColor }: { products: string[]; compan
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <img src={img} alt={`Produto ${idx + 1}`} className="w-full h-full object-cover" />
+            <ImageWithFallback src={img} alt={`Produto ${idx + 1}`} className="w-full h-full object-cover" />
           </motion.button>
         ))}
       </div>
@@ -311,7 +351,7 @@ function ProductGallery({ products, companyColor }: { products: string[]; compan
         animate={{ opacity: 1, scale: 1 }}
         className="relative aspect-video rounded-2xl overflow-hidden bg-black/30"
       >
-        <img 
+        <ImageWithFallback 
           src={products[selected]} 
           alt={`Produto ${selected + 1}`}
           className="w-full h-full object-contain"
@@ -370,11 +410,33 @@ function FeatureCard({ feature, icon: Icon, color, index }: { feature: string; i
   );
 }
 
-function MindMapNode({ company, index, total, onClick, isActive }: { company: any; index: number; total: number; onClick: () => void; isActive: boolean }) {
+function MindMapNode({ company, index, total, onClick, isActive, isCenter }: { company: any; index: number; total: number; onClick: () => void; isActive: boolean; isCenter?: boolean }) {
   const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
-  const radius = 280;
+  const radius = isCenter ? 0 : 280;
   const x = Math.cos(angle) * radius;
   const y = Math.sin(angle) * radius;
+  
+  if (isCenter) {
+    return (
+      <div className="absolute flex flex-col items-center justify-center">
+        <motion.div
+          className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl shadow-orange-500/50"
+          animate={{ 
+            scale: [1, 1.05, 1],
+            boxShadow: [
+              '0 0 30px rgba(249, 115, 22, 0.5)',
+              '0 0 60px rgba(249, 115, 22, 0.8)',
+              '0 0 30px rgba(249, 115, 22, 0.5)',
+            ]
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+        >
+          <ImageWithFallback src={company.logo} alt={company.name} className="w-20 h-20 object-contain" />
+        </motion.div>
+        <span className="mt-2 text-white font-bold text-sm">{company.name}</span>
+      </div>
+    );
+  }
   
   return (
     <motion.div
@@ -388,24 +450,20 @@ function MindMapNode({ company, index, total, onClick, isActive }: { company: an
     >
       <motion.button
         onClick={onClick}
-        className={`relative cursor-pointer group`}
+        className={`relative cursor-pointer`}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
         <div 
           className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-            isActive ? 'scale-125 shadow-lg' : 'grayscale hover:grayscale-0'
+            isActive ? 'scale-125' : 'grayscale hover:grayscale-0'
           }`}
           style={{ 
             background: `linear-gradient(135deg, ${company.color}, ${company.color}80)`,
             boxShadow: isActive ? `0 0 40px ${company.color}80` : `0 10px 30px rgba(0,0,0,0.3)`,
           }}
         >
-          <img 
-            src={company.logo} 
-            alt={company.name}
-            className="w-14 h-14 object-contain"
-          />
+          <ImageWithFallback src={company.logo} alt={company.name} className="w-14 h-14 object-contain" />
         </div>
         
         <motion.div
@@ -422,6 +480,10 @@ function MindMapNode({ company, index, total, onClick, isActive }: { company: an
 
 function AlternatingLogosCarousel({ logos, companyName, color }: { logos: string[]; companyName: string; color: string }) {
   const [current, setCurrent] = useState(0);
+  
+  useEffect(() => {
+    setCurrent(0);
+  }, [companyName]);
   
   useEffect(() => {
     if (logos.length <= 1) return;
@@ -444,7 +506,7 @@ function AlternatingLogosCarousel({ logos, companyName, color }: { logos: string
           transition={{ duration: 0.5 }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <img 
+          <ImageWithFallback 
             src={logos[current]} 
             alt={`${companyName} logo ${current + 1}`}
             className="max-h-32 object-contain drop-shadow-2xl"
@@ -518,26 +580,17 @@ interface EmpresaPageProps {
 export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
   const [selectedCompany, setSelectedCompany] = useState(0);
   const [viewMode, setViewMode] = useState<'carousel' | 'mindmap'>('carousel');
-  const [showProducts, setShowProducts] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   
   const company = companies[selectedCompany];
-  
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    element?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const centerCompany = companies.find(c => c.id === 'rastremix') || companies[0];
   
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 overflow-hidden">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 overflow-auto">
       <ParticleField />
       
       <motion.div 
         className="fixed inset-0 pointer-events-none z-0"
-        style={{ y, opacity }}
       >
         <FloatingOrb delay={0} duration={6} size={400} color={`rgba(${company.colorRgb}, 0.3)`} top="10%" left="5%" />
         <FloatingOrb delay={2} duration={8} size={300} color="rgba(249, 115, 22, 0.2)" bottom="20%" right="10%" />
@@ -596,7 +649,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
               transition={{ duration: 0.8 }}
             >
               <Badge className="mb-6 px-4 py-2 text-lg bg-white/10 text-white border-white/20 backdrop-blur">
-                🌟 Ecossistema de Proteção
+                Ecossistema de Proteção
               </Badge>
               <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/60 mb-6">
                 O Grupo Que Move o Brasil
@@ -617,12 +670,13 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.6 + idx * 0.1 }}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedCompany(idx)}
                   >
-                    <img 
+                    <ImageWithFallback 
                       src={c.logo} 
                       alt={c.name}
-                      className="w-12 h-12 object-contain hover:scale-110 transition-transform cursor-pointer"
-                      onClick={() => setSelectedCompany(idx)}
+                      className="w-12 h-12 object-contain hover:scale-110 transition-transform"
                       style={{ filter: selectedCompany === idx ? 'none' : 'grayscale(50%)' }}
                     />
                   </motion.div>
@@ -708,7 +762,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                               </div>
                             </div>
                             
-                            {company.products && (
+                            {company.products && company.products.length > 0 && (
                               <ProductGallery 
                                 products={company.products} 
                                 companyColor={company.color}
@@ -757,56 +811,87 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                 <p className="text-white/60">Clique em uma empresa para saber mais</p>
               </div>
               
-              <div className="relative flex items-center justify-center min-h-[700px]">
-                <div className="absolute w-32 h-32 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl shadow-orange-500/50">
-                  <img src={logos['rastremix']} alt="Rastremix" className="w-20 h-20 object-contain" />
+              <div className="relative flex flex-col items-center justify-center min-h-[800px]">
+                <div className="relative w-[700px] h-[700px]">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg className="w-full h-full" viewBox="0 0 700 700">
+                      <circle cx="350" cy="350" r="280" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeDasharray="10 10" />
+                      <circle cx="350" cy="350" r="200" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                      <circle cx="350" cy="350" r="120" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                      {[...Array(8)].map((_, i) => {
+                        const angle = (i / 8) * 2 * Math.PI - Math.PI / 2;
+                        const x1 = 350 + Math.cos(angle) * 120;
+                        const y1 = 350 + Math.sin(angle) * 120;
+                        const x2 = 350 + Math.cos(angle) * 280;
+                        const y2 = 350 + Math.sin(angle) * 280;
+                        return (
+                          <line 
+                            key={i} 
+                            x1={x1} y1={y1} x2={x2} y2={y2}
+                            stroke="rgba(255,255,255,0.1)" 
+                            strokeWidth="1"
+                            strokeDasharray="5 5"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <MindMapNode
+                      company={centerCompany}
+                      index={0}
+                      total={1}
+                      onClick={() => setSelectedCompany(companies.indexOf(centerCompany))}
+                      isActive={selectedCompany === companies.indexOf(centerCompany)}
+                      isCenter={true}
+                    />
+                  </div>
+                  
+                  {companies.filter(c => c.id !== 'rastremix').map((c, idx) => (
+                    <MindMapNode
+                      key={c.id}
+                      company={c}
+                      index={idx}
+                      total={companies.length - 1}
+                      onClick={() => setSelectedCompany(companies.indexOf(c))}
+                      isActive={selectedCompany === companies.indexOf(c)}
+                      isCenter={false}
+                    />
+                  ))}
                 </div>
                 
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg className="w-[600px] h-[600px]" viewBox="0 0 600 600">
-                    <circle cx="300" cy="300" r="280" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeDasharray="10 10" />
-                    <circle cx="300" cy="300" r="200" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                    <circle cx="300" cy="300" r="120" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                  </svg>
-                </div>
-                
-                {companies.map((c, idx) => (
-                  <MindMapNode
-                    key={c.id}
-                    company={c}
-                    index={idx}
-                    total={companies.length}
-                    onClick={() => setSelectedCompany(idx)}
-                    isActive={selectedCompany === idx}
-                  />
-                ))}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={selectedCompany}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="max-w-2xl w-full mt-12"
+                  >
+                    <Card className={`bg-gradient-to-br ${company.darkGradient} backdrop-blur-xl border-white/20`}>
+                      <CardHeader>
+                        <div className="flex items-center gap-4">
+                          <ImageWithFallback src={company.logo} alt={company.name} className="w-16 h-16 object-contain" />
+                          <div>
+                            <CardTitle className="text-3xl font-black text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(135deg, ${company.color}, white)` }}>
+                              {company.name}
+                            </CardTitle>
+                            <p className="text-white/80 text-lg">{company.tagline}</p>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-white/70">{company.description}</p>
+                        <Stats3D stats={company.stats} color={company.color} />
+                        {company.products && company.products.length > 0 && (
+                          <ProductGallery products={company.products} companyColor={company.color} />
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </AnimatePresence>
               </div>
-              
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={selectedCompany}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="max-w-2xl mx-auto mt-12"
-                >
-                  <Card className={`bg-gradient-to-br ${company.darkGradient} backdrop-blur-xl border-white/20`}>
-                    <CardHeader>
-                      <CardTitle className="text-3xl font-black text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(135deg, ${company.color}, white)` }}>
-                        {company.name}
-                      </CardTitle>
-                      <p className="text-white/80 text-lg">{company.tagline}</p>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-white/70">{company.description}</p>
-                      <Stats3D stats={company.stats} color={company.color} />
-                      {company.products && (
-                        <ProductGallery products={company.products} companyColor={company.color} />
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </AnimatePresence>
             </div>
           </section>
         )}
@@ -820,7 +905,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
             
             <Tabs defaultValue="gps-love" className="w-full">
               <TabsList className="flex flex-wrap justify-center gap-2 bg-white/5 backdrop-blur mb-8">
-                {companies.filter(c => c.products).map((c) => (
+                {companies.filter(c => c.products && c.products.length > 0).map((c) => (
                   <TabsTrigger 
                     key={c.id} 
                     value={c.id}
@@ -831,13 +916,16 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                 ))}
               </TabsList>
               
-              {companies.filter(c => c.products).map((c) => (
+              {companies.filter(c => c.products && c.products.length > 0).map((c) => (
                 <TabsContent key={c.id} value={c.id}>
                   <Card className={`bg-gradient-to-br ${c.darkGradient} backdrop-blur-xl border-white/10`}>
                     <CardContent className="p-8">
                       <div className="grid md:grid-cols-2 gap-8">
                         <div>
-                          <h4 className="text-2xl font-black text-white mb-4">{c.name}</h4>
+                          <div className="flex items-center gap-4 mb-4">
+                            <ImageWithFallback src={c.logo} alt={c.name} className="w-12 h-12 object-contain" />
+                            <h4 className="text-2xl font-black text-white">{c.name}</h4>
+                          </div>
                           <p className="text-white/70 mb-6">{c.description}</p>
                           <div className="flex flex-wrap gap-2">
                             {c.features.slice(0, 4).map((f, idx) => (
@@ -852,7 +940,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                               className="relative aspect-square rounded-xl overflow-hidden bg-black/30 group"
                               whileHover={{ scale: 1.05 }}
                             >
-                              <img src={img} alt={`${c.name} produto`} className="w-full h-full object-cover" />
+                              <ImageWithFallback src={img} alt={`${c.name} produto`} className="w-full h-full object-cover" />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
                                 <span className="text-white text-sm font-semibold">Produto {idx + 1}</span>
                               </div>
@@ -890,7 +978,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                   }}
                 >
                   <div className="aspect-video flex items-center justify-center mb-4">
-                    <img 
+                    <ImageWithFallback 
                       src={c.logo} 
                       alt={c.name}
                       className="max-h-16 object-contain group-hover:scale-110 transition-transform"
@@ -908,7 +996,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
           <div className="container mx-auto">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <img src={logos['rastremix']} alt="Rastremix" className="h-12 object-contain" />
+                <ImageWithFallback src={logos['rastremix'].startsWith('/') ? logos['rastremix'] : `/${logos['rastremix']}`} alt="Rastremix" className="h-12 object-contain" />
                 <div>
                   <h4 className="font-bold text-white">RASTREMIX</h4>
                   <p className="text-sm text-white/60">Proteção Veicular Inteligente</p>
@@ -917,7 +1005,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
               
               <div className="flex items-center gap-4">
                 {companies.slice(0, 5).map((c) => (
-                  <img 
+                  <ImageWithFallback 
                     key={c.id}
                     src={c.logo} 
                     alt={c.name}
@@ -930,7 +1018,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
             
             <div className="mt-8 pt-8 border-t border-white/10 text-center">
               <p className="text-white/40 text-sm">
-                © 2026 Rastremix - O Grupo Que Move o Brasil. Todos os direitos reservados.
+                2026 Rastremix - O Grupo Que Move o Brasil. Todos os direitos reservados.
               </p>
             </div>
           </div>
