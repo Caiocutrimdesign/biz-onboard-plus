@@ -372,134 +372,65 @@ function CyberButton({ children, onClick, variant = 'primary', size = 'md', icon
   };
   
   return (
-    <motion.button
+    <button
       onClick={onClick}
       disabled={disabled}
       className={`
         relative overflow-hidden rounded-xl font-bold text-white
         transition-all duration-300
         ${variants[variant]} ${sizes[size]}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
       `}
-      whileHover={{ scale: 1.05, y: -2 }}
-      whileTap={{ scale: 0.95 }}
     >
       <span className="relative z-10 flex items-center justify-center gap-2">
         {Icon && <Icon className="w-5 h-5" />}
         {children}
       </span>
-      <motion.div
-        className="absolute inset-0 bg-white/20"
-        initial={{ x: '-100%' }}
-        whileHover={{ x: '100%' }}
-        transition={{ duration: 0.5 }}
-      />
-    </motion.button>
+    </button>
   );
 }
 
 function GlitchText({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.span
-      className={`relative ${className}`}
-      animate={{
-        textShadow: [
-          '2px 2px 0px rgba(0,255,255,0.7), -2px -2px 0px rgba(255,0,255,0.7)',
-          '2px 2px 0px rgba(255,0,255,0.7), -2px -2px 0px rgba(0,255,255,0.7)',
-          '2px 2px 0px rgba(0,255,255,0.7), -2px -2px 0px rgba(255,0,255,0.7)',
-        ],
-      }}
-      transition={{ duration: 0.3, repeat: Infinity }}
-    >
+    <span className={`relative ${className}`}>
       {children}
-    </motion.span>
+    </span>
   );
 }
 
 function HolographicCard({ children, color, className }: { children: React.ReactNode; color: string; className?: string }) {
   return (
-    <motion.div
+    <div
       className={`
         relative rounded-3xl overflow-hidden
         bg-gradient-to-br from-gray-900/90 to-gray-950/90
         backdrop-blur-xl border border-white/10
         ${className}
       `}
-      whileHover={{ scale: 1.02 }}
     >
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-10"
         style={{
           background: `linear-gradient(135deg, ${color}40, transparent, ${color}20)`,
         }}
       />
-      <motion.div
-        className="absolute inset-0 opacity-30"
-        style={{
-          background: `linear-gradient(45deg, transparent 40%, ${color}20 50%, transparent 60%)`,
-        }}
-        animate={{
-          x: ['-100%', '200%'],
-        }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-      />
       <div className="relative z-10">{children}</div>
-    </motion.div>
+    </div>
   );
 }
 
-function ScanLine() {
-  return (
-    <motion.div
-      className="absolute inset-0 pointer-events-none overflow-hidden"
-      style={{ zIndex: 100 }}
-    >
-      <motion.div
-        className="w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"
-        animate={{
-          y: ['0%', '100%'],
-        }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-      />
-    </motion.div>
-  );
-}
-
-function ParticleExplosion({ color, count = 20 }: { color: string; count?: number }) {
-  const particles = useMemo(() => {
-    return Array.from({ length: count }, (_, i) => ({
-      id: i,
-      angle: (i / count) * 360,
-      delay: Math.random() * 0.5,
-    }));
-  }, [count]);
-  
+function ParticleExplosion({ color }: { color: string }) {
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute w-2 h-2 rounded-full"
-          style={{
-            background: color,
-            boxShadow: `0 0 10px ${color}`,
-            left: '50%',
-            top: '50%',
-          }}
-          initial={{ scale: 0, opacity: 1 }}
-          animate={{
-            scale: [0, 1, 0],
-            opacity: [1, 0.5, 0],
-            x: Math.cos((p.angle * Math.PI) / 180) * 100,
-            y: Math.sin((p.angle * Math.PI) / 180) * 100,
-          }}
-          transition={{
-            duration: 1,
-            delay: p.delay,
-            ease: 'easeOut',
-          }}
-        />
-      ))}
+      <div 
+        className="absolute w-2 h-2 rounded-full"
+        style={{
+          background: color,
+          boxShadow: `0 0 10px ${color}`,
+          left: '50%',
+          top: '50%',
+        }}
+      />
     </div>
   );
 }
@@ -687,173 +618,30 @@ function ProductCard({ product, color }: { product: any; color: string }) {
 }
 
 function SpaceBackground() {
-  const stars = useMemo(() => {
-    return Array.from({ length: 200 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 3 + 1,
-      duration: Math.random() * 3 + 2,
-      delay: Math.random() * 5,
-    }));
-  }, []);
-
-  const satellites = useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => ({
-      id: i,
-      angle: (i / 5) * 360,
-      speed: 20 + Math.random() * 30,
-    }));
-  }, []);
-
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       <div className="absolute inset-0 bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950" />
       
-      <svg className="absolute inset-0 w-full h-full">
+      <svg className="absolute inset-0 w-full h-full opacity-20">
         <defs>
-          <radialGradient id="nebula1" cx="20%" cy="30%" r="40%">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
+          <radialGradient id="nebula1" cx="20%" cy="30%" r="50%">
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="nebula2" cx="80%" cy="60%" r="35%">
-            <stop offset="0%" stopColor="#ec4899" stopOpacity="0.2" />
+          <radialGradient id="nebula2" cx="80%" cy="60%" r="40%">
+            <stop offset="0%" stopColor="#ec4899" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="nebula3" cx="50%" cy="80%" r="30%">
-            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.15" />
+          <radialGradient id="nebula3" cx="50%" cy="80%" r="35%">
+            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.2" />
             <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
           </radialGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
         </defs>
         
         <rect width="100%" height="100%" fill="url(#nebula1)" />
         <rect width="100%" height="100%" fill="url(#nebula2)" />
         <rect width="100%" height="100%" fill="url(#nebula3)" />
       </svg>
-      
-      {stars.map((star) => (
-        <motion.div
-          key={star.id}
-          className="absolute rounded-full bg-white"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: star.size,
-            height: star.size,
-          }}
-          animate={{
-            opacity: [0.3, 1, 0.3],
-            scale: [1, 1.5, 1],
-          }}
-          transition={{
-            duration: star.duration,
-            repeat: Infinity,
-            delay: star.delay,
-          }}
-        />
-      ))}
-      
-      <svg className="absolute inset-0 w-full h-full opacity-20">
-        {[...Array(3)].map((_, i) => (
-          <circle
-            key={i}
-            cx="50%"
-            cy="50%"
-            r={150 + i * 100}
-            fill="none"
-            stroke="url(#nebulaGradient)"
-            strokeWidth="0.5"
-            strokeDasharray="5 10"
-            className="animate-spin"
-            style={{ transformOrigin: 'center', animationDuration: `${30 + i * 10}s` }}
-          />
-        ))}
-        <defs>
-          <linearGradient id="nebulaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#06b6d4" />
-            <stop offset="50%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#ec4899" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      <svg className="absolute inset-0 w-full h-full opacity-30">
-        {[...Array(5)].map((_, i) => (
-          <line
-            key={i}
-            x1="0%"
-            y1={`${20 + i * 15}%`}
-            x2="100%"
-            y2={`${25 + i * 15}%`}
-            stroke="url(#lineGradient)"
-            strokeWidth="0.5"
-            strokeDasharray="20 30"
-          />
-        ))}
-        <defs>
-          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="transparent" />
-            <stop offset="50%" stopColor="#06b6d4" />
-            <stop offset="100%" stopColor="transparent" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      {satellites.map((sat) => {
-        const angle = sat.angle;
-        const radius = 45;
-        const x = 50 + Math.cos((angle * Math.PI) / 180) * radius;
-        const y = 50 + Math.sin((angle * Math.PI) / 180) * radius;
-        return (
-          <motion.div
-            key={sat.id}
-            className="absolute"
-            style={{ left: `${x}%`, top: `${y}%` }}
-            animate={{
-              rotate: [0, 360],
-            }}
-            transition={{
-              duration: sat.speed,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          >
-            <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-cyan-400" style={{ filter: 'blur(1px)' }} />
-              <div className="absolute top-1/2 left-1/2 w-8 h-0.5 bg-gradient-to-r from-cyan-400 to-transparent -translate-y-1/2" />
-            </div>
-          </motion.div>
-        );
-      })}
-
-      {[...Array(3)].map((_, i) => (
-        <motion.div
-          key={`pulse-${i}`}
-          className="absolute rounded-full border border-cyan-500/30"
-          style={{
-            left: `${20 + i * 30}%`,
-            top: `${30 + i * 20}%`,
-            width: 100 + i * 50,
-            height: 100 + i * 50,
-          }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.1, 0.3],
-          }}
-          transition={{
-            duration: 4 + i,
-            repeat: Infinity,
-            delay: i * 2,
-          }}
-        />
-      ))}
     </div>
   );
 }
@@ -885,13 +673,9 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                   </CyberButton>
                 )}
                 <div className="flex items-center gap-3">
-                  <motion.div
-                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30"
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                  >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
                     <Building2 className="w-7 h-7" />
-                  </motion.div>
+                  </div>
                   <div>
                     <h1 className="text-2xl font-black tracking-wider">
                       <GlitchText className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
@@ -959,20 +743,17 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
             <div className="grid lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
                 <HolographicCard color={company.color} className="p-8">
-                  <ScanLine />
                   <div className="flex items-start gap-6">
-                    <motion.div
+                    <div
                       className="w-32 h-32 rounded-2xl overflow-hidden flex items-center justify-center"
                       style={{ background: `${company.color}20` }}
-                      animate={{ rotate: [0, 5, 0, -5, 0] }}
-                      transition={{ duration: 5, repeat: Infinity }}
                     >
                       <img 
                         src={logos[company.id as keyof typeof logos]} 
                         alt={company.name}
                         className="w-28 h-28 object-contain"
                       />
-                    </motion.div>
+                    </div>
                     <div className="flex-1">
                       <motion.h3
                         className="text-4xl font-black mb-2"
@@ -1020,7 +801,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                                   </div>
                                   <p className="text-sm text-white/60">{stat.label}</p>
                                   {hoveredStat === idx && (
-                                    <ParticleExplosion color={company.color} count={10} />
+                                    <ParticleExplosion color={company.color} />
                                   )}
                                 </motion.div>
                               ))}
