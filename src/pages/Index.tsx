@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VitrineCarousel } from '@/components/vitrine/VitrineCarousel';
 import { RegistrationFlow } from '@/components/registration/RegistrationFlow';
-import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Maximize2, Minimize2, Building2, Shield, Zap, Globe } from 'lucide-react';
 
@@ -35,8 +34,6 @@ const Index = () => {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0A0A0B] text-white selection:bg-primary/30 scroll-smooth overflow-x-hidden">
-      <Navbar />
-
       <AnimatePresence mode="wait">
         {mode === 'vitrine' ? (
           <motion.div
