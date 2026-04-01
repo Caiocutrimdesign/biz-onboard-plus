@@ -41,50 +41,58 @@ export function StepPlan({ onNext, onBack }: Props) {
   const { data, updateData } = useRegistrationStore();
 
   return (
-    <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="mx-auto w-full max-w-2xl space-y-6 px-4">
+    <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="mx-auto w-full max-w-2xl space-y-8 px-4 pb-12">
       <div className="text-center">
-        <h2 className="font-display text-2xl font-bold text-black">Escolha seu Plano</h2>
-        <p className="mt-1 text-sm text-black/70">Selecione o plano ideal para sua necessidade</p>
+        <h2 className="font-display text-2xl font-bold text-white tracking-tight">Escolha seu Plano</h2>
+        <p className="mt-2 text-sm text-white/50">Selecione a proteção ideal para seu veículo</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         {plans.map((plan) => {
           const selected = data.plan === plan.value;
           return (
             <motion.button
               key={plan.value}
+              whileHover={{ y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => updateData({ plan: plan.value })}
-              className={`relative flex flex-col rounded-2xl border-2 p-5 text-left transition-all ${
+              className={`relative flex flex-col rounded-3xl p-6 text-left transition-all duration-300 ${
                 selected
-                  ? 'border-primary bg-primary/5 shadow-brand'
-                  : 'border-border hover:border-primary/30'
+                  ? 'bg-primary/20 border-2 border-primary shadow-brand ring-1 ring-primary/50'
+                  : 'bg-white/5 border-2 border-white/5 hover:bg-white/10 hover:border-white/10'
               }`}
             >
               {plan.value === 'completo' && (
-                <span className="bg-gradient-to-r from-gray-300 to-gray-400 absolute -top-3 right-4 rounded-full px-3 py-1 text-xs font-bold text-black shadow-md">
-                  POPULAR
+                <span className="bg-primary absolute -top-3 right-4 rounded-full px-3 py-1 text-[10px] font-bold text-white shadow-lg uppercase tracking-wider">
+                  MAIS VENDIDO
                 </span>
               )}
-              <plan.icon className={`mb-3 h-8 w-8 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
-              <h3 className="font-display text-lg font-bold text-black">{plan.title}</h3>
-              <p className="mt-1 text-xl font-bold text-primary">{plan.price}</p>
-              <ul className="mt-4 space-y-2">
+              <div className={`mb-4 p-3 rounded-2xl w-fit ${selected ? 'bg-primary/20' : 'bg-white/5'}`}>
+                <plan.icon className={`h-6 w-6 ${selected ? 'text-primary' : 'text-white/40'}`} />
+              </div>
+              <h3 className="font-display text-lg font-bold text-white">{plan.title}</h3>
+              <p className="mt-1 text-2xl font-display font-bold text-primary">{plan.price}</p>
+              <ul className="mt-6 space-y-3">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-black">
-                    <Check className="h-4 w-4 text-primary" />
+                  <li key={f} className="flex items-center gap-3 text-sm text-white/70">
+                    <Check className={`h-4 w-4 ${selected ? 'text-primary' : 'text-white/30'}`} />
                     {f}
                   </li>
                 ))}
               </ul>
+              {selected && (
+                <div className="absolute top-4 right-4 h-6 w-6 bg-primary rounded-full flex items-center justify-center animate-enter">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
+              )}
             </motion.button>
           );
         })}
       </div>
 
-      <div className="flex gap-3 pt-4">
-        <Button variant="outline" onClick={onBack} className="h-12 flex-1 text-base">Voltar</Button>
-        <Button onClick={onNext} className="bg-gradient-brand h-12 flex-1 text-base font-semibold text-primary-foreground">Continuar</Button>
+      <div className="flex gap-4 pt-4">
+        <Button variant="outline" onClick={onBack} size="lg" className="flex-1">Voltar</Button>
+        <Button variant="premium" onClick={onNext} disabled={!data.plan} size="lg" className="flex-1">Continuar</Button>
       </div>
     </motion.div>
   );

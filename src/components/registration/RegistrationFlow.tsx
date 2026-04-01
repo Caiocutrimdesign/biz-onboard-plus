@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { X, AlertCircle } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X, AlertCircle, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from './ProgressBar';
 import { StepWelcome } from './StepWelcome';
@@ -15,8 +15,7 @@ import { StepSuccess } from './StepSuccess';
 import { StepSatisfaction } from './StepSatisfaction';
 import { useRegistrationStore } from '@/store/registrationStore';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { sendWelcomeEmail } from '@/lib/emailService';
-import { generateWhatsAppLink, generateSatisfactionLink } from '@/lib/whatsappService';
+import { generateSatisfactionLink } from '@/lib/whatsappService';
 import { useData } from '@/contexts/DataContext';
 
 const TOTAL_STEPS = 10;
@@ -26,34 +25,8 @@ interface Props {
   onClose: () => void;
 }
 
-interface CustomerData {
-  id?: string;
-  full_name: string;
-  phone: string;
-  cpf_cnpj?: string;
-  email?: string;
-  cep?: string;
-  street?: string;
-  number?: string;
-  neighborhood?: string;
-  city?: string;
-  state?: string;
-  vehicle_type?: string;
-  plate?: string;
-  brand?: string;
-  model?: string;
-  year?: string;
-  color?: string;
-  plan?: string;
-  payment_method?: string;
-  technician_id?: string;
-  technician_name?: string;
-  status: string;
-  created_at: string;
-}
-
 export function RegistrationFlow({ onClose }: Props) {
-  const { currentStep, setStep, reset, data, updateData } = useRegistrationStore();
+  const { currentStep, setStep, reset, data } = useRegistrationStore();
   const { saveCustomer } = useData();
   const idleTimer = useRef<ReturnType<typeof setTimeout>>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,23 +60,11 @@ export function RegistrationFlow({ onClose }: Props) {
     setStep(Math.max(currentStep - 1, 0));
   };
 
-  const generateUUID = (): string => {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-      return crypto.randomUUID();
-    }
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  };
-
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
       setError(null);
       
-      // Only pass fields that exist in the customers table
       const customerData = {
         full_name: data.full_name || 'Cliente',
         phone: data.phone || '',
@@ -128,34 +89,14 @@ export function RegistrationFlow({ onClose }: Props) {
         status: 'novo_cadastro',
       };
 
-      console.log('📝 Dados do cliente:', customerData);
-
-      // 1. Save to customers table
-      console.log('⏳ Salvando cadastro principal...');
-      let saveSuccess = false;
-      
       try {
-        const saveResult = await saveCustomer(customerData);
-        console.log('📋 Resultado do saveCustomer:', saveResult);
-        
-        if (saveResult.success) {
-          console.log('✅ Cadastro principal salvo com sucesso!');
-          saveSuccess = true;
-        } else {
-          console.warn('⚠️ saveCustomer retornou erro:', saveResult.error);
-          // Continue anyway - might be a Supabase config issue
-          saveSuccess = true; // Allow flow to continue
-        }
+        await saveCustomer(customerData);
       } catch (saveErr: any) {
-        console.warn('⚠️ Erro ao salvar (será ignorado):', saveErr.message);
-        // Continue anyway - local storage fallback or Supabase not configured
-        saveSuccess = true;
+        console.warn('⚠️ Erro ao salvar:', saveErr.message);
       }
 
-      // 2. Create CRM Lead in Supabase (non-blocking)
       if (isSupabaseConfigured() && supabase) {
         try {
-          console.log('⏳ Criando lead no CRM...');
           const leadData = {
             name: data.full_name || 'Cliente',
             email: data.email || null,
@@ -176,23 +117,15 @@ export function RegistrationFlow({ onClose }: Props) {
             stage_id: 'stage-1',
           };
 
-          const { error: leadError } = await supabase.from('leads').insert(leadData);
-          if (leadError) {
-            console.warn('⚠️ Erro ao criar lead (não crítico):', leadError);
-          } else {
-            console.log('✅ Lead criado no CRM com sucesso!');
-          }
+          await supabase.from('leads').insert(leadData);
         } catch (leadErr) {
-          console.warn('⚠️ Erro ao criar lead (não crítico):', leadErr);
+          console.warn('⚠️ Erro ao criar lead:', leadErr);
         }
       }
 
-      // Always go to next step
-      console.log('✅ Finalizando cadastro, indo para próxima etapa...');
       next();
     } catch (err: any) {
       console.error('❌ Erro no salvamento:', err);
-      // Continue to next step even on error
       next();
     } finally {
       setIsSubmitting(false);
@@ -209,58 +142,104 @@ export function RegistrationFlow({ onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0A0A0B] overflow-hidden">
+      {/* Background Animated Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-500/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
       {/* Header */}
-      <header className="flex items-center justify-between border-b px-6 py-4">
-        <img src="/logo-rastremix.png" alt="Rastremix" className="h-10 w-auto" onError={(e) => e.currentTarget.style.display = 'none'} />
+      <header className="relative z-10 flex items-center justify-between px-6 py-6 border-b border-white/5 bg-black/20 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-lg">
+            <Shield className="text-white w-6 h-6" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-display font-bold text-lg text-white leading-none">RASTREMIX</span>
+            <span className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1">Onboarding</span>
+          </div>
+        </div>
+        
         {currentStep < TOTAL_STEPS - 1 && (
-          <Button variant="ghost" size="icon" onClick={handleGoHome} className="text-muted-foreground">
-            <X className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleGoHome} 
+            className="text-white/40 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+          >
+            <X className="h-6 w-6" />
           </Button>
         )}
       </header>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-red-500" />
-          <span className="text-sm text-red-700">{error}</span>
-        </div>
-      )}
-
-      {/* Progress */}
+      {/* Progress Section */}
       {currentStep > 0 && currentStep < TOTAL_STEPS - 1 && (
-        <div className="px-6 py-4">
+        <div className="relative z-10 w-full max-w-2xl mx-auto px-6 py-4">
           <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS - 1} />
         </div>
       )}
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto py-8">
-        <AnimatePresence mode="wait">
-          {currentStep === 0 && <StepWelcome key="welcome" onNext={next} />}
-          {currentStep === 1 && <StepPersonalData key="personal" onNext={next} onBack={back} />}
-          {currentStep === 2 && <StepAddress key="address" onNext={next} onBack={back} />}
-          {currentStep === 3 && <StepVehicle key="vehicle" onNext={next} onBack={back} />}
-          {currentStep === 4 && <StepPlan key="plan" onNext={next} onBack={back} />}
-          {currentStep === 5 && <StepTechnician key="technician" onNext={next} onBack={back} />}
-          {currentStep === 6 && <StepPayment key="payment" onNext={next} onBack={back} />}
-          {currentStep === 7 && <StepNotes key="notes" onNext={handleSubmit} onBack={back} isSubmitting={isSubmitting} />}
-          {currentStep === 8 && (
-            <StepSatisfaction
-              key="satisfaction"
-              onNext={next}
-              onBack={back}
-              onWhatsApp={() => {
-                const link = generateSatisfactionLink(data.full_name || 'Cliente');
-                window.open(link, '_blank');
-              }}
-              customerName={data.full_name || 'Cliente'}
-            />
-          )}
-          {currentStep === 9 && <StepSuccess key="success" onNewRegistration={handleNewRegistration} onGoHome={handleGoHome} />}
-        </AnimatePresence>
+      {/* Error Banner */}
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="relative z-20 mx-6 mt-4 p-4 glass-red rounded-2xl flex items-center gap-3"
+          >
+            <AlertCircle className="h-5 w-5 text-red-500" />
+            <span className="text-sm text-red-200 font-medium">{error}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content Area */}
+      <div className="relative z-10 flex-1 overflow-y-auto px-6 py-8 flex flex-col items-center justify-start lg:justify-center">
+        <div className="w-full max-w-2xl">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full"
+            >
+              {currentStep === 0 && <StepWelcome key="welcome" onNext={next} />}
+              {currentStep === 1 && <StepPersonalData key="personal" onNext={next} onBack={back} />}
+              {currentStep === 2 && <StepAddress key="address" onNext={next} onBack={back} />}
+              {currentStep === 3 && <StepVehicle key="vehicle" onNext={next} onBack={back} />}
+              {currentStep === 4 && <StepPlan key="plan" onNext={next} onBack={back} />}
+              {currentStep === 5 && <StepTechnician key="technician" onNext={next} onBack={back} />}
+              {currentStep === 6 && <StepPayment key="payment" onNext={next} onBack={back} />}
+              {currentStep === 7 && <StepNotes key="notes" onNext={handleSubmit} onBack={back} isSubmitting={isSubmitting} />}
+              {currentStep === 8 && (
+                <StepSatisfaction
+                  key="satisfaction"
+                  onNext={next}
+                  onBack={back}
+                  onWhatsApp={() => {
+                    const link = generateSatisfactionLink(data.full_name || 'Cliente');
+                    window.open(link, '_blank');
+                  }}
+                  customerName={data.full_name || 'Cliente'}
+                />
+              )}
+              {currentStep === 9 && <StepSuccess key="success" onNewRegistration={handleNewRegistration} onGoHome={handleGoHome} />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
+
+      {/* Footer Info */}
+      <footer className="relative z-10 p-6 flex justify-center border-t border-white/5 bg-black/20">
+        <p className="text-[10px] text-white/20 uppercase tracking-[0.3em] font-medium">
+          Rastremix Enterprise Security System © 2024
+        </p>
+      </footer>
     </div>
   );
 }
+

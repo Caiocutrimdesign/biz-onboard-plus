@@ -71,8 +71,8 @@ export function StepPersonalData({ onNext, onBack }: Props) {
       </div>
 
       <div className="flex gap-3 pt-4">
-        <Button variant="outline" onClick={onBack} className="h-12 flex-1 text-base">Voltar</Button>
-        <Button onClick={onNext} disabled={!canProceed} className="bg-gradient-brand h-12 flex-1 text-base font-semibold text-primary-foreground">Continuar</Button>
+        <Button variant="outline" onClick={onBack} size="lg" className="flex-1">Voltar</Button>
+        <Button variant="premium" onClick={onNext} disabled={!canProceed} size="lg" className="flex-1">Continuar</Button>
       </div>
     </motion.div>
   );
