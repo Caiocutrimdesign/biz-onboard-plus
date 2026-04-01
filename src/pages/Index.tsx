@@ -50,7 +50,7 @@ const Index = () => {
             </div>
 
             {/* Hero Section / Carousel */}
-            <div className="relative z-10 pt-20">
+            <div className="relative z-10">
               <VitrineCarousel onStartRegistration={() => setMode('cadastro')} />
             </div>
             
