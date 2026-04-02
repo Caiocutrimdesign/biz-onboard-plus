@@ -578,6 +578,133 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
           animate={{ scale: [1, 1.1, 1], opacity: [0.05, 0.1, 0.05] }}
           transition={{ duration: 5, repeat: Infinity }}
         />
+        
+        {/* Flash Car Animation */}
+        <motion.div
+          className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[400px] overflow-visible"
+          initial={{ x: 1200, opacity: 0 }}
+          animate={{ 
+            x: -100,
+            opacity: [0, 1, 1, 1, 0],
+          }}
+          transition={{ 
+            duration: 2,
+            repeat: Infinity,
+            repeatDelay: 6,
+            ease: [0.25, 0.1, 0.25, 1]
+          }}
+        >
+          {/* Speed Lines */}
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute top-1/2 h-0.5 bg-gradient-to-r from-white/50 to-transparent"
+              style={{ 
+                left: '-200px',
+                width: '150px',
+                transform: `translateY(${(i - 4) * 25}px) rotate(-5deg)`
+              }}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ 
+                scaleX: [0, 1, 0],
+                opacity: [0, 1, 0]
+              }}
+              transition={{ 
+                duration: 0.3,
+                repeat: Infinity,
+                repeatDelay: 6 + (i * 0.1),
+                ease: 'easeOut'
+              }}
+            />
+          ))}
+          
+          {/* Main Car Image */}
+          <motion.img
+            src="/Gemini_Generated_Image_ayfyv9ayfyv9ayfy.png"
+            alt="Carro"
+            className="w-[500px] h-auto drop-shadow-2xl"
+            animate={{ 
+              rotate: [-2, 2, -2],
+              scale: [1, 1.05, 1]
+            }}
+            transition={{ 
+              duration: 0.5,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+          />
+          
+          {/* Glow Effect */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            initial={{ x: '-100%' }}
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ 
+              duration: 0.5,
+              repeat: Infinity,
+              repeatDelay: 6,
+              ease: 'easeInOut'
+            }}
+          />
+          
+          {/* Flash Burst */}
+          <motion.div
+            className="absolute -left-20 top-1/2 -translate-y-1/2 w-40 h-40"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ 
+              opacity: [0, 1, 0],
+              scale: [0, 1.5, 2],
+            }}
+            transition={{ 
+              duration: 0.4,
+              repeat: Infinity,
+              repeatDelay: 6,
+              ease: 'easeOut'
+            }}
+          >
+            <div className="w-full h-full bg-white/30 rounded-full blur-xl" />
+          </motion.div>
+          
+          {/* Trail Particles */}
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={`particle-${i}`}
+              className="absolute w-2 h-2 bg-white rounded-full"
+              initial={{ 
+                x: 0, 
+                y: 0, 
+                opacity: 1 
+              }}
+              animate={{ 
+                x: -300 - Math.random() * 200,
+                y: (Math.random() - 0.5) * 100,
+                opacity: [1, 0],
+                scale: [1, 0]
+              }}
+              transition={{ 
+                duration: 0.6 + Math.random() * 0.3,
+                repeat: Infinity,
+                repeatDelay: 6 + (i * 0.05),
+                ease: 'easeOut'
+              }}
+            />
+          ))}
+        </motion.div>
+        
+        {/* Ground Reflection */}
+        <motion.div
+          className="absolute bottom-20 right-20 w-[400px] h-20 bg-white/5 rounded-full blur-2xl"
+          animate={{ 
+            x: [1200, -200],
+            opacity: [0, 0.5, 0.5, 0]
+          }}
+          transition={{ 
+            duration: 2,
+            repeat: Infinity,
+            repeatDelay: 6,
+            ease: [0.25, 0.1, 0.25, 1]
+          }}
+        />
       </div>
       
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-center p-6">
