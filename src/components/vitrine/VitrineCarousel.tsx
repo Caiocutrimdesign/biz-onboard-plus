@@ -579,134 +579,169 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
           transition={{ duration: 5, repeat: Infinity }}
         />
         
-        {/* Flash Car Animation - Sonic Style */}
+        {/* Hero Character Animation - Static Position */}
         <motion.div
-          className="absolute right-[-100px] top-1/2 -translate-y-1/2 z-20 w-[700px] h-[500px]"
-          initial={{ x: window.innerWidth + 200, opacity: 1 }}
-          animate={{ 
-            x: -window.innerWidth - 200,
-            opacity: [0, 1, 1, 0],
-          }}
-          transition={{ 
-            duration: 1.5,
-            repeat: Infinity,
-            repeatDelay: 7,
-            ease: [0.25, 0.1, 0.25, 1]
-          }}
+          className="absolute right-[5%] top-1/2 -translate-y-1/2 z-20"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, ease: 'easeOut' }}
         >
-          {/* Speed Lines - Behind */}
-          {[...Array(15)].map((_, i) => (
-            <motion.div
-              key={`speedline-${i}`}
-              className="absolute top-1/2 bg-gradient-to-r from-transparent via-white/60 to-white/80"
-              style={{ 
-                left: '-300px',
-                height: i % 3 === 0 ? 'h-1' : i % 3 === 1 ? 'h-0.5' : 'h-0.5',
-                width: `${100 + Math.random() * 200}px`,
-                transform: `translateY(${(i - 7) * 30}px)`
-              }}
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ 
-                scaleX: [0, 1, 0],
-                opacity: [0, 1, 0]
-              }}
-              transition={{ 
-                duration: 0.4,
-                repeat: Infinity,
-                repeatDelay: 7 + (i * 0.08),
-                ease: 'easeOut'
-              }}
-            />
-          ))}
-          
-          {/* Main Car Image with Glow */}
-          <div className="relative">
-            <motion.img
-              src="/Gemini_Generated_Image_ayfyv9ayfyv9ayfy.png"
-              alt="Carro"
-              className="w-[450px] h-auto drop-shadow-2xl relative z-10"
-              animate={{ 
-                rotate: [-1, 1, -1],
-                scale: [1, 1.02, 1]
-              }}
-              transition={{ 
-                duration: 0.3,
-                repeat: Infinity,
-                ease: 'easeInOut'
-              }}
-            />
-            {/* Glow behind car */}
-            <motion.div
-              className="absolute inset-0 z-0"
-              animate={{ 
-                opacity: [0.3, 0.6, 0.3],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ 
-                duration: 0.5,
-                repeat: Infinity
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 blur-xl rounded-full" />
-            </motion.div>
-          </div>
-          
-          {/* Flash Burst Effect */}
+          {/* Floating Container */}
           <motion.div
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-30"
-            initial={{ opacity: 0, scale: 0.5 }}
+            className="relative"
             animate={{ 
-              opacity: [0, 1, 0],
-              scale: [0.5, 2, 3],
+              y: [0, -20, 0],
             }}
             transition={{ 
-              duration: 0.3,
+              duration: 3,
               repeat: Infinity,
-              repeatDelay: 7,
-              ease: 'easeOut'
+              ease: 'easeInOut'
             }}
           >
-            <div className="w-60 h-60 bg-white/40 rounded-full blur-3xl" />
-          </motion.div>
-          
-          {/* Trail Particles */}
-          {[...Array(20)].map((_, i) => (
+            {/* Glowing Aura */}
             <motion.div
-              key={`particle-${i}`}
-              className="absolute w-1 h-1 bg-white rounded-full shadow-lg shadow-white/50"
-              initial={{ 
-                x: 100, 
-                y: (i - 10) * 15, 
-                opacity: 1 
-              }}
+              className="absolute inset-0 bg-gradient-to-r from-primary/30 via-transparent to-primary/30 rounded-full blur-3xl"
               animate={{ 
-                x: -500 - Math.random() * 300,
-                y: (i - 10) * 15 + (Math.random() - 0.5) * 80,
-                opacity: [1, 0.8, 0],
-                scale: [1, 0.5, 0]
+                scale: [1, 1.3, 1],
+                opacity: [0.3, 0.6, 0.3],
               }}
               transition={{ 
-                duration: 0.5 + Math.random() * 0.3,
+                duration: 2,
                 repeat: Infinity,
-                repeatDelay: 7 + (i * 0.05),
-                ease: 'easeOut'
+              }}
+            />
+            
+            {/* Speed Lines Background */}
+            <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-40 h-[400px] overflow-hidden">
+              {[...Array(12)].map((_, i) => (
+                <motion.div
+                  key={`line-${i}`}
+                  className="absolute left-0 bg-gradient-to-r from-transparent via-white/40 to-white/60"
+                  style={{
+                    top: `${10 + i * 8}%`,
+                    height: '2px',
+                    width: '0px',
+                  }}
+                  animate={{
+                    width: ['0px', `${80 + Math.random() * 60}px`],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    delay: i * 0.15,
+                    ease: 'easeOut',
+                  }}
+                />
+              ))}
+            </div>
+            
+            {/* Character Image */}
+            <motion.div
+              className="relative z-10"
+              animate={{
+                rotateY: [0, 5, 0, -5, 0],
+                scale: [1, 1.02, 1],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              {/* Inner Glow */}
+              <motion.div
+                className="absolute inset-0 bg-primary/20 rounded-3xl blur-xl"
+                animate={{
+                  opacity: [0.3, 0.6, 0.3],
+                  scale: [0.95, 1.05, 0.95],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+              />
+              
+              <img
+                src="/Gemini_Generated_Image_ayfyv9ayfyv9ayfy.png"
+                alt="Hero Character"
+                className="w-[400px] h-auto relative z-10 object-contain"
+                style={{ filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.3))' }}
+              />
+              
+              {/* Sparkle Effects on Character */}
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={`sparkle-${i}`}
+                  className="absolute w-2 h-2 bg-white rounded-full"
+                  style={{
+                    top: `${20 + Math.random() * 60}%`,
+                    left: `${10 + Math.random() * 80}%`,
+                  }}
+                  animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0, 1.5, 0],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                  }}
+                />
+              ))}
+            </motion.div>
+            
+            {/* Speed Burst Effect */}
+            <motion.div
+              className="absolute -left-10 top-1/2 -translate-y-1/2"
+              animate={{
+                opacity: [0, 0.8, 0],
+                scale: [0.5, 1.5, 2],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: 'easeOut',
+              }}
+            >
+              <div className="w-32 h-32 bg-gradient-to-r from-white/50 to-transparent rounded-full blur-2xl" />
+            </motion.div>
+          </motion.div>
+          
+          {/* Energy Particles Around */}
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={`energy-${i}`}
+              className="absolute w-1.5 h-1.5 bg-white rounded-full shadow-lg shadow-white/50"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0],
+                x: [0, (Math.random() - 0.5) * 100],
+                y: [0, (Math.random() - 0.5) * 100],
+              }}
+              transition={{
+                duration: 2 + Math.random(),
+                repeat: Infinity,
+                delay: i * 0.2,
               }}
             />
           ))}
         </motion.div>
         
-        {/* Ground Reflection */}
+        {/* Ground Glow */}
         <motion.div
-          className="absolute bottom-24 right-0 w-[600px] h-24 bg-white/10 rounded-full blur-3xl z-10"
-          animate={{ 
-            x: [window.innerWidth + 400, -window.innerWidth - 400],
-            opacity: [0, 0.6, 0.6, 0]
+          className="absolute bottom-0 right-[5%] w-[500px] h-32 bg-primary/20 rounded-full blur-3xl z-10"
+          animate={{
+            opacity: [0.2, 0.4, 0.2],
+            scale: [0.9, 1.1, 0.9],
           }}
-          transition={{ 
-            duration: 1.5,
+          transition={{
+            duration: 2,
             repeat: Infinity,
-            repeatDelay: 7,
-            ease: [0.25, 0.1, 0.25, 1]
           }}
         />
       </div>
