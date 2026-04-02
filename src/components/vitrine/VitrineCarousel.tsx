@@ -579,30 +579,31 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
           transition={{ duration: 5, repeat: Infinity }}
         />
         
-        {/* Flash Car Animation */}
+        {/* Flash Car Animation - Sonic Style */}
         <motion.div
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[400px] overflow-visible"
-          initial={{ x: 1200, opacity: 0 }}
+          className="absolute right-[-100px] top-1/2 -translate-y-1/2 z-20 w-[700px] h-[500px]"
+          initial={{ x: window.innerWidth + 200, opacity: 1 }}
           animate={{ 
-            x: -100,
-            opacity: [0, 1, 1, 1, 0],
+            x: -window.innerWidth - 200,
+            opacity: [0, 1, 1, 0],
           }}
           transition={{ 
-            duration: 2,
+            duration: 1.5,
             repeat: Infinity,
-            repeatDelay: 6,
+            repeatDelay: 7,
             ease: [0.25, 0.1, 0.25, 1]
           }}
         >
-          {/* Speed Lines */}
-          {[...Array(8)].map((_, i) => (
+          {/* Speed Lines - Behind */}
+          {[...Array(15)].map((_, i) => (
             <motion.div
-              key={i}
-              className="absolute top-1/2 h-0.5 bg-gradient-to-r from-white/50 to-transparent"
+              key={`speedline-${i}`}
+              className="absolute top-1/2 bg-gradient-to-r from-transparent via-white/60 to-white/80"
               style={{ 
-                left: '-200px',
-                width: '150px',
-                transform: `translateY(${(i - 4) * 25}px) rotate(-5deg)`
+                left: '-300px',
+                height: i % 3 === 0 ? 'h-1' : i % 3 === 1 ? 'h-0.5' : 'h-0.5',
+                width: `${100 + Math.random() * 200}px`,
+                transform: `translateY(${(i - 7) * 30}px)`
               }}
               initial={{ scaleX: 0, opacity: 0 }}
               animate={{ 
@@ -610,81 +611,84 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
                 opacity: [0, 1, 0]
               }}
               transition={{ 
-                duration: 0.3,
+                duration: 0.4,
                 repeat: Infinity,
-                repeatDelay: 6 + (i * 0.1),
+                repeatDelay: 7 + (i * 0.08),
                 ease: 'easeOut'
               }}
             />
           ))}
           
-          {/* Main Car Image */}
-          <motion.img
-            src="/Gemini_Generated_Image_ayfyv9ayfyv9ayfy.png"
-            alt="Carro"
-            className="w-[500px] h-auto drop-shadow-2xl"
-            animate={{ 
-              rotate: [-2, 2, -2],
-              scale: [1, 1.05, 1]
-            }}
-            transition={{ 
-              duration: 0.5,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-          />
+          {/* Main Car Image with Glow */}
+          <div className="relative">
+            <motion.img
+              src="/Gemini_Generated_Image_ayfyv9ayfyv9ayfy.png"
+              alt="Carro"
+              className="w-[450px] h-auto drop-shadow-2xl relative z-10"
+              animate={{ 
+                rotate: [-1, 1, -1],
+                scale: [1, 1.02, 1]
+              }}
+              transition={{ 
+                duration: 0.3,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            />
+            {/* Glow behind car */}
+            <motion.div
+              className="absolute inset-0 z-0"
+              animate={{ 
+                opacity: [0.3, 0.6, 0.3],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ 
+                duration: 0.5,
+                repeat: Infinity
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 blur-xl rounded-full" />
+            </motion.div>
+          </div>
           
-          {/* Glow Effect */}
+          {/* Flash Burst Effect */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            initial={{ x: '-100%' }}
-            animate={{ x: ['-100%', '200%'] }}
-            transition={{ 
-              duration: 0.5,
-              repeat: Infinity,
-              repeatDelay: 6,
-              ease: 'easeInOut'
-            }}
-          />
-          
-          {/* Flash Burst */}
-          <motion.div
-            className="absolute -left-20 top-1/2 -translate-y-1/2 w-40 h-40"
-            initial={{ opacity: 0, scale: 0 }}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-30"
+            initial={{ opacity: 0, scale: 0.5 }}
             animate={{ 
               opacity: [0, 1, 0],
-              scale: [0, 1.5, 2],
+              scale: [0.5, 2, 3],
             }}
             transition={{ 
-              duration: 0.4,
+              duration: 0.3,
               repeat: Infinity,
-              repeatDelay: 6,
+              repeatDelay: 7,
               ease: 'easeOut'
             }}
           >
-            <div className="w-full h-full bg-white/30 rounded-full blur-xl" />
+            <div className="w-60 h-60 bg-white/40 rounded-full blur-3xl" />
           </motion.div>
           
           {/* Trail Particles */}
-          {[...Array(12)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <motion.div
               key={`particle-${i}`}
-              className="absolute w-2 h-2 bg-white rounded-full"
+              className="absolute w-1 h-1 bg-white rounded-full shadow-lg shadow-white/50"
               initial={{ 
-                x: 0, 
-                y: 0, 
+                x: 100, 
+                y: (i - 10) * 15, 
                 opacity: 1 
               }}
               animate={{ 
-                x: -300 - Math.random() * 200,
-                y: (Math.random() - 0.5) * 100,
-                opacity: [1, 0],
-                scale: [1, 0]
+                x: -500 - Math.random() * 300,
+                y: (i - 10) * 15 + (Math.random() - 0.5) * 80,
+                opacity: [1, 0.8, 0],
+                scale: [1, 0.5, 0]
               }}
               transition={{ 
-                duration: 0.6 + Math.random() * 0.3,
+                duration: 0.5 + Math.random() * 0.3,
                 repeat: Infinity,
-                repeatDelay: 6 + (i * 0.05),
+                repeatDelay: 7 + (i * 0.05),
                 ease: 'easeOut'
               }}
             />
@@ -693,15 +697,15 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
         
         {/* Ground Reflection */}
         <motion.div
-          className="absolute bottom-20 right-20 w-[400px] h-20 bg-white/5 rounded-full blur-2xl"
+          className="absolute bottom-24 right-0 w-[600px] h-24 bg-white/10 rounded-full blur-3xl z-10"
           animate={{ 
-            x: [1200, -200],
-            opacity: [0, 0.5, 0.5, 0]
+            x: [window.innerWidth + 400, -window.innerWidth - 400],
+            opacity: [0, 0.6, 0.6, 0]
           }}
           transition={{ 
-            duration: 2,
+            duration: 1.5,
             repeat: Infinity,
-            repeatDelay: 6,
+            repeatDelay: 7,
             ease: [0.25, 0.1, 0.25, 1]
           }}
         />
