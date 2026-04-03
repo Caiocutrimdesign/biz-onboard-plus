@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Lock, ArrowRight, Eye, EyeOff, Loader2, Mail, AlertCircle, Wrench, Users } from 'lucide-react';
+import { Shield, Lock, ArrowRight, Eye, EyeOff, Loader2, Mail, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -14,7 +14,6 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [loginMode, setLoginMode] = useState<'admin' | 'tec'>('admin');
   
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -34,8 +33,6 @@ export default function AdminLogin() {
       return;
     }
 
-    console.log('Login attempt:', { email: trimmedEmail, passwordLength: trimmedPassword.length });
-
     try {
       const emailLower = trimmedEmail.toLowerCase();
       const result = await login({ email: emailLower, password: trimmedPassword });
@@ -44,14 +41,14 @@ export default function AdminLogin() {
         toast.success(`Bem-vindo, ${result.user?.name}!`);
         
         const userRole = result.user?.role;
-        if (loginMode === 'tec' || userRole === 'tecnico' || userRole === 'user') {
+        if (userRole === 'tecnico' || userRole === 'user') {
           navigate('/tec', { replace: true });
         } else {
           navigate('/admin?tab=clientes', { replace: true });
         }
       } else {
-        setError(result.error || 'Credenciais invalidas');
-        toast.error(result.error || 'Credenciais invalidas');
+        setError(result.error || 'Credenciais inválidas');
+        toast.error(result.error || 'Credenciais inválidas');
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login');
@@ -61,196 +58,176 @@ export default function AdminLogin() {
     }
   };
 
-  const fillDemo = (mode: 'admin' | 'tec') => {
-    setLoginMode(mode);
-    const demoPassword = 'Rastremix2024!';
-    if (mode === 'admin') {
-      setEmail('admin@rastremix.com');
-      setPassword(demoPassword);
-    } else {
-      setEmail('tecnico@rastremix.com');
-      setPassword(demoPassword);
-    }
-    console.log('Demo filled:', { mode, email: mode === 'admin' ? 'admin@rastremix.com' : 'tecnico@rastremix.com', passwordLength: demoPassword.length });
+  const fillDemo = () => {
+    setEmail('admin@rastremix.com');
+    setPassword('Rastremix2024!');
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-dark p-4">
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent opacity-50" />
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-      </div>
-      
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-surface-dark-foreground/10 bg-surface-dark/40 p-8 shadow-2xl backdrop-blur-xl"
-      >
-        <div className="mb-8 flex flex-col items-center">
-          <div className="mb-6">
-            <Logo3D size={160} animated={true} glowColor="primary" />
-          </div>
-          
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => { setLoginMode('admin'); setEmail(''); setPassword(''); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                loginMode === 'admin' 
-                  ? 'bg-primary text-white' 
-                  : 'bg-surface-dark-foreground/10 text-surface-dark-foreground/50 hover:text-surface-dark-foreground'
-              }`}
-            >
-              <Shield className="w-4 h-4" />
-              Admin
-            </button>
-            <button
-              onClick={() => { setLoginMode('tec'); setEmail(''); setPassword(''); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                loginMode === 'tec' 
-                  ? 'bg-orange-500 text-white' 
-                  : 'bg-surface-dark-foreground/10 text-surface-dark-foreground/50 hover:text-surface-dark-foreground'
-              }`}
-            >
-              <Wrench className="w-4 h-4" />
-              Técnico
-            </button>
-          </div>
-          
-          <h1 className="font-display text-2xl font-bold tracking-tight text-surface-dark-foreground">
-            {loginMode === 'admin' ? 'Acesso Admin' : 'Acesso Técnico'}
-          </h1>
-          <p className="mt-2 text-center text-sm text-surface-dark-foreground/50">
-            {loginMode === 'admin' 
-              ? 'Entre com suas credenciais de administrador' 
-              : 'Entre com suas credenciais de técnico'}
-          </p>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20"
+    <div className="flex min-h-screen w-full">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#FF6B00] via-[#FF4500] to-[#FF0000] items-center justify-center p-12">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtOS45NDEgMC0xOCA4LjA1OS0xOCAxOHM4LjA1OSAxOCAxOCAxOCAxOC04LjA1OSAxOC0xOC04LjA1OS0xOC0xOC0xOHptMCAzMmMtNy43MzIgMC0xNC02LjI2OC0xNC0xNHM2LjI2OC0xNCAxNC0xNCAxNCA2LjI2OCAxNCAxNC02LjI2OCAxNC0xNCAxNHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9nPjwvc3ZnPg==')] opacity-30" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 text-center"
         >
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-amber-500">
-                {loginMode === 'admin' ? 'Modo Demo Admin' : 'Modo Demo Técnico'}
-              </p>
-              <div className="mt-2 space-y-1">
-                <button 
-                  onClick={() => fillDemo('admin')}
-                  className="block text-xs text-amber-500/70 hover:text-amber-500 underline"
-                >
-                  Admin: admin@rastremix.com
-                </button>
-                <button 
-                  onClick={() => fillDemo('tec')}
-                  className="block text-xs text-amber-500/70 hover:text-amber-500 underline"
-                >
-                  Técnico: tecnico@rastremix.com
-                </button>
-                <p className="text-xs text-amber-500/70 mt-1">
-                  Senha: <strong>Rastremix2024!</strong>
-                </p>
-              </div>
-            </div>
-          </div>
+          <Logo3D size={280} animated={true} glowColor="white" />
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 text-4xl font-bold text-white"
+          >
+            RASTREMIX
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-4 text-xl text-white/80"
+          >
+            Segurança Veicular
+          </motion.p>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-2 text-white/60"
+          >
+            Proteção 24 horas para seu veículo
+          </motion.p>
         </motion.div>
 
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20"
-          >
-            <div className="flex items-center gap-2 text-destructive text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {error}
-            </div>
-          </motion.div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="group relative">
-            <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-dark-foreground/30 transition-colors group-focus-within:text-primary" />
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Seu e-mail"
-              className="h-14 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 text-base text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
-              autoFocus
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              inputMode="email"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="group relative">
-            <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-dark-foreground/30 transition-colors group-focus-within:text-primary" />
-            <Input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Sua senha"
-              className="h-14 border-surface-dark-foreground/10 bg-surface-dark-foreground/5 pl-12 pr-12 text-base text-surface-dark-foreground placeholder:text-surface-dark-foreground/20 focus:border-primary/50 focus:ring-primary/20"
-              autoComplete="current-password"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              inputMode="text"
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-surface-dark-foreground/30 hover:text-surface-dark-foreground/60 transition-colors"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          
-          <Button 
-            type="submit" 
-            disabled={isLoading}
-            className={`h-14 w-full text-lg font-bold transition-all active:scale-95 disabled:opacity-50 ${
-              loginMode === 'tec' 
-                ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:opacity-90' 
-                : 'bg-gradient-brand shadow-brand hover:opacity-90'
-            }`}
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <>
-                {loginMode === 'tec' ? 'Acessar TEC' : 'Acessar Sistema'}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </>
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-8 text-center">
-          <button 
-            onClick={() => navigate('/')}
-            className="text-xs font-medium text-surface-dark-foreground/30 transition-colors hover:text-surface-dark-foreground/60"
-          >
-            Voltar para o início
-          </button>
-        </div>
-
-        <div className="mt-6 pt-6 border-t border-surface-dark-foreground/10">
-          <p className="text-center text-xs text-surface-dark-foreground/30">
-            Protegido por criptografia de ponta a ponta
+        <div className="absolute bottom-8 left-8 right-8 text-center">
+          <p className="text-white/50 text-sm">
+            © 2024 Rastremix. Todos os direitos reservados.
           </p>
         </div>
-      </motion.div>
+      </div>
+
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#0A0A0B] p-6 lg:p-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          <div className="lg:hidden mb-8 flex justify-center">
+            <Logo3D size={140} animated={true} glowColor="primary" />
+          </div>
+
+          <div className="mb-8">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-white">
+              Área Restrita
+            </h1>
+            <p className="mt-2 text-white/50">
+              Digite suas credenciais para acessar o sistema
+            </p>
+          </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20"
+            >
+              <div className="flex items-center gap-2 text-red-400 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/70">E-mail</label>
+              <div className="group relative">
+                <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/30 transition-colors group-focus-within:text-primary" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="h-14 border-white/10 bg-white/5 pl-12 text-base text-white placeholder:text-white/20 focus:border-primary/50 focus:ring-primary/20 rounded-xl"
+                  autoFocus
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/70">Senha</label>
+              <div className="group relative">
+                <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/30 transition-colors group-focus-within:text-primary" />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="h-14 border-white/10 bg-white/5 pl-12 pr-12 text-base text-white placeholder:text-white/20 focus:border-primary/50 focus:ring-primary/20 rounded-xl"
+                  autoComplete="current-password"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+            
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="h-14 w-full text-lg font-bold bg-gradient-to-r from-[#FF6B00] to-[#FF4500] hover:opacity-90 text-white rounded-xl transition-all active:scale-95"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  Entrar
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
+            </Button>
+
+            <div className="mt-4 text-center">
+              <button 
+                type="button"
+                onClick={fillDemo}
+                className="text-sm text-white/40 hover:text-white/60 transition-colors"
+              >
+                Esqueceu a senha?
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-10 pt-6 border-t border-white/10 text-center">
+            <p className="text-white/30 text-sm">
+              © 2024 Rastremix Segurança Veicular
+            </p>
+          </div>
+
+          <div className="mt-6 text-center">
+            <button 
+              onClick={() => navigate('/')}
+              className="text-sm font-medium text-white/30 hover:text-white/60 transition-colors"
+            >
+              ← Voltar para o início
+            </button>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
