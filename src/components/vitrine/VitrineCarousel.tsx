@@ -581,7 +581,7 @@ export function VitrineCarousel({ onStartRegistration }: { onStartRegistration: 
       </div>
       
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-center p-6">
-        <Logo3D size={140} animated={true} glowColor="white" />
+        <Logo3D size={200} animated={true} glowColor="white" />
       </div>
       <div className="absolute top-6 right-6 z-30 flex items-center gap-3">
         <Button
