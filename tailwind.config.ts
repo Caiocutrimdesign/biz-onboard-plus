@@ -83,6 +83,14 @@ export default {
         "fade-in": { from: { opacity: "0", transform: "translateY(16px)" }, to: { opacity: "1", transform: "translateY(0)" } },
         "slide-in": { from: { opacity: "0", transform: "translateX(-24px)" }, to: { opacity: "1", transform: "translateX(0)" } },
         "pulse-glow": { "0%, 100%": { boxShadow: "0 0 20px hsl(0 85% 50% / 0.3)" }, "50%": { boxShadow: "0 0 40px hsl(0 85% 50% / 0.6)" } },
+        "pulse-slow": {
+          "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.1)" },
+        },
+        "grid-flow": {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(40px)" },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -93,16 +101,6 @@ export default {
         "pulse-slow": "pulse-slow 4s ease-in-out infinite",
         "grid-flow": "grid-flow 20s linear infinite",
       },
-      keyframes: {
-        "pulse-slow": {
-          "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
-          "50%": { opacity: "1", transform: "scale(1.1)" },
-        },
-        "grid-flow": {
-          "0%": { transform: "translateY(0)" },
-          "100%": { transform: "translateY(40px)" },
-        }
-      }
     },
   },
   plugins: [require("tailwindcss-animate")],
