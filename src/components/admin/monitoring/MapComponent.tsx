@@ -2,8 +2,9 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Navigation, Bell, Maximize, Layers } from 'lucide-react';
+import { MapPin, Navigation, Bell, Maximize, Layers, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useVeiculos } from '@/hooks/useVeiculos';
 
 // Fix for default Leaflet icons
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -32,7 +33,10 @@ const createCarIcon = (color: string) => L.divIcon({
 });
 
 export function MapComponent() {
-  const center: [number, number] = [-23.55052, -46.633308]; // São Paulo center for demo
+  const { veiculos, isLoading } = useVeiculos();
+  const center: [number, number] = veiculos.length > 0 
+    ? [veiculos[0].lat, veiculos[0].lng] 
+    : [-23.55052, -46.633308]; // Default to SP if no data
 
   return (
     <div className="flex-1 h-full relative">
@@ -55,19 +59,37 @@ export function MapComponent() {
           opacity={0.5}
         />
 
-        <Marker position={center} icon={createCarIcon('#10b981')}>
-          <Popup>
-            <div className="font-bold">PTY9C47 - 0 km/h</div>
-            <div className="text-xs text-gray-500">Ultima atualização: Agora</div>
-          </Popup>
-        </Marker>
-
-        <Marker position={[-23.56, -46.64]} icon={createCarIcon('#ef4444')}>
-          <Popup>
-             <div className="font-bold">LMR6A22 - 45 km/h</div>
-             <div className="text-xs text-gray-400">Em movimento</div>
-          </Popup>
-        </Marker>
+        {/* Marcadores em Tempo Real */}
+        {!isLoading && veiculos.map((v) => (
+          <Marker 
+            key={v.id_remoto} 
+            position={[v.lat, v.lng]} 
+            icon={createCarIcon(v.ignicao ? '#10b981' : '#ef4444')}
+          >
+            <Popup>
+              <div className="p-1">
+                <div className="font-black text-gray-800 border-b border-gray-100 pb-1 mb-1 uppercase tracking-tight">
+                  {v.placa}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Velocidade</span>
+                    <span className="text-sm font-black text-blue-600">{v.velocidade} km/h</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Status</span>
+                    <span className={`text-[10px] font-black uppercase ${v.ignicao ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {v.ignicao ? 'Ligado' : 'Desligado'}
+                    </span>
+                  </div>
+                  <div className="text-[9px] text-gray-400 mt-1 border-t border-gray-50 pt-1">
+                    Última atualização: {new Date(v.updated_at).toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
 
         <ZoomControl position="bottomleft" />
       </MapContainer>
@@ -105,8 +127,8 @@ export function MapComponent() {
             <Bell className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-sm font-bold">Sucesso 👍</p>
-            <p className="text-xs opacity-90">Foi carregado 1381 itens no mapa</p>
+            <p className="text-sm font-bold">Monitoramento Ativo 👍</p>
+            <p className="text-xs opacity-90">Sincronizados {veiculos.length} veículos em tempo real</p>
           </div>
           <button className="ml-4 text-white/50 hover:text-white">×</button>
         </motion.div>

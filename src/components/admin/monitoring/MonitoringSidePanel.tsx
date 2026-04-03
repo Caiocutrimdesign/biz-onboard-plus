@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Search, Settings, ChevronRight, MapPin, Signal, Battery, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useVeiculos, Veiculo } from '@/hooks/useVeiculos';
 
 interface Device {
   id: string;
@@ -22,6 +23,11 @@ const mockDevices: Device[] = [
 
 export function MonitoringSidePanel() {
   const [searchTerm, setSearchTerm] = useState('');
+  const { veiculos, stats, isLoading } = useVeiculos();
+
+  const filteredVeiculos = veiculos.filter(v => 
+    v.placa.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="w-[400px] h-full bg-white flex flex-col border-r border-gray-200">
@@ -41,15 +47,15 @@ export function MonitoringSidePanel() {
 
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="text-center">
-            <p className="text-2xl font-black text-emerald-500 leading-none">169</p>
+            <p className="text-2xl font-black text-emerald-500 leading-none">{stats.ligados}</p>
             <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Ligados</p>
           </div>
           <div className="text-center border-x border-gray-100">
-            <p className="text-2xl font-black text-red-500 leading-none">1212</p>
+            <p className="text-2xl font-black text-red-500 leading-none">{stats.desligados}</p>
             <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Desligados</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-black text-orange-500 leading-none">92</p>
+            <p className="text-2xl font-black text-orange-500 leading-none">0</p>
             <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Removidos</p>
           </div>
         </div>
@@ -90,36 +96,38 @@ export function MonitoringSidePanel() {
         </div>
       </div>
 
-      {/* Lista de Dispositivos */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
-        {mockDevices.map((device) => (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
+             <Activity className="w-8 h-8 animate-pulse" />
+             <p className="text-xs font-bold uppercase tracking-widest">Carregando dispositivos...</p>
+          </div>
+        ) : filteredVeiculos.map((device) => (
           <motion.div 
-            key={device.id}
+            key={device.id_remoto}
             whileHover={{ y: -2 }}
             className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
           >
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 ${
-                  device.status === 'ligado' ? 'bg-emerald-50 border-emerald-100' : 
-                  device.status === 'desligado' ? 'bg-gray-50 border-gray-100' : 'bg-orange-50 border-orange-100'
+                  device.ignicao ? 'bg-emerald-50 border-emerald-100' : 'bg-gray-50 border-gray-100'
                 }`}>
                    <Activity className={`w-5 h-5 ${
-                     device.status === 'ligado' ? 'text-emerald-500' : 
-                     device.status === 'desligado' ? 'text-gray-400' : 'text-orange-500'
+                     device.ignicao ? 'text-emerald-500' : 'text-gray-400'
                    }`} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-gray-800 uppercase leading-tight">{device.name}</h4>
+                  <h4 className="text-sm font-black text-gray-800 uppercase leading-tight">{device.placa}</h4>
                   <p className={`text-[10px] font-bold ${
-                    device.status === 'ligado' ? 'text-emerald-500' : 'text-red-500'
+                    device.ignicao ? 'text-emerald-500' : 'text-red-500'
                   }`}>
-                    {device.lastUpdate}
+                    {device.ignicao ? 'Ligado - Em operação' : 'Desligado'}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                 <p className="text-xl font-black text-gray-800 leading-none">{device.speed}</p>
+                 <p className="text-xl font-black text-gray-800 leading-none">{device.velocidade}</p>
                  <p className="text-[8px] font-bold text-gray-400 uppercase">KM/H</p>
               </div>
             </div>
@@ -127,11 +135,17 @@ export function MonitoringSidePanel() {
             <div className="mt-3 pt-3 border-t border-gray-50">
                <div className="flex items-center gap-2 text-blue-500">
                   <MapPin className="w-3 h-3" />
-                  <p className="text-[10px] font-medium truncate">{device.address}</p>
+                  <p className="text-[10px] font-medium truncate">ID: {device.id_remoto}</p>
                </div>
             </div>
           </motion.div>
         ))}
+        
+        {!isLoading && filteredVeiculos.length === 0 && (
+          <div className="py-12 text-center text-gray-400 italic">
+            Nenhum veículo encontrado com este filtro.
+          </div>
+        )}
         
         <div className="py-4">
           <button className="w-full h-11 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:bg-blue-600 transition-colors uppercase tracking-wider text-xs">
