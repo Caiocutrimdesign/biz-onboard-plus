@@ -17,27 +17,38 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Logo3D } from '@/components/ui/Logo3D';
 import { useData } from '@/contexts/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MonitoringSidePanel } from '@/components/admin/monitoring/MonitoringSidePanel';
+import { MapComponent } from '@/components/admin/monitoring/MapComponent';
+import 'leaflet/dist/leaflet.css';
 
 type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'config' | 'tecnicos' | 'servicos' | 'aniversarios' | 'empresa';
 
 interface NavItem {
-  id: Module;
+  id: string;
   label: string;
   icon: React.ElementType;
   path: string;
 }
 
-const navItems: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-  { id: 'clientes', label: 'Clientes', icon: Users, path: '/admin?tab=clientes' },
-  { id: 'aniversarios', label: 'Aniversários', icon: Cake, path: '/admin?tab=aniversarios' },
-  { id: 'tecnicos', label: 'Cadastro Tec', icon: Wrench, path: '/admin?tab=tecnicos' },
-  { id: 'servicos', label: 'Serviços', icon: ClipboardList, path: '/admin?tab=servicos' },
-  { id: 'veiculos', label: 'Veículos', icon: Car, path: '/admin?tab=veiculos' },
+const monitoramentoItems: NavItem[] = [
+  { id: 'alertas', label: 'Alertas', icon: Bell, path: '/admin?tab=alertas' },
+  { id: 'cercas', label: 'Cercas Virtuais', icon: Target, path: '/admin?tab=cercas' },
+  { id: 'comando', label: 'Comando', icon: Zap, path: '/admin?tab=comando' },
+  { id: 'gestao_alertas', label: 'Gestão de alertas', icon: ShieldCheck, path: '/admin?tab=gestao_alertas' },
+  { id: 'manutencao', label: 'Manutenção', icon: Wrench, path: '/admin?tab=manutencao' },
+  { id: 'mapa', label: 'Mapa', icon: GitBranch, path: '/admin?tab=mapa' },
+  { id: 'relatorios', label: 'Relatórios', icon: BarChart3, path: '/admin?tab=relatorios' },
+  { id: 'smartcam', label: 'SmartCam', icon: Bot, path: '/admin?tab=smartcam' },
+];
+
+const administrativoItems: NavItem[] = [
   { id: 'financeiro', label: 'Financeiro', icon: DollarSign, path: '/admin?tab=financeiro' },
-  { id: 'agendamentos', label: 'Agendamentos', icon: CalendarCheck, path: '/admin?tab=agendamentos' },
-  { id: 'empresa', label: 'A Empresa', icon: Building2, path: '/empresa' },
-  { id: 'config', label: 'Configurações', icon: Settings, path: '/admin?tab=config' },
+  { id: 'gerenciar', label: 'Gerenciar', icon: Settings, path: '/admin?tab=gerenciar' },
+  { id: 'home_admin', label: 'Home', icon: LayoutDashboard, path: '/admin?tab=home_admin' },
+  { id: 'os', label: 'Ordem de serviço', icon: ClipboardList, path: '/admin?tab=os' },
+  { id: 'suporte', label: 'Suporte', icon: HelpCircle, path: '/admin?tab=suporte' },
+  { id: 'usuarios', label: 'Usuários', icon: Users, path: '/admin?tab=usuarios' },
+  { id: 'veiculos', label: 'Veículos', icon: Car, path: '/admin?tab=veiculos' },
 ];
 
 export default function AdminDashboard() {
@@ -45,14 +56,15 @@ export default function AdminDashboard() {
   const [searchParams] = useSearchParams();
   const { user, logout } = useAuth();
   const { customers: allCustomers, isLoading } = useData();
-  const [activeModule, setActiveModule] = useState<Module>('dashboard');
+  const [activeModule, setActiveModule] = useState<string>('mapa');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
+    const allNavItems = [...monitoramentoItems, ...administrativoItems];
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'clientes', 'aniversarios', 'tecnicos', 'servicos', 'veiculos', 'financeiro', 'agendamentos', 'empresa', 'config'].includes(tab)) {
-      setActiveModule(tab as Module);
+    if (tab && allNavItems.some(item => item.id === tab)) {
+      setActiveModule(tab);
     }
   }, [searchParams]);
 
@@ -108,10 +120,10 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0A0A0B] text-white overflow-hidden selection:bg-primary/30">
+    <div className="flex h-screen bg-gray-50 text-gray-900 overflow-hidden selection:bg-primary/30">
       {/* Sidebar - Desktop */}
-      <aside className={`hidden lg:flex flex-col ${isSidebarOpen ? 'w-64' : 'w-22'} bg-black/40 backdrop-blur-xl border-r border-white/5 transition-all duration-500 ease-in-out relative z-30`}>
-        <div className="flex h-20 items-center justify-center border-b border-white/5 px-4">
+      <aside className={`hidden lg:flex flex-col ${isSidebarOpen ? 'w-64' : 'w-22'} bg-white border-r border-gray-100 transition-all duration-500 ease-in-out relative z-30`}>
+        <div className="flex h-20 items-center justify-center border-b border-gray-100 px-4">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-lg">
                 <Shield className="text-white w-6 h-6" />
@@ -125,24 +137,55 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleNavigate(item)}
-              className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all group ${
-                activeModule === item.id 
-                  ? 'bg-gradient-brand text-white shadow-brand scale-[1.02]' 
-                  : 'text-white/50 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <item.icon className={`h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-white' : 'text-primary/70'}`} />
-              {isSidebarOpen && <span>{item.label}</span>}
-            </button>
-          ))}
+        <nav className="flex-1 p-4 space-y-8 overflow-y-auto custom-scrollbar">
+          {/* Grupo Monitoramento */}
+          <div>
+            {isSidebarOpen && (
+              <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Monitoramento</p>
+            )}
+            <div className="space-y-1">
+              {monitoramentoItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigate(item)}
+                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all group ${
+                    activeModule === item.id 
+                      ? 'bg-primary/10 text-primary border border-primary/20' 
+                      : 'text-white/40 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-white/20'}`} />
+                  {isSidebarOpen && <span>{item.label}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grupo Administrativo */}
+          <div>
+            {isSidebarOpen && (
+              <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Administrativo</p>
+            )}
+            <div className="space-y-1">
+              {administrativoItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigate(item)}
+                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all group ${
+                    activeModule === item.id 
+                      ? 'bg-primary/10 text-primary border border-primary/20' 
+                      : 'text-white/40 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-white/20'}`} />
+                  {isSidebarOpen && <span>{item.label}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
         </nav>
 
-        <div className="p-4 border-t border-white/5 space-y-2">
+        <div className="p-4 border-t border-gray-100 space-y-2">
           <button
             onClick={handleCRMNavigation}
             className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all border border-blue-500/20"
@@ -153,10 +196,10 @@ export default function AdminDashboard() {
           
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-white/40 hover:bg-red-500/10 hover:text-red-400 transition-all"
+            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all group"
           >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
-            {isSidebarOpen && <span>Encerrar Sessão</span>}
+            <LogOut className="h-5 w-5 flex-shrink-0 group-hover:scale-110" />
+            {isSidebarOpen && <span>Sair</span>}
           </button>
         </div>
       </aside>
@@ -170,17 +213,17 @@ export default function AdminDashboard() {
         </div>
 
         {/* Header */}
-        <header className="h-20 flex items-center justify-between px-6 bg-black/20 backdrop-blur-md border-b border-white/5 relative z-20">
+        <header className="h-20 flex items-center justify-between px-6 bg-white border-b border-gray-100 relative z-20">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsMobileOpen(!isMobileOpen)} 
-              className="lg:hidden p-2 hover:bg-white/10 rounded-xl transition-all"
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-all"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-6 w-6 text-gray-600" />
             </button>
             <div className="flex flex-col">
-              <h1 className="text-xl font-display font-bold capitalize tracking-tight">{activeModule}</h1>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Painel de Gerenciamento</p>
+              <h1 className="text-xl font-display font-bold capitalize tracking-tight text-gray-800">{activeModule}</h1>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Painel de Gerenciamento</p>
             </div>
           </div>
           
@@ -188,20 +231,20 @@ export default function AdminDashboard() {
             <div className="hidden md:flex relative group">
                 <Input 
                    placeholder="Pesquisar..." 
-                   className="w-64 bg-white/5 border-white/10 rounded-xl focus:ring-primary/50 pl-10" 
+                   className="w-64 bg-gray-50 border-gray-200 rounded-xl focus:ring-primary/20 pl-10 text-gray-900" 
                 />
-                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
 
-            <Button variant="ghost" size="icon" className="relative text-white/60 hover:text-white hover:bg-white/10 rounded-xl">
+            <Button variant="ghost" size="icon" className="relative text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl border border-gray-100">
               <Bell className="h-5 w-5" />
               <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-primary rounded-full pulse-glow" />
             </Button>
 
-            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+            <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-white leading-none">{user?.name || 'Admin'}</p>
-                  <p className="text-[10px] text-white/40 uppercase tracking-tighter mt-1">Super User</p>
+                  <p className="text-sm font-bold text-gray-800 leading-none">{user?.name || 'Admin'}</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-tighter mt-1">Super Usuário</p>
                </div>
                <div className="h-10 w-10 rounded-xl bg-gradient-brand flex items-center justify-center text-white font-bold shadow-lg border border-white/10">
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
@@ -211,7 +254,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 relative z-10 custom-scrollbar">
+        <div className="flex-1 relative z-10 custom-scrollbar">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeModule}
@@ -220,8 +263,16 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Dashboard View */}
-              {activeModule === 'dashboard' && (
+              {/* Mapa View (Layout de Três Painéis) */}
+              {activeModule === 'mapa' && (
+                <div className="absolute inset-0 flex overflow-hidden">
+                   <MonitoringSidePanel />
+                   <MapComponent />
+                </div>
+              )}
+
+              {/* Dashboard / Home View */}
+              {(activeModule === 'dashboard' || activeModule === 'home_admin') && (
                 <div className="space-y-8">
                   {/* Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -391,19 +442,42 @@ export default function AdminDashboard() {
                    </Button>
                 </div>
 
-                <nav className="flex-1 p-6 space-y-4 overflow-y-auto">
-                   {navItems.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
-                        className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
-                           activeModule === item.id ? 'bg-primary text-white shadow-brand' : 'text-white/40'
-                        }`}
-                      >
-                         <item.icon className="w-6 h-6" />
-                         {item.label}
-                      </button>
-                   ))}
+                <nav className="flex-1 p-6 space-y-8 overflow-y-auto">
+                   <div>
+                      <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Monitoramento</p>
+                      <div className="space-y-2">
+                         {monitoramentoItems.map((item) => (
+                            <button
+                              key={item.id}
+                              onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
+                              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                                 activeModule === item.id ? 'bg-primary text-white shadow-brand' : 'text-white/40'
+                              }`}
+                            >
+                               <item.icon className="w-6 h-6" />
+                               {item.label}
+                            </button>
+                         ))}
+                      </div>
+                   </div>
+
+                   <div>
+                      <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Administrativo</p>
+                      <div className="space-y-2">
+                         {administrativoItems.map((item) => (
+                            <button
+                              key={item.id}
+                              onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
+                              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                                 activeModule === item.id ? 'bg-primary text-white shadow-brand' : 'text-white/40'
+                              }`}
+                            >
+                               <item.icon className="w-6 h-6" />
+                               {item.label}
+                            </button>
+                         ))}
+                      </div>
+                   </div>
                 </nav>
 
                 <div className="p-6 space-y-4 border-t border-white/10">
