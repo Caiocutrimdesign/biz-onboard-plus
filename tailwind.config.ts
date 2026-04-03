@@ -90,7 +90,19 @@ export default {
         "fade-in": "fade-in 0.6s ease-out forwards",
         "slide-in": "slide-in 0.5s ease-out forwards",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "pulse-slow": "pulse-slow 4s ease-in-out infinite",
+        "grid-flow": "grid-flow 20s linear infinite",
       },
+      keyframes: {
+        "pulse-slow": {
+          "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.1)" },
+        },
+        "grid-flow": {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(40px)" },
+        }
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],
