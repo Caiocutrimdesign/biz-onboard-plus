@@ -42,27 +42,37 @@ serve(async (req) => {
 
     console.log("Usuário salvo com sucesso no Supabase.")
 
-    // 2. Sincronizar com a API Legada Rastremix
+    // 2. Sincronizar com a API Legadas Rastremix (Server-side Auth)
     let syncStatus = "success"
     let syncErrorMsg = null
 
     try {
+      const legacyUser = Deno.env.get('LEGACY_USER')
+      const legacyPass = Deno.env.get('LEGACY_PASS')
       const apiKey = Deno.env.get('RASTREMIX_API_KEY')
-      if (!apiKey) {
-        throw new Error("RASTREMIX_API_KEY não configurada no Supabase Secrets.")
+
+      if (!legacyUser || !legacyPass) {
+        console.warn("LEGACY_USER ou LEGACY_PASS não configurados. Usando API Key como contingência.")
       }
 
-      console.log("Iniciando sincronia com API Rastremix...")
+      console.log("Iniciando sincronia segura com API Rastremix...")
       
+      const authHeader = legacyUser && legacyPass 
+        ? `Basic ${btoa(`${legacyUser}:${legacyPass}`)}`
+        : `Bearer ${apiKey}`
+
       const syncResponse = await fetch(RASTREMIX_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
+          "Authorization": authHeader,
         },
         body: JSON.stringify({
           ...user,
-          vehicles_ids: vehicles || [] // Array de IDs de veículos selecionados
+          vehicles_ids: vehicles || [],
+          // Dados de auditoria interna
+          sync_source: "biz-onboard-plus",
+          timestamp: new Date().toISOString()
         }),
       })
 
@@ -72,10 +82,10 @@ serve(async (req) => {
         syncStatus = "failed"
         syncErrorMsg = `API Rastremix retornou status ${syncResponse.status}`
       } else {
-        console.log("Sincronia com API Rastremix concluída com sucesso.")
+        console.log("Sincronia com API Rastremix concluída com sucesso via Server-side Auth.")
       }
     } catch (err) {
-      console.error("Erro durante a sincronia:", err.message)
+      console.error("Erro durante a sincronia segura:", err.message)
       syncStatus = "failed"
       syncErrorMsg = err.message
     }

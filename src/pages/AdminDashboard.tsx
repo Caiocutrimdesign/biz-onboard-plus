@@ -4,7 +4,7 @@ import {
   LogOut, LayoutDashboard, Users, Car, DollarSign, Settings, Bell, 
   Menu, X, ChevronRight, TrendingUp, ShieldCheck, Phone, Mail, Calendar,
   BarChart3, Target, Zap, CalendarCheck, GitBranch, Bot, HelpCircle,
-  MessageSquare, Send, Gift, Wrench, ClipboardList, Cake, Building2, Shield
+  MessageSquare, Send, Gift, Wrench, ClipboardList, Cake, Building2, Shield, Search
 } from 'lucide-react';
 import TechniciansPage from './modules/TechniciansPage';
 import ServicesPage from './modules/ServicesPage';
