@@ -36,9 +36,10 @@ export function useVeiculos() {
 
     fetchInitialData();
 
-    // Assinar mudanças em tempo real na nova tabela
+    // Assinar mudanças em tempo real na nova tabela com ID Único para evitar colisões
+    const channelId = `frota-realtime-${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel('frota-realtime')
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'frota_veiculos' },
