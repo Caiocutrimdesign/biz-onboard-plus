@@ -175,30 +175,30 @@ export const UserRegistrationForm = ({ onCancel }: { onCancel?: () => void }) =>
             </div>
           </Tabs>
 
-          <div className="p-6 border-t border-gray-100 flex justify-end gap-4 bg-gray-50/50">
+          <div className="sticky bottom-0 z-20 p-8 border-t border-gray-100 flex justify-end gap-4 bg-white/95 backdrop-blur-md shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="bg-red-50 border-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-all px-8 rounded-2xl h-12 font-bold"
+              className="px-10 h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] border-gray-200 text-gray-500 hover:bg-gray-50 transition-all"
               disabled={isSubmitting}
             >
-              Cancelar
+              Cancelar Operação
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-200 px-10 rounded-2xl h-12 font-bold flex items-center gap-2 transition-all hover:scale-[1.02]"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-2xl shadow-blue-200/50 px-14 h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 transition-all hover:scale-105 active:scale-95 group"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Salvando...
+                  Salvando dados...
                 </>
               ) : (
                 <>
-                  <Save className="h-5 w-5" />
-                  Salvar Usuário
+                  <Save className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                  Confirmar e Salvar
                 </>
               )}
             </Button>
