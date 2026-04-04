@@ -42,8 +42,8 @@ serve(async (req) => {
 
     console.log("Usuário salvo com sucesso no Supabase.")
 
-    // 2. Sincronizar com a API Legadas Rastremix (Server-side Auth)
-    let syncStatus = "success"
+    // 2. Sincronizar com a API Legadas Rastremix (Server-side Auth - Não Bloqueante)
+    let syncStatus = "sucesso"
     let syncErrorMsg = null
 
     try {
@@ -51,7 +51,7 @@ serve(async (req) => {
       const legacyPass = Deno.env.get('LEGACY_PASS') || "123456"
       const apiKey = Deno.env.get('RASTREMIX_API_KEY')
 
-      console.log("Iniciando sincronia segura com API Rastremix para:", user.login_email)
+      console.log("Tentativa de sincronia segura com API Rastremix para:", user.login_email)
       
       const authHeader = legacyUser && legacyPass 
         ? `Basic ${btoa(`${legacyUser}:${legacyPass}`)}`
@@ -66,11 +66,7 @@ serve(async (req) => {
         body: JSON.stringify({
           ...user,
           vehicles_ids: vehicles || [],
-          // Credenciais do sistema legado para autorização interna se necessário
-          legacy_auth: {
-            user: legacyUser,
-            pass: legacyPass
-          },
+          legacy_auth: { user: legacyUser, pass: legacyPass },
           sync_source: "biz-onboard-plus",
           timestamp: new Date().toISOString()
         }),
@@ -79,18 +75,38 @@ serve(async (req) => {
       if (!syncResponse.ok) {
         const errorData = await syncResponse.text()
         console.error("Falha na sincronia API Rastremix:", syncResponse.status, errorData)
-        syncStatus = "failed"
-        syncErrorMsg = `API Rastremix retornou status ${syncResponse.status}`
+        syncStatus = "erro"
+        syncErrorMsg = `API Rastremix retornou status ${syncResponse.status}: ${errorData.substring(0, 100)}`
       } else {
-        console.log("Sincronia com API Rastremix concluída com sucesso via Server-side Auth.")
+        console.log("Sincronia com API Rastremix concluída com sucesso.")
       }
     } catch (err) {
       console.error("Erro durante a sincronia segura:", err.message)
-      syncStatus = "failed"
+      syncStatus = "erro"
       syncErrorMsg = err.message
     }
 
-    // 3. Retornar resposta combinada
+    // 3. Registrar Status da Sincronia no Banco de Dados
+    if (syncStatus === "erro") {
+      console.log("Registrando erro de sincronia no banco para auditoria...")
+      await supabaseClient
+        .from('usuarios')
+        .update({ 
+          status_sincronia: 'falha_api_legada',
+          erro_log: syncErrorMsg 
+        })
+        .eq('login_email', user.login_email)
+    } else {
+      await supabaseClient
+        .from('usuarios')
+        .update({ 
+          status_sincronia: 'sincronizado',
+          erro_log: null 
+        })
+        .eq('login_email', user.login_email)
+    }
+
+    // 4. Retornar resposta (Sempre sucesso se o Supabase gravou)
     return new Response(
       JSON.stringify({
         success: true,
