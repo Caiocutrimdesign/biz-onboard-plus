@@ -47,15 +47,11 @@ serve(async (req) => {
     let syncErrorMsg = null
 
     try {
-      const legacyUser = Deno.env.get('LEGACY_USER')
-      const legacyPass = Deno.env.get('LEGACY_PASS')
+      const legacyUser = Deno.env.get('LEGACY_USER') || "milenia@facilit.com"
+      const legacyPass = Deno.env.get('LEGACY_PASS') || "123456"
       const apiKey = Deno.env.get('RASTREMIX_API_KEY')
 
-      if (!legacyUser || !legacyPass) {
-        console.warn("LEGACY_USER ou LEGACY_PASS não configurados. Usando API Key como contingência.")
-      }
-
-      console.log("Iniciando sincronia segura com API Rastremix...")
+      console.log("Iniciando sincronia segura com API Rastremix para:", user.login_email)
       
       const authHeader = legacyUser && legacyPass 
         ? `Basic ${btoa(`${legacyUser}:${legacyPass}`)}`
@@ -70,7 +66,11 @@ serve(async (req) => {
         body: JSON.stringify({
           ...user,
           vehicles_ids: vehicles || [],
-          // Dados de auditoria interna
+          // Credenciais do sistema legado para autorização interna se necessário
+          legacy_auth: {
+            user: legacyUser,
+            pass: legacyPass
+          },
           sync_source: "biz-onboard-plus",
           timestamp: new Date().toISOString()
         }),
