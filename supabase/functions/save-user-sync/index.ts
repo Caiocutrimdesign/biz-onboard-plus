@@ -55,111 +55,121 @@ serve(async (req) => {
     const formData = await req.json()
     const { user, vehicles } = formData
 
-    // Sanitização de CPF e Telefone (conforme exigido pela Rastremix)
+    // Sanitização Básica
     const sanitizedUser = { ...user };
     if (sanitizedUser.cpf) sanitizedUser.cpf = clean(sanitizedUser.cpf);
     if (sanitizedUser.celular) sanitizedUser.celular = clean(sanitizedUser.celular);
     if (sanitizedUser.phone) sanitizedUser.phone = clean(sanitizedUser.phone);
-    
-    console.log("Recebendo solicitação para criar usuário:", user.login_email);
-    console.log("CPF Sanitizado:", sanitizedUser.cpf);
 
-    // 1. Salvar no Supabase (Tabela 'usuarios')
+    console.log("Recebendo Matrícula Local:", user.login_email);
+
+    // 1. SALVAMENTO IMEDIATO NO SUPABASE (PRIORIDADE ZERO)
     const { data: supabaseUser, error: supabaseError } = await supabaseClient
       .from('usuarios')
       .upsert({
         ...sanitizedUser,
+        sync_status: 'pending',
         updated_at: new Date().toISOString()
       }, { onConflict: 'login_email' })
       .select()
       .single()
 
     if (supabaseError) {
-      console.error("Erro ao salvar no Supabase:", supabaseError)
+      console.error("Erro Crítico Supabase:", supabaseError)
       throw new Error(`Erro ao salvar no Supabase: ${supabaseError.message}`)
     }
 
-    // 2. Sincronizar com a API Legadas Rastremix (Server-side Auth - SILENCIOSA E RESILIENTE)
+    // 2. SINCRONIA SILENCIOSA (MIRA O NAVEGADOR REAL)
     let syncStatus = "synced"
     let syncErrorMsg = null
 
     try {
-      const legacyUser = Deno.env.get('LEGACY_USER') || "milenia@facilit.com"
-      const legacyPass = Deno.env.get('LEGACY_PASS') || "123456"
+      const email = Deno.env.get('LEGACY_USER') || "melinia@facilit.com";
+      const pass = Deno.env.get('LEGACY_PASS') || "123456";
 
-      // PASSO A: Login para obter cookie (COM MASCARAMENTO DE USER-AGENT)
-      console.log("Tentando login com disfarce de navegador...");
-      const loginResponse = await fetch("https://aplicativo.rastremix.com.br/auth/login", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
-        },
-        body: JSON.stringify({ email: legacyUser, password: legacyPass }),
-      });
+      // A: Obter Sessão (Form-URL-Encoded)
+      const loginPayload = new URLSearchParams();
+      loginPayload.append('email', email);
+      loginPayload.append('password', pass);
 
-      if (!loginResponse.ok) {
-        throw new Error(`Login falhou (HTTP ${loginResponse.status})`);
-      }
-
-      const setCookie = loginResponse.headers.get("set-cookie");
-      const sessionCookie = setCookie ? setCookie.split(";")[0] : null;
-
-      if (!sessionCookie) {
-        throw new Error("Cookie não recebido");
-      }
-
-      // PASSO B: Sincronizar usuário (COM DISFARCE DE NAVEGADOR)
-      const syncResponse = await fetch("https://aplicativo.rastremix.com.br/users/save", {
+      const loginRes = await fetch("https://aplicativo.rastremix.com.br/auth/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Cookie": sessionCookie,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-          "Referer": "https://aplicativo.rastremix.com.br/"
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+          "X-Requested-With": "XMLHttpRequest",
+          "Referer": "https://aplicativo.rastremix.com.br/admin/users/clients"
         },
-        body: JSON.stringify({
-          ...sanitizedUser,
-          vehicles_ids: vehicles || [],
-          sync_source: "biz-onboard-plus",
-          timestamp: new Date().toISOString()
-        }),
-      })
+        body: loginPayload
+      });
 
-      if (!syncResponse.ok) {
-        const errorData = await syncResponse.text()
-        console.warn("API Rastremix rejeitou (Silencioso):", syncResponse.status, errorData)
-        syncStatus = "pending"
-        syncErrorMsg = `Erro ${syncResponse.status}: ${errorData.substring(0, 50)}`
+      const setCookie = loginRes.headers.get("set-cookie");
+      const sessionCookie = setCookie ? setCookie.split(";")[0] : null;
+
+      if (sessionCookie) {
+        // B: Enviar Cadastro (ESPELHAMENTO DE TRAFEGO REAL)
+        const syncPayload = new URLSearchParams();
+        
+        // Mapeamento de Campos Rastremix
+        syncPayload.append('client_name', sanitizedUser.full_name || "");
+        syncPayload.append('client_login', sanitizedUser.login_email || "");
+        syncPayload.append('client_pass', sanitizedUser.password || "");
+        syncPayload.append('client_tab_client_document', sanitizedUser.cpf || sanitizedUser.document || "");
+        syncPayload.append('client_tab_client_email', sanitizedUser.login_email || "");
+        syncPayload.append('client_tab_client_postal_code', sanitizedUser.zip_code || "");
+        syncPayload.append('client_tab_client_address', sanitizedUser.address || "");
+        syncPayload.append('client_tab_client_number', sanitizedUser.address_number || "");
+        syncPayload.append('client_tab_client_city', sanitizedUser.city || "");
+        syncPayload.append('client_tab_client_state', sanitizedUser.state || "");
+        syncPayload.append('client_tab_client_cell_phone', sanitizedUser.celular || sanitizedUser.cellphone || "");
+        
+        // Permissões Padrão (Conforme curl 2)
+        const perms = ['devices', 'alerts', 'cercas', 'relatorios', 'comandos', 'compartilhar_localizacao'];
+        perms.forEach(p => {
+          syncPayload.append(`perms[${p}][view]`, '1');
+          syncPayload.append(`perms[${p}][edit]`, '1');
+          syncPayload.append(`perms[${p}][delete]`, '1');
+        });
+
+        const syncRes = await fetch("https://aplicativo.rastremix.com.br/admin/clients", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Cookie": sessionCookie,
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": "https://aplicativo.rastremix.com.br/admin/users/clients"
+          },
+          body: syncPayload
+        });
+
+        if (!syncRes.ok) {
+          syncStatus = "error";
+          syncErrorMsg = `Rastremix HTTP ${syncRes.status}`;
+        }
+      } else {
+        syncStatus = "error";
+        syncErrorMsg = "Falha na Sessão Legada";
       }
     } catch (err: any) {
-      console.warn("Erro na sincronia silenciada:", err.message)
-      syncStatus = "pending"
-      syncErrorMsg = err.message
+      syncStatus = "error";
+      syncErrorMsg = err.message;
     }
 
-    // 3. Atualizar Status no Banco (Audit Column)
+    // 3. Atualizar Status de Auditoria
     await supabaseClient
       .from('usuarios')
-      .update({ 
-        sync_status: syncStatus,
-        status_sincronia: syncStatus === "pending" ? 'falha_api_legada' : 'sincronizado',
-        erro_log: syncErrorMsg 
-      })
+      .update({ sync_status: syncStatus, erro_log: syncErrorMsg })
       .eq('login_email', user.login_email)
 
-    // 4. RETORNO IMEDIATO DE SUCESSO (O FRONT-END LIBERA O USO)
+    // 4. RETORNO DE SUCESSO (LIBERA O ARNALDO)
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Usuário liberado com sucesso!",
-        sync: { status: syncStatus }
-      }),
+      JSON.stringify({ success: true, message: "Operador Matrículado no Supabase!" }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
 
   } catch (error: any) {
-    console.error("Erro crítico na Edge Function:", error.message)
+    console.error("Critical Error:", error.message)
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
