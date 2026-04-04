@@ -9,6 +9,7 @@ import {
 import TechniciansPage from './modules/TechniciansPage';
 import ServicesPage from './modules/ServicesPage';
 import BirthdaysPage from './modules/BirthdaysPage';
+import UsersPage from './modules/UsersPage';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,7 @@ import { MonitoringSidePanel } from '@/components/admin/monitoring/MonitoringSid
 import { MapComponent } from '@/components/admin/monitoring/MapComponent';
 import 'leaflet/dist/leaflet.css';
 
-type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'config' | 'tecnicos' | 'servicos' | 'aniversarios' | 'empresa';
+type Module = 'dashboard' | 'clientes' | 'veiculos' | 'financeiro' | 'agendamentos' | 'usuarios' | 'config' | 'tecnicos' | 'servicos' | 'aniversarios' | 'empresa';
 
 interface NavItem {
   id: string;
@@ -151,10 +152,10 @@ export default function AdminDashboard() {
                   className={`w-full flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all group ${
                     activeModule === item.id 
                       ? 'bg-primary/10 text-primary border border-primary/20' 
-                      : 'text-white/40 hover:bg-white/5 hover:text-white'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-white/20'}`} />
+                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-slate-400'}`} />
                   {isSidebarOpen && <span>{item.label}</span>}
                 </button>
               ))}
@@ -174,10 +175,10 @@ export default function AdminDashboard() {
                   className={`w-full flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all group ${
                     activeModule === item.id 
                       ? 'bg-primary/10 text-primary border border-primary/20' 
-                      : 'text-white/40 hover:bg-white/5 hover:text-white'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-white/20'}`} />
+                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-slate-400'}`} />
                   {isSidebarOpen && <span>{item.label}</span>}
                 </button>
               ))}
@@ -277,26 +278,26 @@ export default function AdminDashboard() {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
-                      { label: 'Total Clientes', value: stats.total, icon: Users, color: 'text-primary', delay: 0 },
-                      { label: 'Clientes Ativos', value: stats.active, icon: ShieldCheck, color: 'text-green-500', delay: 0.1 },
-                      { label: 'Pendentes', value: stats.pending, icon: Clock, color: 'text-yellow-500', delay: 0.2 },
-                      { label: 'Em Atendimento', value: stats.inProgress, icon: TrendingUp, color: 'text-blue-500', delay: 0.3 },
+                      { label: 'Total Clientes', value: stats.total, icon: Users, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-100', delay: 0 },
+                      { label: 'Clientes Ativos', value: stats.active, icon: ShieldCheck, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', delay: 0.1 },
+                      { label: 'Pendentes', value: stats.pending, icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', delay: 0.2 },
+                      { label: 'Em Atendimento', value: stats.inProgress, icon: TrendingUp, color: 'text-indigo-600', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-100', delay: 0.3 },
                     ].map((s, i) => (
                       <motion.div 
                         key={i}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: s.delay }}
-                        className="glass-card p-6 rounded-3xl group hover:bg-white/15 transition-all duration-500 hover:scale-[1.02]"
+                        className={`bg-white p-6 rounded-3xl border ${s.borderColor} shadow-sm group hover:shadow-md transition-all duration-300`}
                       >
                         <div className="flex items-center justify-between mb-4">
-                          <div className={`p-3 rounded-2xl bg-white/5 group-hover:bg-primary/20 transition-colors`}>
+                          <div className={`p-3 rounded-2xl ${s.bgColor} transition-colors`}>
                             <s.icon className={`h-6 w-6 ${s.color}`} />
                           </div>
-                          <Badge variant="outline" className="text-[10px] uppercase font-bold border-white/10 text-white/50">+12.5%</Badge>
+                          <Badge variant="outline" className="text-[10px] uppercase font-bold border-gray-100 text-gray-400">+12.5%</Badge>
                         </div>
-                        <p className="text-3xl font-display font-bold tracking-tight">{s.value}</p>
-                        <p className="text-xs uppercase tracking-widest text-white/40 font-bold mt-1">{s.label}</p>
+                        <p className="text-3xl font-display font-bold tracking-tight text-gray-900">{s.value}</p>
+                        <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mt-1">{s.label}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -304,32 +305,32 @@ export default function AdminDashboard() {
                   {/* Main Grid */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Recent Activity */}
-                    <div className="lg:col-span-2 glass-card rounded-3xl overflow-hidden">
-                       <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+                    <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                       <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
                           <div>
-                             <h3 className="font-display font-bold text-lg">Cadastros Recentes</h3>
-                             <p className="text-xs text-white/40">Últimos 5 clientes registrados no portal</p>
+                             <h3 className="font-display font-bold text-lg text-gray-900">Cadastros Recentes</h3>
+                             <p className="text-xs text-gray-400">Últimos 5 clientes registrados no portal</p>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={() => setActiveModule('clientes')} className="text-xs uppercase font-bold tracking-widest text-primary hover:bg-primary/10">Ver Todos</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setActiveModule('clientes')} className="text-xs uppercase font-bold tracking-widest text-blue-600 hover:bg-blue-50">Ver Todos</Button>
                        </div>
                        <div className="p-2">
                           {allCustomers.slice(0, 5).map((c: any, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors group">
+                            <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors group">
                                <div className="flex items-center gap-4">
-                                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/5">
-                                     <Users className="w-6 h-6 text-white/40 group-hover:text-primary transition-colors" />
+                                  <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100">
+                                     <Users className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors" />
                                   </div>
                                   <div>
-                                     <p className="font-bold text-white/90">{c.full_name}</p>
-                                     <p className="text-xs text-white/40 font-mono">{c.phone}</p>
+                                     <p className="font-bold text-gray-900">{c.full_name}</p>
+                                     <p className="text-xs text-gray-400 font-mono">{c.phone}</p>
                                   </div>
                                </div>
-                               <Badge className="bg-white/5 text-white/60 hover:bg-white/10 border-white/10">{c.plan || 'Standard'}</Badge>
+                               <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">{c.plan || 'Standard'}</Badge>
                             </div>
                           ))}
                           {allCustomers.length === 0 && (
                             <div className="py-12 text-center">
-                               <p className="text-white/20 italic">Aguardando novos cadastros...</p>
+                               <p className="text-gray-300 italic">Aguardando novos cadastros...</p>
                             </div>
                           )}
                        </div>
@@ -339,22 +340,22 @@ export default function AdminDashboard() {
                     <div className="space-y-8">
                        {/* Birthday Card */}
                        {birthdays.length > 0 && (
-                          <div className="glass-card rounded-3xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20 p-6">
+                          <div className="bg-white rounded-3xl border border-pink-100 shadow-sm shadow-pink-100/50 p-6">
                             <div className="flex items-center gap-3 mb-6">
-                               <div className="w-10 h-10 rounded-xl bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                                  <Gift className="text-white w-6 h-6" />
-                               </div>
+                               <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center">
+                                  <Gift className="text-pink-600 w-6 h-6" />
+                                </div>
                                <div>
-                                  <h3 className="font-bold">Aniversariantes</h3>
-                                  <p className="text-xs text-pink-500 font-bold uppercase tracking-tighter">Hoje ({birthdays.length})</p>
+                                  <h3 className="font-bold text-gray-900">Aniversariantes</h3>
+                                  <p className="text-[10px] text-pink-600 font-black uppercase tracking-tighter">Hoje ({birthdays.length})</p>
                                </div>
                             </div>
                             <div className="space-y-4">
                                {birthdays.slice(0, 3).map((b: any, i) => (
-                                  <div key={i} className="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/5">
-                                     <p className="text-sm font-medium truncate pr-2">{b.full_name}</p>
-                                     <Button onClick={() => sendBirthdayMessage(b)} size="icon" className="h-8 w-8 bg-pink-500 hover:bg-pink-600 rounded-lg">
-                                        <Send className="w-3 h-3" />
+                                  <div key={i} className="flex items-center justify-between bg-pink-50/30 p-3 rounded-2xl border border-pink-50">
+                                     <p className="text-sm font-bold text-gray-800 truncate pr-2">{b.full_name}</p>
+                                     <Button onClick={() => sendBirthdayMessage(b)} size="icon" className="h-8 w-8 bg-pink-600 hover:bg-pink-700 rounded-lg shadow-sm">
+                                        <Send className="w-3 h-3 text-white" />
                                      </Button>
                                   </div>
                                ))}
@@ -363,21 +364,21 @@ export default function AdminDashboard() {
                        )}
 
                        {/* Action Cards */}
-                       <div className="glass-card rounded-3xl p-6 bg-gradient-to-br from-primary/10 to-orange-500/10 border-primary/20">
-                          <h3 className="font-bold mb-4">Ação Rápida</h3>
-                          <p className="text-xs text-white/50 mb-6">Execute tarefas críticas com um clique.</p>
+                       <div className="bg-white rounded-3xl p-6 border border-blue-100 shadow-sm shadow-blue-100/50">
+                          <h3 className="font-bold text-gray-900 mb-2">Ação Rápida</h3>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Automação e Tarefas</p>
                           <Button 
                              onClick={handleCRMNavigation}
-                             className="w-full bg-primary hover:bg-primary/90 text-white shadow-brand h-12"
+                             className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 h-12 rounded-xl"
                           >
                              <Bot className="w-4 h-4 mr-2" />
                              Automação CRM
                           </Button>
                        </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                 </div>
+              </div>
+           )}
 
               {/* Clientes View */}
               {activeModule === 'clientes' && <ClientsSection />}
@@ -390,6 +391,9 @@ export default function AdminDashboard() {
 
               {/* Servicos View */}
               {activeModule === 'servicos' && <ServicesPage />}
+
+              {/* Usuarios View */}
+              {activeModule === 'usuarios' && <UsersPage />}
 
               {/* Other Module Placeholders */}
               {['veiculos', 'financeiro', 'agendamentos', 'config'].includes(activeModule) && (
@@ -423,38 +427,42 @@ export default function AdminDashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] lg:hidden bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] lg:hidden bg-gray-900/40 backdrop-blur-sm"
           >
              <motion.aside 
                initial={{ x: -280 }}
                animate={{ x: 0 }}
                exit={{ x: -280 }}
-               className="absolute left-0 top-0 bottom-0 w-80 bg-[#0A0A0B] border-r border-white/10 shadow-2xl flex flex-col"
+               className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl flex flex-col"
              >
                 {/* Header Mobile */}
-                <div className="flex h-20 items-center justify-between px-6 border-b border-white/10">
+                <div className="flex h-20 items-center justify-between px-6 border-b border-gray-100">
                    <div className="flex items-center gap-3">
-                      <Shield className="text-primary w-8 h-8" />
-                      <span className="font-display font-bold text-xl uppercase">Rastremix</span>
+                      <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                        <Shield className="text-white w-5 h-5" />
+                      </div>
+                      <span className="font-display font-bold text-xl uppercase tracking-tight text-gray-900">Rastremix</span>
                    </div>
-                   <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(false)} className="text-white/40">
+                   <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(false)} className="text-gray-400 hover:bg-gray-100 rounded-xl">
                       <X className="w-6 h-6" />
                    </Button>
                 </div>
 
-                <nav className="flex-1 p-6 space-y-8 overflow-y-auto">
+                <nav className="flex-1 p-6 space-y-8 overflow-y-auto custom-scrollbar">
                    <div>
-                      <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Monitoramento</p>
-                      <div className="space-y-2">
+                      <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Monitoramento</p>
+                      <div className="space-y-1">
                          {monitoramentoItems.map((item) => (
                             <button
-                              key={item.id}
-                              onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
-                              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
-                                 activeModule === item.id ? 'bg-primary text-white shadow-brand' : 'text-white/40'
-                              }`}
+                               key={item.id}
+                               onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
+                               className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                                  activeModule === item.id 
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                                    : 'text-gray-500 hover:bg-gray-50'
+                               }`}
                             >
-                               <item.icon className="w-6 h-6" />
+                               <item.icon className={`w-6 h-6 ${activeModule === item.id ? 'text-white' : 'text-gray-400'}`} />
                                {item.label}
                             </button>
                          ))}
@@ -462,17 +470,19 @@ export default function AdminDashboard() {
                    </div>
 
                    <div>
-                      <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Administrativo</p>
-                      <div className="space-y-2">
+                      <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Administrativo</p>
+                      <div className="space-y-1">
                          {administrativoItems.map((item) => (
                             <button
-                              key={item.id}
-                              onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
-                              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
-                                 activeModule === item.id ? 'bg-primary text-white shadow-brand' : 'text-white/40'
-                              }`}
+                               key={item.id}
+                               onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
+                               className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                                  activeModule === item.id 
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                                    : 'text-gray-500 hover:bg-gray-50'
+                               }`}
                             >
-                               <item.icon className="w-6 h-6" />
+                               <item.icon className={`w-6 h-6 ${activeModule === item.id ? 'text-white' : 'text-gray-400'}`} />
                                {item.label}
                             </button>
                          ))}
@@ -480,8 +490,8 @@ export default function AdminDashboard() {
                    </div>
                 </nav>
 
-                <div className="p-6 space-y-4 border-t border-white/10">
-                   <Button onClick={handleLogout} variant="destructive" className="w-full py-6 rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-red-500/20">
+                <div className="p-6 space-y-4 border-t border-gray-100">
+                   <Button onClick={handleLogout} variant="destructive" className="w-full py-6 rounded-2xl font-bold">
                       Sair do Portal
                    </Button>
                 </div>

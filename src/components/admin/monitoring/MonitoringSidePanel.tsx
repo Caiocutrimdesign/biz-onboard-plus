@@ -74,23 +74,24 @@ export function MonitoringSidePanel() {
       {/* Lista de Grupos / Filtros Rápidos */}
       <div className="px-6 py-4 bg-gray-50/50">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Grupos</h3>
-          <button className="w-6 h-6 rounded-full bg-indigo-900 text-white flex items-center justify-center text-lg font-bold">+</button>
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Grupos de Frota</h3>
+          <button className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors">+</button>
         </div>
         
         <div className="space-y-3">
-          <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+          <div className="p-4 bg-white rounded-2xl border border-blue-50 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-all cursor-pointer">
             <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Grupo Padrão</p>
               <p className="text-xs font-bold text-gray-800 uppercase">ESTOQUE RASTREMIX-V. FLAMENGO</p>
-              <div className="flex gap-1 mt-1">
+              <div className="flex gap-1 mt-2">
                 {[1, 2, 3, 4].map(i => (
-                   <div key={i} className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                   <div key={i} className="w-2 h-2 rounded-full bg-red-500 shadow-sm shadow-red-200" />
                 ))}
               </div>
             </div>
             <div className="text-right">
-              <p className="text-lg font-black text-gray-800 leading-none">4</p>
-              <p className="text-[8px] font-bold text-gray-400 uppercase">VEÍCULOS</p>
+              <p className="text-2xl font-black text-gray-900 leading-none">4</p>
+              <p className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">VEÍCULOS</p>
             </div>
           </div>
         </div>
@@ -99,57 +100,70 @@ export function MonitoringSidePanel() {
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
-             <Activity className="w-8 h-8 animate-pulse" />
-             <p className="text-xs font-bold uppercase tracking-widest">Carregando dispositivos...</p>
+             <div className="p-4 bg-blue-50 rounded-full">
+               <Activity className="w-8 h-8 text-blue-500 animate-pulse" />
+             </div>
+             <p className="text-[10px] font-black uppercase tracking-widest">Sincronizando frotas...</p>
           </div>
         ) : filteredVeiculos.map((device) => (
           <motion.div 
             key={device.id_rastremix}
-            whileHover={{ y: -2 }}
-            className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            whileHover={{ y: -4, scale: 1.02 }}
+            className="p-5 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all cursor-pointer group"
           >
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 ${
-                  device.ignicao ? 'bg-emerald-50 border-emerald-100' : 'bg-gray-50 border-gray-100'
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-4">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all ${
+                  device.ignicao 
+                    ? 'bg-emerald-50 border-emerald-100 group-hover:bg-emerald-100 group-hover:scale-110' 
+                    : 'bg-gray-50 border-gray-100 group-hover:bg-gray-100 group-hover:scale-110'
                 }`}>
-                   <Activity className={`w-5 h-5 ${
+                   <Activity className={`w-6 h-6 ${
                      device.ignicao ? 'text-emerald-500' : 'text-gray-400'
                    }`} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-gray-800 uppercase leading-tight">{device.placa}</h4>
-                  <p className={`text-[10px] font-bold ${
-                    device.ignicao ? 'text-emerald-500' : 'text-red-500'
-                  }`}>
-                    {device.ignicao ? 'Ligado - Em operação' : 'Desligado'}
-                  </p>
+                  <h4 className="text-base font-black text-gray-900 uppercase leading-none mb-1 tracking-tight">{device.placa}</h4>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${device.ignicao ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <p className={`text-[10px] font-black uppercase tracking-wider ${
+                      device.ignicao ? 'text-emerald-500' : 'text-red-500'
+                    }`}>
+                      {device.ignicao ? 'Ligado' : 'Desligado'}
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="text-right">
-                 <p className="text-xl font-black text-gray-800 leading-none">{device.velocidade}</p>
-                 <p className="text-[8px] font-bold text-gray-400 uppercase">KM/H</p>
+                 <p className="text-2xl font-black text-gray-900 leading-none">{device.velocidade}</p>
+                 <p className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">KM/H</p>
               </div>
             </div>
             
-            <div className="mt-3 pt-3 border-t border-gray-50">
+            <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
                <div className="flex items-center gap-2 text-blue-500">
-                  <MapPin className="w-3 h-3" />
-                  <p className="text-[10px] font-medium truncate">ID: {device.id_rastremix}</p>
+                  <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <MapPin className="w-3.5 h-3.5" />
+                  </div>
+                  <p className="text-[10px] font-bold text-gray-500 tracking-tight">ID: {device.id_rastremix}</p>
                </div>
+               <button className="flex items-center gap-1 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
+                 Detalhes <ChevronRight className="w-3 h-3" />
+               </button>
             </div>
           </motion.div>
         ))}
         
         {!isLoading && filteredVeiculos.length === 0 && (
-          <div className="py-12 text-center text-gray-400 italic">
-            Nenhum veículo encontrado com este filtro.
+          <div className="py-20 text-center text-gray-400">
+            <Search className="w-12 h-12 mx-auto mb-4 opacity-10" />
+            <p className="text-sm italic font-medium">Nenhum veículo encontrado.</p>
           </div>
         )}
         
-        <div className="py-4">
-          <button className="w-full h-11 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:bg-blue-600 transition-colors uppercase tracking-wider text-xs">
-            Mostrar Mais
+        <div className="py-6">
+          <button className="w-full h-12 bg-white text-blue-600 border border-blue-100 font-bold rounded-2xl shadow-sm hover:bg-blue-50 transition-all uppercase tracking-widest text-[10px]">
+            Carregar mais dispositivos
           </button>
         </div>
       </div>
