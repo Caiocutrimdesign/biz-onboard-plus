@@ -397,20 +397,23 @@ export default function AdminDashboard() {
 
               {/* Other Module Placeholders */}
               {['veiculos', 'financeiro', 'agendamentos', 'config'].includes(activeModule) && (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                  <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-8 relative">
-                     <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl animate-pulse" />
-                    {activeModule === 'veiculos' && <Car className="h-12 w-12 text-primary relative z-10" />}
-                    {activeModule === 'financeiro' && <DollarSign className="h-12 w-12 text-primary relative z-10" />}
-                    {activeModule === 'agendamentos' && <CalendarCheck className="h-12 w-12 text-primary relative z-10" />}
-                    {activeModule === 'config' && <Settings className="h-12 w-12 text-primary relative z-10" />}
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+                  <div className="w-28 h-28 rounded-[2.5rem] bg-blue-50 border border-blue-100 flex items-center justify-center mb-10 relative">
+                     <div className="absolute inset-0 bg-blue-400/20 rounded-[2.5rem] blur-3xl animate-pulse" />
+                    {activeModule === 'veiculos' && <Car className="h-14 w-14 text-blue-600 relative z-10" />}
+                    {activeModule === 'financeiro' && <DollarSign className="h-14 w-14 text-blue-600 relative z-10" />}
+                    {activeModule === 'agendamentos' && <CalendarCheck className="h-14 w-14 text-blue-600 relative z-10" />}
+                    {activeModule === 'config' && <Settings className="h-14 w-14 text-blue-600 relative z-10" />}
                   </div>
-                  <h2 className="text-3xl font-display font-bold mb-4 capitalize tracking-tight">{activeModule}</h2>
-                  <p className="text-white/40 max-w-md mb-10 leading-relaxed">
-                    Estamos preparando uma experiência incrível para o módulo de <strong>{activeModule}</strong>. Por enquanto, utilize o CRM Inteligente para estas operações.
+                  <h2 className="text-4xl font-black mb-4 capitalize tracking-tight text-gray-900">Módulo em <span className="text-blue-600">Expansão</span></h2>
+                  <p className="text-gray-500 max-w-md mb-12 leading-relaxed font-medium">
+                    Estamos preparando uma experiência de alta performance para o módulo de <strong>{activeModule}</strong>. Por enquanto, utilize o CRM Inteligente para estas operações.
                   </p>
-                  <Button onClick={handleCRMNavigation} size="lg" className="bg-white text-black hover:bg-white/90">
-                    <Zap className="w-5 h-5 mr-2 text-primary" />
+                  <Button 
+                    onClick={handleCRMNavigation} 
+                    className="h-16 px-10 bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200 rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:scale-105"
+                  >
+                    <Zap className="w-5 h-5 mr-3 text-white animate-pulse" />
                     Abrir CRM Inteligente
                   </Button>
                 </div>
