@@ -121,65 +121,71 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 overflow-hidden selection:bg-primary/30">
-      {/* Sidebar - Desktop */}
-      <aside className={`hidden lg:flex flex-col ${isSidebarOpen ? 'w-64' : 'w-22'} bg-white border-r border-gray-100 transition-all duration-500 ease-in-out relative z-30`}>
-        <div className="flex h-20 items-center justify-center border-b border-gray-100 px-4">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-lg">
+    <div className="flex h-screen bg-gray-50/30 text-gray-900 overflow-hidden selection:bg-blue-100">
+      {/* Sidebar - Desktop Premium */}
+      <aside className={`hidden lg:flex flex-col ${isSidebarOpen ? 'w-72' : 'w-24'} bg-white border-r border-gray-100 transition-all duration-500 ease-in-out relative z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]`}>
+        <div className="flex h-24 items-center px-8 border-b border-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl shadow-blue-100 transform -rotate-3 hover:rotate-0 transition-transform cursor-pointer">
                 <Shield className="text-white w-6 h-6" />
               </div>
             {isSidebarOpen && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                <span className="font-display font-bold text-lg leading-none block">RASTREMIX</span>
-                <span className="block text-[10px] text-primary font-bold uppercase tracking-widest mt-1">CRM PLATFORM</span>
+                <span className="font-display font-black text-2xl tracking-tighter text-gray-900 leading-none block">RASTREMIX</span>
+                <span className="block text-[10px] text-blue-500 font-black uppercase tracking-[0.3em] mt-1.5 opacity-60">Control Center v4.2</span>
               </motion.div>
             )}
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-8 overflow-y-auto custom-scrollbar">
-          {/* Grupo Monitoramento */}
+        <nav className="flex-1 px-4 py-8 space-y-10 overflow-y-auto hidden-scrollbar">
+          {/* Grupo Monitoramento Tático */}
           <div>
             {isSidebarOpen && (
-              <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Monitoramento</p>
+              <p className="px-6 mb-4 text-[10px] font-black uppercase tracking-[0.4em] text-gray-300">Monitoramento Tático</p>
             )}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {monitoramentoItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleNavigate(item)}
-                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all group ${
+                  className={`w-full flex items-center gap-4 rounded-2xl px-6 py-4 text-sm font-black transition-all group relative ${
                     activeModule === item.id 
-                      ? 'bg-primary/10 text-primary border border-primary/20' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-blue-50 text-blue-600 border border-blue-100/50 shadow-sm' 
+                      : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-slate-400'}`} />
+                  <item.icon className={`h-5 w-5 flex-shrink-0 transition-all ${activeModule === item.id ? 'text-blue-600' : 'text-gray-300 group-hover:text-blue-400'}`} />
                   {isSidebarOpen && <span>{item.label}</span>}
+                  {activeModule === item.id && (
+                    <motion.div layoutId="activeNav" className="absolute left-1 w-1 h-6 bg-blue-600 rounded-full" />
+                  )}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Grupo Administrativo */}
+          {/* Gestão Administrativa */}
           <div>
             {isSidebarOpen && (
-              <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Administrativo</p>
+              <p className="px-6 mb-4 text-[10px] font-black uppercase tracking-[0.4em] text-gray-300">Administrativo</p>
             )}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {administrativoItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleNavigate(item)}
-                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all group ${
+                  className={`w-full flex items-center gap-4 rounded-2xl px-6 py-4 text-sm font-black transition-all group relative ${
                     activeModule === item.id 
-                      ? 'bg-primary/10 text-primary border border-primary/20' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-blue-50 text-blue-600 border border-blue-100/50 shadow-sm' 
+                      : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <item.icon className={`h-4.5 w-4.5 flex-shrink-0 transition-transform group-hover:scale-110 ${activeModule === item.id ? 'text-primary' : 'text-slate-400'}`} />
+                  <item.icon className={`h-5 w-5 flex-shrink-0 transition-all ${activeModule === item.id ? 'text-blue-600' : 'text-gray-300 group-hover:text-blue-400'}`} />
                   {isSidebarOpen && <span>{item.label}</span>}
+                  {activeModule === item.id && (
+                    <motion.div layoutId="activeNav" className="absolute left-1 w-1 h-6 bg-blue-600 rounded-full" />
+                  )}
                 </button>
               ))}
             </div>
@@ -213,43 +219,49 @@ export default function AdminDashboard() {
           <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
         </div>
 
-        {/* Header */}
-        <header className="h-20 flex items-center justify-between px-6 bg-white border-b border-gray-100 relative z-20">
-          <div className="flex items-center gap-4">
+        {/* Header Premium */}
+        <header className="h-24 flex items-center justify-between px-10 bg-white/80 backdrop-blur-3xl border-b border-gray-100 relative z-20 shadow-sm">
+          <div className="flex items-center gap-6">
             <button 
               onClick={() => setIsMobileOpen(!isMobileOpen)} 
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-all"
+              className="lg:hidden p-3 hover:bg-gray-100 rounded-2xl transition-all border border-gray-200"
             >
-              <Menu className="h-6 w-6 text-gray-600" />
+              <Menu className="h-6 w-6 text-gray-900" />
             </button>
             <div className="flex flex-col">
-              <h1 className="text-xl font-display font-bold capitalize tracking-tight text-gray-800">{activeModule}</h1>
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Painel de Gerenciamento</p>
+              <h1 className="text-2xl font-black capitalize tracking-tight text-gray-900 lg:text-3xl">{activeModule}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">Sistema Operacional Rastremix</p>
+              </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div className="hidden md:flex relative group">
                 <Input 
-                   placeholder="Pesquisar..." 
-                   className="w-64 bg-gray-50 border-gray-200 rounded-xl focus:ring-primary/20 pl-10 text-gray-900" 
+                   placeholder="Pesquisar registros..." 
+                   className="w-80 bg-gray-50 border-gray-100 rounded-2xl focus:ring-blue-50 focus:border-blue-200 pl-12 text-sm text-gray-900 placeholder:text-gray-300 h-12 transition-all" 
                 />
-                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
             </div>
 
-            <Button variant="ghost" size="icon" className="relative text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl border border-gray-100">
+            <Button variant="ghost" size="icon" className="relative h-12 w-12 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl border border-gray-50 transition-all">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-primary rounded-full pulse-glow" />
+              <span className="absolute top-3 right-3 h-2 w-2 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.8)]" />
             </Button>
 
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
+            <div className="flex items-center gap-4 pl-6 border-l border-gray-100 h-10">
                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-gray-800 leading-none">{user?.name || 'Admin'}</p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-tighter mt-1">Super Usuário</p>
+                  <p className="text-sm font-black text-gray-900 leading-none mb-1 tracking-tight">{user?.name || 'Gestor Admin'}</p>
+                  <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest opacity-60">Acesso Restrito</p>
                </div>
-               <div className="h-10 w-10 rounded-xl bg-gradient-brand flex items-center justify-center text-white font-bold shadow-lg border border-white/10">
+               <motion.div 
+                 whileHover={{ scale: 1.05, rotate: 5 }}
+                 className="h-12 w-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black shadow-xl shadow-blue-100 border-2 border-white cursor-pointer overflow-hidden"
+               >
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
-              </div>
+              </motion.div>
             </div>
           </div>
         </header>
