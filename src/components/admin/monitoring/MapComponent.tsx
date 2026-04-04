@@ -35,7 +35,7 @@ const createCarIcon = (color: string) => L.divIcon({
 export function MapComponent() {
   const { veiculos, isLoading } = useVeiculos();
   const center: [number, number] = veiculos.length > 0 
-    ? [veiculos[0].lat, veiculos[0].lng] 
+    ? [veiculos[0].latitude, veiculos[0].longitude] 
     : [-23.55052, -46.633308]; // Default to SP if no data
 
   return (
@@ -62,8 +62,8 @@ export function MapComponent() {
         {/* Marcadores em Tempo Real */}
         {!isLoading && veiculos.map((v) => (
           <Marker 
-            key={v.id_remoto} 
-            position={[v.lat, v.lng]} 
+            key={v.id_rastremix} 
+            position={[v.latitude, v.longitude]} 
             icon={createCarIcon(v.ignicao ? '#10b981' : '#ef4444')}
           >
             <Popup>
@@ -83,7 +83,7 @@ export function MapComponent() {
                     </span>
                   </div>
                   <div className="text-[9px] text-gray-400 mt-1 border-t border-gray-50 pt-1">
-                    Última atualização: {new Date(v.updated_at).toLocaleTimeString()}
+                    Última atualização: {new Date(v.ultima_atualizacao).toLocaleTimeString()}
                   </div>
                 </div>
               </div>

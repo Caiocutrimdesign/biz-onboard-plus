@@ -104,7 +104,7 @@ export function MonitoringSidePanel() {
           </div>
         ) : filteredVeiculos.map((device) => (
           <motion.div 
-            key={device.id_remoto}
+            key={device.id_rastremix}
             whileHover={{ y: -2 }}
             className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
           >
@@ -135,7 +135,7 @@ export function MonitoringSidePanel() {
             <div className="mt-3 pt-3 border-t border-gray-50">
                <div className="flex items-center gap-2 text-blue-500">
                   <MapPin className="w-3 h-3" />
-                  <p className="text-[10px] font-medium truncate">ID: {device.id_remoto}</p>
+                  <p className="text-[10px] font-medium truncate">ID: {device.id_rastremix}</p>
                </div>
             </div>
           </motion.div>

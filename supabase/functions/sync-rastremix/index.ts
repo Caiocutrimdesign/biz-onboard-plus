@@ -7,11 +7,10 @@ const RASTREMIX_COOKIE = Deno.env.get("RASTREMIX_COOKIE") ?? "";
 const RASTREMIX_URL = "https://aplicativo.rastremix.com.br/objects/items";
 
 Deno.serve(async (req) => {
-  // Apenas aceitar chamadas autorizadas ou manuais para teste
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    console.log("Iniciando captura de posições Rastremix...");
+    console.log("Iniciando captura de frota Rastremix...");
 
     if (!RASTREMIX_COOKIE) {
       throw new Error("RASTREMIX_COOKIE não configurado nas Secrets do Supabase.");
@@ -24,47 +23,42 @@ Deno.serve(async (req) => {
         "Cookie": RASTREMIX_COOKIE,
       },
       body: JSON.stringify({
-        s: "",
-        size: 2000,
+        size: 1500,
         filter_by: "device",
-        orderBy: "name_az",
       }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Erro na API Rastremix: ${response.status} - ${errorText}`);
+      throw new Error(`Erro na API Rastremix: ${response.status}`);
     }
 
     const data = await response.json();
     const items = data.items || [];
 
-    console.log(`Capturados ${items.length} itens. Processando upsert...`);
+    console.log(`Capurados ${items.length} itens. Sincronizando...`);
 
-    // Mapear para o formato da nossa tabela 'veiculos_tracking'
+    // Mapear para o formato da sua nova tabela 'frota_veiculos'
     const veiculos = items.map((carro: any) => ({
-      id_remoto: carro.id.toString(),
+      id_rastremix: carro.id.toString(),
       placa: carro.name,
-      lat: parseFloat(carro.lat),
-      lng: parseFloat(carro.lng),
+      latitude: parseFloat(carro.lat),
+      longitude: parseFloat(carro.lng),
       velocidade: parseFloat(carro.speed) || 0,
       ignicao: !!carro.online,
-      updated_at: new Date().toISOString(),
+      ultima_atualizacao: new Date().toISOString(),
     }));
 
-    // Realizar upsert (insere novos ou atualiza existentes pela id_remoto)
+    // Realizar upsert em 'frota_veiculos'
     const { error: upsertError } = await supabase
-      .from("veiculos_tracking")
-      .upsert(veiculos, { onConflict: "id_remoto" });
+      .from("frota_veiculos")
+      .upsert(veiculos, { onConflict: "id_rastremix" });
 
-    if (upsertError) {
-      throw upsertError;
-    }
+    if (upsertError) throw upsertError;
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Sincronização concluída com sucesso: ${veiculos.length} veículos atualizados.`,
+        message: `Sincronização concluída: ${veiculos.length} veículos na frota.`,
         count: veiculos.length,
       }),
       { headers: { "Content-Type": "application/json" } }
