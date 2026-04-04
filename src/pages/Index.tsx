@@ -33,7 +33,7 @@ const Index = () => {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[#0A0A0B] text-white selection:bg-primary/30 scroll-smooth overflow-x-hidden">
+    <div ref={containerRef} className="min-h-screen bg-gray-50/50 text-gray-900 selection:bg-blue-100 scroll-smooth overflow-x-hidden">
       <AnimatePresence mode="wait">
         {mode === 'vitrine' ? (
           <motion.div
@@ -43,61 +43,63 @@ const Index = () => {
             exit={{ opacity: 0 }}
             className="relative"
           >
-            {/* Background Glow */}
+            {/* Background Decor */}
             <div className="fixed inset-0 pointer-events-none z-0">
-              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]" />
-              <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-500/10 rounded-full blur-[120px]" />
+              <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[140px]" />
+              <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-100/20 rounded-full blur-[140px]" />
             </div>
 
             {/* Hero Section / Carousel */}
-            <div className="relative z-10">
+            <div className="relative z-10 border-b border-gray-100 shadow-sm">
               <VitrineCarousel onStartRegistration={() => setMode('cadastro')} />
             </div>
             
-            {/* Overlay Features - Glass Cards */}
-            <div className="max-w-7xl mx-auto px-6 pb-20 relative z-20">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            {/* Overlay Features - Premium Cards */}
+            <div className="max-w-7xl mx-auto px-6 pb-24 relative z-20">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
                 {[
-                  { icon: Shield, title: 'Monitoramento 24h', desc: 'Central de inteligência dedicada para sua proteção.' },
-                  { icon: Zap, title: 'Resposta Rápida', desc: 'Acionamento imediato e suporte tático especializado.' },
-                  { icon: Globe, title: 'Cobertura Nacional', desc: 'Segurança e tecnologia em todo o território.' }
+                  { icon: Shield, title: 'Monitoramento 24h', desc: 'Central de inteligência dedicada para sua proteção constante.' },
+                  { icon: Zap, title: 'Resposta Rápida', desc: 'Acionamento imediato e suporte tático de alta prontidão.' },
+                  { icon: Globe, title: 'Cobertura Nacional', desc: 'Segurança robusta e tecnologia em todo o país.' }
                 ].map((feature, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="glass-card p-6 rounded-3xl group hover:bg-white/15 transition-all duration-500"
+                    transition={{ delay: i * 0.1, duration: 0.6 }}
+                    className="p-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 group hover:border-blue-200 hover:-translate-y-2 transition-all duration-500"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-brand flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
-                      <feature.icon className="w-6 h-6" />
+                    <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mb-6 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:rotate-6">
+                      <feature.icon className="w-8 h-8" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 font-display">{feature.title}</h3>
-                    <p className="text-white/60 text-sm leading-relaxed">{feature.desc}</p>
+                    <h3 className="text-2xl font-black mb-3 font-display tracking-tight text-gray-900">{feature.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed font-medium">{feature.desc}</p>
                   </motion.div>
                 ))}
               </div>
             </div>
 
             {/* Floating Action Buttons */}
-            <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-4">
+            <div className="fixed bottom-10 right-10 z-[100] flex flex-col gap-5">
               <Button
-                onClick={() => navigate('/empresa')}
-                className="bg-white text-black hover:bg-white/90 px-8 py-7 rounded-2xl font-bold shadow-2xl flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95"
+                onClick={() => navigate('/admin')}
+                className="bg-blue-600 text-white hover:bg-blue-700 px-10 py-8 rounded-3xl font-black shadow-2xl flex items-center gap-4 transition-all transform hover:scale-105 active:scale-95 group tracking-widest uppercase text-xs"
               >
-                <Building2 className="w-6 h-6 text-primary" />
-                <span className="text-lg">A Empresa</span>
+                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                Portal Restrito
               </Button>
               
               <button
                 onClick={toggleFullscreen}
-                className="self-end bg-white/5 hover:bg-white/10 text-white p-4 rounded-2xl backdrop-blur-xl border border-white/10 transition-all shadow-xl"
+                className="self-end bg-white hover:bg-gray-50 text-gray-400 p-5 rounded-2xl border border-gray-200 transition-all shadow-xl hover:text-blue-500"
                 title={isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia'}
               >
                 {isFullscreen ? (
-                  <Minimize2 className="w-5 h-5 text-white/70" />
+                  <Minimize2 className="w-6 h-6" />
                 ) : (
-                  <Maximize2 className="w-5 h-5 text-white/70" />
+                  <Maximize2 className="w-6 h-6" />
                 )}
               </button>
             </div>
@@ -105,10 +107,10 @@ const Index = () => {
         ) : (
           <motion.div
             key="cadastro"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="fixed inset-0 z-[200] bg-[#0A0A0B]"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            className="fixed inset-0 z-[200] bg-gray-50"
           >
             <RegistrationFlow onClose={() => setMode('vitrine')} />
           </motion.div>
