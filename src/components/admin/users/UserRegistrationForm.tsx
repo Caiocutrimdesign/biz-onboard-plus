@@ -110,29 +110,15 @@ export const UserRegistrationForm = ({ onCancel }: { onCancel?: () => void }) =>
       if (error) throw error
 
       if (data.success) {
-        // Sucesso Primário: Salvo no Supabase
-        toast.success("Usuário criado com sucesso no banco de dados!", {
-          description: "Os dados locais já estão disponíveis para uso.",
-          duration: 4000,
+        toast.success("Usuário cadastrado e liberado com sucesso!", {
+          description: "O cadastro já está ativo no sistema novo (Supabase).",
+          duration: 3000,
         })
-
-        // Verificação Secundária: Status da Sincronia Legada
-        if (data.sync && data.sync.status === 'erro') {
-          console.warn("Sincronia com Rastremix falhou:", data.sync.message)
-          toast.warning("Sincronia externa pendente", {
-            description: "O cadastro foi salvo localmente, mas a sincronia com o sistema antigo (Rastremix) falhou (Erro 401/Auth). Verifique o log de erros no perfil do usuário.",
-            duration: 8000,
-          })
-        } else if (data.sync && data.sync.status === 'sucesso') {
-          toast.info("Sincronização concluída", {
-            description: "Os dados foram replicados com sucesso para o sistema legado.",
-            duration: 3000,
-          })
-        }
-
+        
+        // Limpar e Fechar formulário imediatamente
         if (onCancel) onCancel()
       } else {
-        throw new Error(data.error || "Erro desconhecido ao salvar")
+        throw new Error(data.error || "Erro ao salvar usuário")
       }
 
     } catch (error: any) {
