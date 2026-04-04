@@ -79,77 +79,94 @@ serve(async (req) => {
       throw new Error(`Erro ao salvar no Supabase: ${supabaseError.message}`)
     }
 
-    // 2. SINCRONIA SILENCIOSA (MIRA O NAVEGADOR REAL)
+    // 2. SINCRONIA SILENCIOSA (MODO ESPELHAMENTO DEFINITIVO)
     let syncStatus = "synced"
     let syncErrorMsg = null
 
     try {
-      const email = Deno.env.get('LEGACY_USER') || "melinia@facilit.com";
-      const pass = Deno.env.get('LEGACY_PASS') || "123456";
+      // DEFINIR PAYLOAD (application/x-www-form-urlencoded)
+      const mirrorPayload = new URLSearchParams();
+      
+      // Dados de Controle e Tokens (Fixos da cURL)
+      const FIXED_TOKEN = "8UefPinuAXg6QJgUygn4gUN618ULTBDBnrdBAR9b";
+      mirrorPayload.append('_token', FIXED_TOKEN);
+      mirrorPayload.append('fakeusernameremembered', '');
+      mirrorPayload.append('fakepasswordremembered', '');
+      mirrorPayload.append('sync_button_status', '0');
+      mirrorPayload.append('data_cpf_cnpj', '');
+      mirrorPayload.append('id', '');
+      mirrorPayload.append('active', '1');
+      mirrorPayload.append('group_id', '2');
+      mirrorPayload.append('manager_id', '96833');
+      mirrorPayload.append('bin_admin_flags', '0');
+      mirrorPayload.append('bin_admin_flags', '1');
+      mirrorPayload.append('bin_permissions', '-1');
+      mirrorPayload.append('template_bin_permissions', '-1');
 
-      // A: Obter Sessão (Form-URL-Encoded)
-      const loginPayload = new URLSearchParams();
-      loginPayload.append('email', email);
-      loginPayload.append('password', pass);
+      // Mapeamento Dinâmico de Campos (Formulário Novo -> Rastremix Legado)
+      mirrorPayload.append('name', ''); // Campo vazio no curl
+      mirrorPayload.append('client_name', sanitizedUser.full_name || "");
+      mirrorPayload.append('email', sanitizedUser.login_email || "");
+      mirrorPayload.append('client_login', sanitizedUser.login_email || "");
+      mirrorPayload.append('client_tab_client_email', sanitizedUser.login_email || "");
+      mirrorPayload.append('client_tab_client_cpf', sanitizedUser.cpf || sanitizedUser.document || "");
+      mirrorPayload.append('password', sanitizedUser.password || "");
+      mirrorPayload.append('password_confirmation', sanitizedUser.password || "");
+      mirrorPayload.append('client_pass', sanitizedUser.password || "");
+      mirrorPayload.append('data_de_vencimento', (sanitizedUser.due_day || 14).toString());
+      
+      // Endereço e Contato (Opcionais)
+      mirrorPayload.append('client_tab_client_postal_code', sanitizedUser.zip_code || "");
+      mirrorPayload.append('client_tab_client_address', sanitizedUser.address || "");
+      mirrorPayload.append('client_tab_client_address_number', sanitizedUser.address_number || "");
+      mirrorPayload.append('client_tab_complemento', sanitizedUser.complement || "");
+      mirrorPayload.append('client_tab_client_address_bairro', sanitizedUser.neighborhood || "");
+      mirrorPayload.append('client_tab_client_address_city', sanitizedUser.city || "");
+      mirrorPayload.append('client_tab_client_address_state', sanitizedUser.state || "");
+      mirrorPayload.append('tel_cel', sanitizedUser.celular || sanitizedUser.cellphone || "");
+      mirrorPayload.append('taxa_mensal', (sanitizedUser.monthly_value || "").toString());
 
-      const loginRes = await fetch("https://aplicativo.rastremix.com.br/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
-          "X-Requested-With": "XMLHttpRequest",
-          "Referer": "https://aplicativo.rastremix.com.br/admin/users/clients"
-        },
-        body: loginPayload
+      // Permissões de Ferro (Exatamente como no curl)
+      const permsMap = {
+        'devices': ['view', 'edit'],
+        'alerts': ['view', 'edit', 'remove'],
+        'geofences': ['view', 'edit', 'remove'],
+        'reports': ['view', 'edit', 'remove'],
+        'send_command': ['view'],
+        'history': ['view', 'remove'],
+        'sharing': ['view', 'edit', 'remove']
+      };
+
+      Object.entries(permsMap).forEach(([mod, actions]) => {
+        actions.forEach(act => {
+          mirrorPayload.append(`perms[${mod}][${act}]`, '1');
+        });
       });
 
-      const setCookie = loginRes.headers.get("set-cookie");
-      const sessionCookie = setCookie ? setCookie.split(";")[0] : null;
+      // Headers e Cookies Oficiais do Arnaldo
+      const headers = {
+        "accept": "application/json, text/javascript, */*; q=0.01",
+        "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "origin": "https://aplicativo.rastremix.com.br",
+        "referer": "https://aplicativo.rastremix.com.br/admin/users/clients",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+        "x-requested-with": "XMLHttpRequest",
+        "Cookie": "_ga=GA1.1.750912743.1775263527; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IjREdnZrMFRDRGhGWE1zR0xkNkRKeUE9PSIsInZhbHVlIjoiUzRMNTBOREZCZG03UVZ1QWRIU1VTT0hrSzcyMFhYaFV4U1VpQXpWR1NBSUNzbTk0aUpBbVA0SGIwQUIvRjZrYk5rUHkzUXBRSUgzOHA0cGZBUmtiZkpTQm9Nd21sR2k5NTdZQnppS0hUZmZVanZ5K0dIRUN3d255YjNIZTZqeEZZU0I3OFhoTGRoU25zQUdhQkkzUldsRFplU0Y3cWQ5MnRwZXJaM0cyZmNxeFNlY3h1WEZmaVFKUVMrbHNQajEzTjNoK056T01sa3VNdHdhZGZLS2V6R1NkS3NuSkV0UTRXTW9BK1VIeE0wZz0iLCJtYWMiOiIwYjc0NThkNWQwNGNiZTViZjAyMTg3MWMwNjVkMjdhNWI1NGQzZTY5OTAzODk2NWNjZDA0ODQ5ZDgwNzRiZTI4IiwidGFnIjoiIn0%3D; _ga_7KP7V1FZW3=GS2.1.s1775322699$o7$g1$t1775323243$j60$l0$h0; laravel_session=eyJpdiI6IkNQc2xUVDI3aFhEWkdEelVlTzEyQ3c9PSIsInZhbHVlIjoicFUzb2o4K1ZOY2Z4S2Ivbit5a0xleVdsa2MwSStybEIzRmY2alZSTjB5L1Q4Qm5uYkhFeVVzbHJoZEl0ZlZqejAxTTNjbkxNYmJIc1FIQnZtSThxbGt3K2pXb3dCT21uTm9NcGlvQW1xd0hjUmVsM1BnRnp1RXlqaEE3RXp6K1EiLCJtYWMiOiJlMDc5ZjZlYmI2M2FjZDdkM2I3MmM1YmEyYTNkYTY4OTE3YTdiYjQ5MDY1ZTc5ZTJmZTdjOThlYzViMWVjNTdhIiwidGFnIjoiIn0%3D"
+      };
 
-      if (sessionCookie) {
-        // B: Enviar Cadastro (ESPELHAMENTO DE TRAFEGO REAL)
-        const syncPayload = new URLSearchParams();
-        
-        // Mapeamento de Campos Rastremix
-        syncPayload.append('client_name', sanitizedUser.full_name || "");
-        syncPayload.append('client_login', sanitizedUser.login_email || "");
-        syncPayload.append('client_pass', sanitizedUser.password || "");
-        syncPayload.append('client_tab_client_document', sanitizedUser.cpf || sanitizedUser.document || "");
-        syncPayload.append('client_tab_client_email', sanitizedUser.login_email || "");
-        syncPayload.append('client_tab_client_postal_code', sanitizedUser.zip_code || "");
-        syncPayload.append('client_tab_client_address', sanitizedUser.address || "");
-        syncPayload.append('client_tab_client_number', sanitizedUser.address_number || "");
-        syncPayload.append('client_tab_client_city', sanitizedUser.city || "");
-        syncPayload.append('client_tab_client_state', sanitizedUser.state || "");
-        syncPayload.append('client_tab_client_cell_phone', sanitizedUser.celular || sanitizedUser.cellphone || "");
-        
-        // Permissões Padrão (Conforme curl 2)
-        const perms = ['devices', 'alerts', 'cercas', 'relatorios', 'comandos', 'compartilhar_localizacao'];
-        perms.forEach(p => {
-          syncPayload.append(`perms[${p}][view]`, '1');
-          syncPayload.append(`perms[${p}][edit]`, '1');
-          syncPayload.append(`perms[${p}][delete]`, '1');
-        });
+      const syncRes = await fetch("https://aplicativo.rastremix.com.br/admin/clients", {
+        method: "POST",
+        headers: headers,
+        body: mirrorPayload
+      });
 
-        const syncRes = await fetch("https://aplicativo.rastremix.com.br/admin/clients", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "Cookie": sessionCookie,
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
-            "X-Requested-With": "XMLHttpRequest",
-            "Referer": "https://aplicativo.rastremix.com.br/admin/users/clients"
-          },
-          body: syncPayload
-        });
-
-        if (!syncRes.ok) {
-          syncStatus = "error";
-          syncErrorMsg = `Rastremix HTTP ${syncRes.status}`;
-        }
-      } else {
+      if (!syncRes.ok) {
         syncStatus = "error";
-        syncErrorMsg = "Falha na Sessão Legada";
+        syncErrorMsg = `Rastremix Mirror HTTP ${syncRes.status}`;
+        console.warn("Mirror falhou:", await syncRes.text());
+      } else {
+        console.log("Mirror Definitivo: Sincronização bem-sucedida.");
       }
     } catch (err: any) {
       syncStatus = "error";
@@ -162,14 +179,14 @@ serve(async (req) => {
       .update({ sync_status: syncStatus, erro_log: syncErrorMsg })
       .eq('login_email', user.login_email)
 
-    // 4. RETORNO DE SUCESSO (LIBERA O ARNALDO)
+    // 4. RETORNO DE SUCESSO ABSOLUTO (LIBERA O USO)
     return new Response(
-      JSON.stringify({ success: true, message: "Operador Matrículado no Supabase!" }),
+      JSON.stringify({ success: true, message: "Cadastro Finalizado!" }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
 
   } catch (error: any) {
-    console.error("Critical Error:", error.message)
+    console.error("Critical Error Mirror:", error.message)
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
