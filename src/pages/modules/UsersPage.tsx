@@ -15,12 +15,21 @@ import {
 import { UserRegistrationForm } from "@/components/admin/users/UserRegistrationForm"
 import { supabase } from "@/lib/supabaseClient"
 import { motion, AnimatePresence } from "framer-motion"
+import { MiniMap } from "@/components/admin/users/MiniMap"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { MapPin, ExternalLink, Navigation } from "lucide-react"
 
 export default function UsersPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [users, setUsers] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedUserForView, setSelectedUserForView] = useState<any | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -160,8 +169,16 @@ export default function UsersPage() {
                             {new Date(user.created_at).toLocaleDateString("pt-BR")}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right px-6">
+                         <TableCell className="text-right px-6">
                           <div className="flex items-center justify-end gap-1">
+                             <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setSelectedUserForView(user)}
+                                className="text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                             >
+                                <Eye className="h-4 w-4" />
+                             </Button>
                              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors">
                                 <Edit className="h-4 w-4" />
                              </Button>
@@ -179,6 +196,94 @@ export default function UsersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog de Detalhes e Mapa */}
+      <Dialog open={!!selectedUserForView} onOpenChange={(open) => !open && setSelectedUserForView(null)}>
+        <DialogContent className="max-w-2xl bg-white border-0 shadow-2xl rounded-3xl overflow-hidden p-0">
+          {selectedUserForView && (
+            <div className="flex flex-col">
+              <div className="bg-blue-600 p-8 text-white relative">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl font-black">{selectedUserForView.full_name}</h2>
+                    <p className="text-blue-100 flex items-center gap-2 text-sm">
+                      <Mail className="h-4 w-4" /> {selectedUserForView.login_email}
+                    </p>
+                  </div>
+                  <Badge className="bg-white/20 text-white font-bold backdrop-blur-md border-0 px-4 py-1">
+                    {selectedUserForView.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+                {/* Endereço e Logística */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                       <MapPin className="h-4 w-4 text-blue-500" />
+                       Localização e Endereço
+                    </h3>
+                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-3">
+                      <p className="text-sm font-bold text-gray-800 leading-relaxed">
+                        {selectedUserForView.address}, {selectedUserForView.address_number}<br/>
+                        {selectedUserForView.neighborhood} - {selectedUserForView.city}/{selectedUserForView.state}<br/>
+                        CEP: {selectedUserForView.zip_code}
+                      </p>
+                      
+                      {selectedUserForView.distance_to_base !== null && (
+                         <div className="pt-3 mt-3 border-t border-gray-200 flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500">Distância até a Base:</span>
+                            <Badge className="bg-emerald-100 text-emerald-700 font-black border-emerald-200">
+                               {selectedUserForView.distance_to_base.toFixed(1)} km
+                            </Badge>
+                         </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                       <Shield className="h-4 w-4 text-orange-500" />
+                       Ações Rápidas
+                    </h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start gap-3 rounded-2xl py-6 border-gray-200 hover:bg-blue-50 hover:text-blue-600 group"
+                        onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${selectedUserForView.latitude},${selectedUserForView.longitude}`, '_blank')}
+                        disabled={!selectedUserForView.latitude}
+                      >
+                         <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
+                         Google Maps
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start gap-3 rounded-2xl py-6 border-gray-200 hover:bg-blue-50 hover:text-blue-600 group"
+                        onClick={() => window.open(`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedUserForView.latitude},${selectedUserForView.longitude}`, '_blank')}
+                        disabled={!selectedUserForView.latitude}
+                      >
+                         <Navigation className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
+                         Street View
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mini Mapa Miniatura */}
+                {selectedUserForView.latitude && selectedUserForView.longitude && (
+                   <div className="space-y-4 pt-2">
+                      <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                         Visualização de Satélite
+                      </h3>
+                      <MiniMap lat={selectedUserForView.latitude} lng={selectedUserForView.longitude} />
+                   </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

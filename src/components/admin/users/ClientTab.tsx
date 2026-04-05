@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
 
 export const ClientTab = () => {
   const { control } = useFormContext()
@@ -104,9 +105,47 @@ export const ClientTab = () => {
             name="address"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel className="text-gray-700 font-bold">Endereço:</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-gray-700 font-bold">Endereço:</FormLabel>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const zip = control._formValues.zip_code;
+                      const num = control._formValues.address_number;
+                      const addr = field.value;
+                      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+                      
+                      if (!apiKey) {
+                        toast.error("Erro: VITE_GOOGLE_MAPS_API_KEY não configurada no .env");
+                        return;
+                      }
+
+                      toast.loading("Validando endereço...", { id: 'geo-val' });
+                      try {
+                        const query = `${addr}, ${num}, ${zip}, Brazil`;
+                        const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`);
+                        const data = await res.json();
+                        
+                        if (data.status === 'OK') {
+                          const result = data.results[0];
+                          const { lat, lng } = result.geometry.location;
+                          toast.success("Endereço Validado!", { id: 'geo-val' });
+                          console.log("Coords:", lat, lng);
+                          // Opcional: Atualizar campos lat/lng ocultos ou feedback visual
+                        } else {
+                          throw new Error(data.error_message || "Local não encontrado");
+                        }
+                      } catch (err: any) {
+                        toast.error(`Falha na validação: ${err.message}`, { id: 'geo-val' });
+                      }
+                    }}
+                    className="text-[9px] font-black text-blue-600 uppercase hover:underline"
+                  >
+                    Auto-Validar G-Maps
+                  </button>
+                </div>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} placeholder="Rua, Av, etc." className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

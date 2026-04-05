@@ -80,6 +80,10 @@ export interface CustomerRegistration {
   tec_service_id?: string;
   technician_id?: string;
   technician_name?: string;
+  // Logistics (GMP)
+  latitude?: number;
+  longitude?: number;
+  distance_to_base?: number;
   // Meta
   status?: CustomerStatus;
   created_at?: string;

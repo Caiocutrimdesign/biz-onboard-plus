@@ -93,25 +93,24 @@ export const UserRegistrationForm = ({ onCancel }: { onCancel?: () => void }) =>
     try {
       console.log("Iniciando salvamento...", values)
 
-      const { data, error } = await supabase.functions.invoke('save-user-sync', {
+      const { data, error } = await supabase.functions.invoke('sync-rastremix', {
         body: { 
-          user: {
+          type: 'register',
+          user_data: {
             ...values,
-            // Remover campos auxiliares do formulário antes de enviar
             has_device_limit: undefined,
             has_expiration: undefined,
             password_confirmation: undefined,
             vehicles: undefined,
-          },
-          vehicles: values.vehicles // Enviar IDs de veículos separadamente
+          }
         }
       })
 
       if (error) throw error
 
       if (data.success) {
-        toast.success("Usuário cadastrado e liberado com sucesso!", {
-          description: "O cadastro já está ativo no sistema novo (Supabase).",
+        toast.success("Usuário cadastrado com sucesso!", {
+          description: "Sincronizando dados com a Rastremix Antiga...",
           duration: 3000,
         })
         

@@ -12,6 +12,73 @@ const corsHeaders = {
 const clean = (val: string) => (val ? val.replace(/\D/g, "") : "");
 
 /**
+ * GMP: Address Validation & Geocoding
+ */
+async function validateAddress(zip: string, number: string, address: string) {
+  const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
+  if (!apiKey) {
+    console.warn("GMP: GOOGLE_MAPS_API_KEY não configurada.");
+    return null;
+  }
+
+  const query = `${address}, ${number}, ${zip}, Brazil`;
+  try {
+    const res = await fetch(`https://addressvalidation.googleapis.com/v1:validateAddress?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        address: { addressLines: [query] }
+      })
+    });
+
+    if (!res.ok) throw new Error(`GMP HTTP ${res.status}`);
+    const data = await res.json();
+    
+    // Extrai Coordenadas
+    const location = data.result?.geocode?.location;
+    return location ? { lat: location.latitude, lng: location.longitude } : null;
+  } catch (err) {
+    console.error("Erro GMP Address Validate:", err.message);
+    return null;
+  }
+}
+
+/**
+ * GMP: Distance Matrix (Logística Vale/Equatorial)
+ */
+async function calculateDistance(lat: number, lng: number, clientName: string) {
+  const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
+  if (!apiKey) return null;
+
+  // Bases Operacionais (Padrão Paço do Lumiar/SLZ)
+  const bases = {
+    'Vale': '-2.5307,-44.2045',
+    'Equatorial': '-2.5186,-44.2541'
+  };
+
+  const isVale = clientName.toUpperCase().includes('VALE');
+  const isEquatorial = clientName.toUpperCase().includes('EQUATORIAL');
+  
+  if (!isVale && !isEquatorial) return null;
+  const destination = isVale ? bases.Vale : bases.Equatorial;
+
+  try {
+    const res = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${lat},${lng}&destinations=${destination}&key=${apiKey}`);
+    const data = await res.json();
+    
+    if (data.status === 'OK' && data.rows[0].elements[0].status === 'OK') {
+      const distanceText = data.rows[0].elements[0].distance.text;
+      const distanceValue = data.rows[0].elements[0].distance.value / 1000; // km
+      return distanceValue;
+    }
+    return null;
+  } catch (err) {
+    console.error("Erro GMP Distance Matrix:", err.message);
+    return null;
+  }
+}
+
+/**
  * Helper: Login na API Legada para obter Sessão
  */
 async function loginToRastremix(email: string, password: string) {
@@ -63,11 +130,34 @@ serve(async (req) => {
 
     console.log("Recebendo Matrícula Local:", user.login_email);
 
-    // 1. SALVAMENTO IMEDIATO NO SUPABASE (PRIORIDADE ZERO)
+    // 1. INTELIGÊNCIA GEOGRÁFICA (GMP)
+    let latitude = null;
+    let longitude = null;
+    let distance_to_base = null;
+
+    if (sanitizedUser.zip_code || sanitizedUser.address) {
+      const geo = await validateAddress(
+        sanitizedUser.zip_code || "",
+        sanitizedUser.address_number || "",
+        sanitizedUser.address || ""
+      );
+
+      if (geo) {
+        latitude = geo.lat;
+        longitude = geo.lng;
+        // Calcula Distância se for Vale/Equatorial
+        distance_to_base = await calculateDistance(latitude, longitude, sanitizedUser.full_name || "");
+      }
+    }
+
+    // 2. SALVAMENTO IMEDIATO NO SUPABASE (PRIORIDADE ZERO)
     const { data: supabaseUser, error: supabaseError } = await supabaseClient
       .from('usuarios')
       .upsert({
         ...sanitizedUser,
+        latitude,
+        longitude,
+        distance_to_base,
         sync_status: 'pending',
         updated_at: new Date().toISOString()
       }, { onConflict: 'login_email' })

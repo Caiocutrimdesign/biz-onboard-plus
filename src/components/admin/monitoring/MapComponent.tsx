@@ -113,9 +113,19 @@ export function MapComponent() {
                         {v.ignicao ? 'Ligada' : 'Desligada'}
                       </span>
                     </div>
-                    <div className="pt-2 mt-1 border-t border-gray-50 flex items-center justify-between text-[9px] text-gray-400">
-                      <span>Atualizado:</span>
-                      <span className="font-medium">{new Date(v.ultima_atualizacao).toLocaleTimeString()}</span>
+                    <div className="pt-2 mt-1 border-t border-gray-50 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between text-[9px] text-gray-400">
+                        <span>Atualizado:</span>
+                        <span className="font-medium">{new Date(v.ultima_atualizacao).toLocaleTimeString()}</span>
+                      </div>
+                      <a 
+                        href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${v.latitude},${v.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-blue-50 text-blue-600 py-1.5 rounded-lg text-[8px] font-black uppercase text-center hover:bg-blue-600 hover:text-white transition-all border border-blue-100"
+                      >
+                        Abrir Street View
+                      </a>
                     </div>
                   </div>
                 </div>
