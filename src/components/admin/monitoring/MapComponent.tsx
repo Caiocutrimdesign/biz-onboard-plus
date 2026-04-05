@@ -49,7 +49,7 @@ const createCarIcon = (color: string) => L.divIcon({
 });
 
 export function MapComponent() {
-  const { veiculos, isLoading } = useVeiculos();
+  const { veiculos, isLoading, isSyncing, syncWithLegacy } = useVeiculos();
   const [mapType, setMapType] = useState<'streets' | 'satellite'>('satellite');
   
   const center: [number, number] = veiculos.length > 0 
@@ -161,6 +161,19 @@ export function MapComponent() {
          >
            <Layers className="w-5 h-5" />
          </motion.button>
+         
+         {/* Sync Button */}
+         <motion.button 
+           whileHover={{ scale: 1.05 }}
+           whileTap={{ scale: 0.95 }}
+           onClick={() => syncWithLegacy()}
+           disabled={isSyncing}
+           className={`w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center transition-all border border-white/20 shadow-blue-900/10 ${isSyncing ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+           title="Sincronizar agora"
+         >
+           <Loader2 className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
+         </motion.button>
+
          <motion.button 
            whileHover={{ scale: 1.05 }}
            whileTap={{ scale: 0.95 }}
@@ -173,7 +186,7 @@ export function MapComponent() {
       {/* Connection Status Toast */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000]">
         <AnimatePresence>
-          {isLoading ? (
+          {isSyncing || isLoading ? (
             <motion.div 
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -181,7 +194,7 @@ export function MapComponent() {
               className="bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-blue-400/30"
             >
               <Loader2 className="w-4 h-4 animate-spin" />
-              <p className="text-sm font-bold">Sincronizando frotas...</p>
+              <p className="text-sm font-bold">Sincronizando frotas táticas...</p>
             </motion.div>
           ) : (
             <motion.div 

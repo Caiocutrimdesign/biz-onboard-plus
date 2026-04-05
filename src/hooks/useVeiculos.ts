@@ -14,10 +14,26 @@ export interface Veiculo {
 }
 
 export function useVeiculos() {
+  const [isSyncing, setIsSyncing] = useState(false);
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Buscar dados iniciais de frota_veiculos
+  // Função para disparar a Edge Function de sincronia
+  const syncWithLegacy = async () => {
+    try {
+      setIsSyncing(true);
+      const { error } = await supabase.functions.invoke('sync-rastremix', {
+        body: { type: 'fleet' }
+      });
+      if (error) console.error("Erro na Sincronia de Frota:", error);
+    } catch (err) {
+      console.error("Falha ao invocar sync-rastremix:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Buscar dados iniciais e configurar polling
   useEffect(() => {
     async function fetchInitialData() {
       const { data, error } = await supabase
@@ -32,11 +48,17 @@ export function useVeiculos() {
         })));
       }
       setIsLoading(false);
+      
+      // Gatilho inicial de sincronia
+      syncWithLegacy();
     }
 
     fetchInitialData();
 
-    // Assinar mudanças em tempo real na nova tabela com ID Único para evitar colisões
+    // Polling Estratégico (A cada 60 segundos)
+    const pollInterval = setInterval(syncWithLegacy, 60000);
+
+    // Assinar mudanças em tempo real na nova tabela
     const channelId = `frota-realtime-${Math.random().toString(36).substring(7)}`;
     const channel = supabase
       .channel(channelId)
@@ -60,6 +82,7 @@ export function useVeiculos() {
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, []);
 
@@ -71,5 +94,5 @@ export function useVeiculos() {
     };
   }, [veiculos]);
 
-  return { veiculos, stats, isLoading };
+  return { veiculos, stats, isLoading, isSyncing, syncWithLegacy };
 }
