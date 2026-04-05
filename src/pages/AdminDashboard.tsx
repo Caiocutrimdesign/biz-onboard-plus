@@ -267,7 +267,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 relative z-10 custom-scrollbar">
+        <div className={`flex-1 relative z-10 flex flex-col ${activeModule === 'mapa' ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeModule}
@@ -275,10 +275,11 @@ export default function AdminDashboard() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
+              className="flex-1 min-h-0 flex flex-col"
             >
               {/* Mapa View (Layout de Três Painéis) */}
               {activeModule === 'mapa' && (
-                <div className="absolute inset-0 flex overflow-hidden">
+                <div className="flex-1 relative flex overflow-hidden min-h-0">
                    <MonitoringSidePanel />
                    <MapComponent />
                 </div>
