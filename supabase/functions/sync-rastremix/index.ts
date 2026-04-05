@@ -2,16 +2,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const RASTREMIX_COOKIE = "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6ImpLQktxZ2dFWXRXV2s4bVNOKzRKL2c9PSIsInZhbHVlIjoicUpXYUVVQWxpNzNydE9Rc1NYdDdRQXRNMVZKeDlkalU0MUZuNkIwZmxhNnJDQTh6S05qWG5OZm1TOUZhclpUUWNrTEY5aVdpNGZMYUdNL1psNHpzSXNTdU85d3lWbkFoK1ByWEhtV0NDczUxRmJOTnhQUzRqaDNKV2crSUZraVVKdVB6N3QvS08yM2o5Sk1xaTlCRnNoVHpqZExoVlZwdk1ORlVJaGlaQ3ZsNk0zOTludkV5YmRKeXhKTWtFbjZyT3Q4dWRHRUFpSVBwbmR2c3VHYVJ6Lzl0UGlicXZhWVA3T1pmejJCUStYOD0iLCJtYWMiOiIwZDUzYTQ3Mzg1Y2U3ZmRhODU5MWU3NzExZGY5YjBiMzBlN2JjYWJkMzZiNmUxNDVkZmFmYzdkN2UyMTk4NTY1IiwidGFnIjoiIn0%3D; _ga=GA1.1.613278919.1775256514; laravel_session=eyJpdiI6InExUnpCZFhDdWo2Zk51Ym9uL2xzYkE9PSIsInZhbHVlIjoiaFdUQjdheEhKSko1QzV5TWN3RjdvNFVRY2VkZkc4dWxLVkVOalBlYkJ2V0R5UVBrc1BlWGJGREx3YmtRTCtxcjQ0UGFUbUR4RlJvZG1aYVBQUjF2K3lOd3BQV2pYcDMzUkRMdWc3bGozTi90TGJOVU1ERnlZVkJmWHFxSE1DVm0iLCJtYWMiOiJjNzc1ZTNlMWEyMDdiMGE5MDM3OWM5YzQ5YjY4M2RiMTUxNGJiMTA5MTI2NzU3NTIwM2UxMTA2YTg5ZjdjMmY5IiwidGFnIjoiIn0%3D";
 
-/**
- * CONFIGURAÇÕES DEFINITIVAS - ESPELHAMENTO RASTREMIX
- */
+// Recurso Nativo: Todas as credenciais agora vêm de secrets do Supabase
+const RASTREMIX_COOKIE = Deno.env.get("RASTREMIX_COOKIE") ?? "";
+const RASTREMIX_TOKEN = Deno.env.get("RASTREMIX_TOKEN") ?? "";
 const RASTREMIX_BASE_URL = "https://aplicativo.rastremix.com.br";
-const FIXED_TOKEN = "9NqMbyS329Ikf0sGdawZzILqJlPMAGsWT9EiZH1s"; // Token capturado em tempo real (05/04)
 
 /**
- * GMP: Address Validation & Geocoding
+ * GMP: Native Address Validation & Geocoding
+ * 100% Serverless - Independente de MacBook/Docker
  */
 async function validateAddress(zip: string, number: string, address: string) {
   const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
@@ -27,7 +26,7 @@ async function validateAddress(zip: string, number: string, address: string) {
     const location = data.result?.geocode?.location;
     return location ? { lat: location.latitude, lng: location.longitude } : null;
   } catch (err: any) {
-    console.error("Erro GMP:", err.message);
+    console.error("Erro Nativo GMP:", err.message);
     return null;
   }
 }
@@ -39,10 +38,13 @@ async function calculateDistance(lat: number, lng: number, clientName: string) {
   const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
   if (!apiKey) return null;
   const bases = { 'Vale': '-2.5307,-44.2045', 'Equatorial': '-2.5186,-44.2541' };
-  const isVale = clientName.toUpperCase().includes('VALE');
-  const isEquatorial = clientName.toUpperCase().includes('EQUATORIAL');
+  const nameUpper = (clientName || "").toUpperCase();
+  const isVale = nameUpper.includes('VALE');
+  const isEquatorial = nameUpper.includes('EQUATORIAL');
+  
   if (!isVale && !isEquatorial) return null;
   const dest = isVale ? bases.Vale : bases.Equatorial;
+  
   try {
     const res = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${lat},${lng}&destinations=${dest}&key=${apiKey}`);
     const data = await res.json();
@@ -68,7 +70,7 @@ Deno.serve(async (req) => {
 
     // --- MODO 1: SINCRONIZAÇÃO DE FROTA (FLEET) ---
     if (type === 'fleet') {
-      console.log("Iniciando captura de frota Rastremix...");
+      console.log("Iniciando captura de frota Nativa Rastremix...");
       
       const response = await fetch(`${RASTREMIX_BASE_URL}/objects/items`, {
         method: "POST",
@@ -79,7 +81,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ size: 1500, filter_by: "device" }),
       });
 
-      if (!response.ok) throw new Error(`Erro API Rastremix: ${response.status}`);
+      if (!response.ok) throw new Error(`Erro API: ${response.status}`);
       const data = await response.json();
       const items = data.items || [];
       
@@ -104,25 +106,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // --- MODO 2: ESPELHAMENTO DEFINITIVO DE CADASTRO (REGISTER) ---
+    // --- MODO 2: ESPELHAMENTO DEFINITIVO (REGISTER) ---
     if (type === 'register' && user_data) {
-      console.log("Iniciando Mirror Sync nativo para:", user_data.login_email);
+      console.log("Iniciando Permanent Native Sync para:", user_data.login_email);
       
       const cleanCPF = (user_data.document || user_data.cpf || "").replace(/\D/g, "");
       const cleanPhone = (user_data.phone || user_data.celular || "").replace(/\D/g, "");
       const cleanZip = (user_data.zipCode || user_data.zip_code || "").replace(/\D/g, "");
 
-      // 1. Inteligência Geográfica
+      // Geocodificação Nativa
       let lat = null, lng = null, dist = null;
-      if (cleanZip || user_data.street) {
-        const geo = await validateAddress(cleanZip, user_data.number || "", user_data.street || user_data.address || "");
+      if (cleanZip || user_data.street || user_data.address) {
+        const geo = await validateAddress(cleanZip, user_data.number || user_data.address_number || "", user_data.street || user_data.address || "");
         if (geo) {
           lat = geo.lat; lng = geo.lng;
           dist = await calculateDistance(lat, lng, user_data.full_name || "");
         }
       }
 
-      // 2. Salvamento Local (Supabase)
+      // Persistência Supabase
       const { error: dbError } = await supabase.from('usuarios').upsert({
         full_name: user_data.full_name,
         login_email: user_data.login_email,
@@ -143,27 +145,21 @@ Deno.serve(async (req) => {
 
       if (dbError) throw dbError;
 
-      // 3. Sync Externo (Rastremix Mirror) - Bilateral Multi-Field
+      // Espelhamento Definitivo (cURL Native Format)
       const mirrorPayload = new URLSearchParams();
-      mirrorPayload.append('_token', FIXED_TOKEN);
+      mirrorPayload.append('_token', RASTREMIX_TOKEN);
       mirrorPayload.append('active', '1');
       mirrorPayload.append('group_id', '2');
       mirrorPayload.append('manager_id', '96833');
-      
-      // Mapeamento dos campos de Identidade
       mirrorPayload.append('client_name', user_data.full_name || "");
       mirrorPayload.append('email', user_data.login_email || "");
       mirrorPayload.append('email_cobranca', user_data.login_email || "");
       mirrorPayload.append('client_login', user_data.login_email || "");
       mirrorPayload.append('client_tab_client_email', user_data.login_email || "");
       mirrorPayload.append('client_tab_client_cpf', cleanCPF);
-      
-      // Mapeamento de Senhas (necessário em 3 campos no sistema antigo)
       mirrorPayload.append('password', user_data.password || "");
       mirrorPayload.append('password_confirmation', user_data.password || "");
       mirrorPayload.append('client_pass', user_data.password || "");
-      
-      // Mapeamento de Endereço - Sistema Antigo
       mirrorPayload.append('client_tab_client_postal_code', cleanZip);
       mirrorPayload.append('client_tab_client_address', user_data.street || user_data.address || "");
       mirrorPayload.append('client_tab_client_address_number', user_data.number || user_data.address_number || "");
@@ -171,10 +167,7 @@ Deno.serve(async (req) => {
       mirrorPayload.append('client_tab_client_address_city', user_data.city || "");
       mirrorPayload.append('client_tab_client_address_state', user_data.state || "");
       mirrorPayload.append('tel_cel', cleanPhone);
-      
-      // Meta-dados do Plano e Cobrança
       mirrorPayload.append('data_de_vencimento', (user_data.due_day || 14).toString());
-      mirrorPayload.append('bin_admin_flags', '0');
       mirrorPayload.append('bin_admin_flags', '1');
       mirrorPayload.append('bin_permissions', '-1');
       mirrorPayload.append('template_bin_permissions', '-1');
@@ -200,22 +193,24 @@ Deno.serve(async (req) => {
           throw new Error(`HTTP ${syncRes.status}: ${errorText.substring(0, 100)}`);
         }
       } catch (e: any) {
-        console.error("Erro no Espelhamento:", e.message);
+        console.error("Erro no Espelhamento Nativo:", e.message);
         syncStatus = "error";
         syncError = e.message;
       }
 
-      await supabase.from('usuarios').update({ sync_status: syncStatus, erro_log: syncError }).eq('login_email', user_data.login_email);
+      await supabase.from('usuarios')
+        .update({ sync_status: syncStatus, erro_log: syncError })
+        .eq('login_email', user_data.login_email);
       
-      return new Response(JSON.stringify({ success: true, message: "Cadastro e Sincronia Bilateral OK", sync_status: syncStatus }), {
+      return new Response(JSON.stringify({ success: true, sync_status: syncStatus }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
-    throw new Error("Tipo de operação inválido.");
+    throw new Error("Operação inválida.");
 
   } catch (error) {
-    console.error("Erro na sincronização:", error.message);
+    console.error("Falha Crítica:", error.message);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
