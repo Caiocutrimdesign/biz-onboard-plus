@@ -55,9 +55,9 @@ export const MiniMap = ({ lat, lng, zoom = 15 }: MiniMapProps) => {
         href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-gray-800 uppercase shadow-xl hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 border border-blue-100"
+        className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-gray-800 uppercase shadow-xl hover:bg-red-600 hover:text-white transition-all flex items-center gap-2 border border-red-100"
       >
-        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+        <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
         Ver no Street View
       </a>
     </div>

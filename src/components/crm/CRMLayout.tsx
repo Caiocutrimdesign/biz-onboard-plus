@@ -14,7 +14,7 @@ import { useCRMStore } from '@/stores/crmStore';
 type CRMLodule = 'dashboard' | 'leads' | 'pipeline' | 'automation' | 'email' | 'calendar' | 'analytics' | 'funnels' | 'satisfaction' | 'users' | 'agents' | 'settings';
 
 const modules = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-500' },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'text-red-500 shadow-sm' },
   { id: 'leads', label: 'Leads', icon: Users, color: 'text-purple-500' },
   { id: 'pipeline', label: 'Pipeline', icon: Target, color: 'text-green-500' },
   { id: 'automation', label: 'Automações', icon: Zap, color: 'text-yellow-500' },

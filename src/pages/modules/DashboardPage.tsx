@@ -50,7 +50,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
             <Link to="/tec">
-              <Button className="bg-orange-500 hover:bg-orange-600">
+              <Button className="bg-red-600 hover:bg-red-700 text-white border-none shadow-lg shadow-red-500/20">
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Serviço
               </Button>
@@ -64,7 +64,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/25">
+                  <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/25">
                     <Users className="w-7 h-7 text-white" />
                   </div>
                   <div>
@@ -132,34 +132,34 @@ export default function DashboardPage() {
         {/* Quick Access */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link to="/crm">
-            <Card className="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-purple-500">
+            <Card className="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-red-500">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center">
-                    <Users className="w-8 h-8 text-purple-600" />
+                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center">
+                    <Users className="w-8 h-8 text-red-600" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-bold">CRM</h3>
                     <p className="text-sm text-muted-foreground">Gerenciar clientes</p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-purple-500" />
+                  <ArrowRight className="w-5 h-5 text-red-500" />
                 </div>
               </CardContent>
             </Card>
           </Link>
 
           <Link to="/tec">
-            <Card className="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-orange-500">
+            <Card className="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-red-500">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center">
-                    <Car className="w-8 h-8 text-orange-600" />
+                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center">
+                    <Car className="w-8 h-8 text-red-600" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-bold">TEC</h3>
                     <p className="text-sm text-muted-foreground">Central de serviços</p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-orange-500" />
+                  <ArrowRight className="w-5 h-5 text-red-500" />
                 </div>
               </CardContent>
             </Card>
@@ -239,10 +239,10 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <AlertCircle className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center">
+                      <AlertCircle className="w-5 h-5 text-red-600" />
                     </div>
                     <div>
                       <p className="font-medium">{tecStats.inProgress}</p>

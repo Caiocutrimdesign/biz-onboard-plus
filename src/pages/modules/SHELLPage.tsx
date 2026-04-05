@@ -26,12 +26,12 @@ export default function SHELLPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <ShoppingCart className="w-7 h-7 text-pink-500" />
+              <ShoppingCart className="w-7 h-7 text-red-600" />
               SHELL - Vendas
             </h1>
             <p className="text-muted-foreground">Captura e conversão de leads</p>
           </div>
-          <Button className="bg-pink-500 hover:bg-pink-600">
+          <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20 border-none transition-all hover:scale-105">
             <Plus className="w-4 h-4 mr-2" />
             Novo Lead
           </Button>
@@ -39,11 +39,11 @@ export default function SHELLPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="border-l-4 border-l-pink-500">
+          <Card className="border-l-4 border-l-red-600 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-pink-600" />
+                <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.totalLeads}</p>
@@ -95,32 +95,32 @@ export default function SHELLPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-pink-500 to-rose-600 text-white">
+          <Card className="bg-gradient-brand text-white shadow-lg shadow-red-500/20 border-none">
             <CardContent className="pt-6">
-              <Plus className="w-8 h-8 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Novo Lead</h3>
-              <p className="text-white/80 mb-4">Capture um novo lead de venda</p>
-              <Button className="bg-white text-pink-600 hover:bg-white/90">
+              <Plus className="w-8 h-8 mb-4 opacity-80" />
+              <h3 className="text-xl font-bold mb-1">Novo Lead</h3>
+              <p className="text-white/80 mb-4 text-sm">Capture um novo lead de venda</p>
+              <Button className="bg-white text-red-600 hover:bg-white/90 font-bold w-full rounded-xl">
                 Começar
               </Button>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-purple-500 to-violet-600 text-white">
+          <Card className="bg-gradient-to-br from-red-600 to-red-800 text-white border-none shadow-lg shadow-red-600/10">
             <CardContent className="pt-6">
-              <Send className="w-8 h-8 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Disparo em Massa</h3>
-              <p className="text-white/80 mb-4">Envie mensagens para vários leads</p>
-              <Button className="bg-white text-purple-600 hover:bg-white/90">
+              <Send className="w-8 h-8 mb-4 opacity-80" />
+              <h3 className="text-xl font-bold mb-1">Disparo em Massa</h3>
+              <p className="text-white/80 mb-4 text-sm">Envie mensagens para vários leads</p>
+              <Button className="bg-white text-red-800 hover:bg-white/90 font-bold w-full rounded-xl">
                 Disparar
               </Button>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
+          <Card className="bg-gradient-to-br from-red-400 to-red-500 text-white border-none shadow-lg shadow-red-400/10">
             <CardContent className="pt-6">
-              <TrendingUp className="w-8 h-8 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Relatórios</h3>
-              <p className="text-white/80 mb-4">Veja métricas de vendas</p>
-              <Button className="bg-white text-blue-600 hover:bg-white/90">
+              <TrendingUp className="w-8 h-8 mb-4 opacity-80" />
+              <h3 className="text-xl font-bold mb-1">Relatórios</h3>
+              <p className="text-white/80 mb-4 text-sm">Veja métricas de vendas</p>
+              <Button className="bg-white text-red-500 hover:bg-white/90 font-bold w-full rounded-xl">
                 Ver Relatórios
               </Button>
             </CardContent>

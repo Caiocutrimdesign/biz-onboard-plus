@@ -167,9 +167,9 @@ const companies = [
     tagline: 'Proteção Veicular Inteligente.',
     shortDesc: 'A proteção do seu patrimônio.',
     description: 'A Rastremix não é feita de chips e satélites; somos feitos de pessoas que acreditam que o amor é o maior patrimônio. Somos uma família global que cuida da sua. Trazemos a força de uma multinacional para o portão da sua casa, com o carinho de quem sabe o seu nome.',
-    color: '#F97316',
-    colorRgb: '249, 115, 22',
-    gradient: 'linear-gradient(135deg, #F97316, #EA580C, #DC2626)',
+    color: '#DC2626',
+    colorRgb: '220, 38, 38',
+    gradient: 'linear-gradient(135deg, #DC2626, #B91C1C, #991B1B)',
     icon: Radar,
     founded: '2018',
     employees: '300+',
@@ -360,9 +360,9 @@ const companies = [
 
 function CyberButton({ children, onClick, variant = 'primary', size = 'md', icon: Icon, disabled }: any) {
   const variants = {
-    primary: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/30',
-    secondary: 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 shadow-lg shadow-purple-500/30',
-    outline: 'border-2 border-cyan-500/50 bg-transparent hover:bg-cyan-500/10',
+    primary: 'bg-gradient-brand hover:brightness-110 shadow-lg shadow-red-500/30',
+    secondary: 'bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 shadow-lg shadow-red-500/30',
+    outline: 'border-2 border-red-500/50 bg-transparent hover:bg-red-500/10',
   };
   
   const sizes = {
@@ -620,13 +620,13 @@ function ProductCard({ product, color }: { product: any; color: string }) {
 function SpaceBackground() {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <div className="absolute inset-0 bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950" />
+      <div className="absolute inset-0 bg-gradient-to-b from-red-950 via-black to-slate-950" />
       
       <svg className="absolute inset-0 w-full h-full opacity-20">
         <defs>
           <radialGradient id="nebula1" cx="20%" cy="30%" r="50%">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="nebula2" cx="80%" cy="60%" r="40%">
             <stop offset="0%" stopColor="#ec4899" stopOpacity="0.3" />
@@ -673,16 +673,16 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                   </CyberButton>
                 )}
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-brand flex items-center justify-center shadow-lg shadow-red-500/30">
                     <Building2 className="w-7 h-7" />
                   </div>
                   <div>
                     <h1 className="text-2xl font-black tracking-wider">
-                      <GlitchText className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                      <GlitchText className="bg-gradient-to-r from-red-400 via-red-600 to-orange-500 bg-clip-text text-transparent">
                         A EMPRESA
                       </GlitchText>
                     </h1>
-                    <p className="text-xs text-cyan-400/70 font-mono tracking-widest">ECOSSISTEMA RASTRAMIX</p>
+                    <p className="text-xs text-red-400/70 font-mono tracking-widest">ECOSSISTEMA RASTRAMIX</p>
                   </div>
                 </div>
               </div>
@@ -708,7 +708,7 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-8"
             >
-              <Badge className="mb-4 px-6 py-2 text-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-cyan-500/50 text-cyan-400 backdrop-blur">
+              <Badge className="mb-4 px-6 py-2 text-lg bg-gradient-to-r from-red-500/20 to-red-700/20 border-red-500/50 text-red-400 backdrop-blur">
                 <motion.span
                   animate={{ opacity: [1, 0.5, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -719,11 +719,11 @@ export default function EmpresaPage({ onBack }: EmpresaPageProps = {}) {
                 ECOSSISTEMA DE PROTEÇÃO
               </Badge>
               <h2 className="text-4xl md:text-6xl font-black mb-4">
-                <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent">
                   O Grupo Que Move
                 </span>
                 <br />
-                <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-600 bg-clip-text text-transparent">
                   o Brasil
                 </span>
               </h2>

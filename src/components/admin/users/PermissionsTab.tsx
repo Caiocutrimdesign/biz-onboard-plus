@@ -60,7 +60,7 @@ export const PermissionsTab = () => {
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
-                              className="data-[state=checked]:bg-blue-600"
+                              className="data-[state=checked]:bg-red-600"
                             />
                           </FormControl>
                         </FormItem>
@@ -79,7 +79,7 @@ export const PermissionsTab = () => {
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
-                              className="data-[state=checked]:bg-blue-600"
+                              className="data-[state=checked]:bg-red-600"
                             />
                           </FormControl>
                         </FormItem>
@@ -98,7 +98,7 @@ export const PermissionsTab = () => {
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
-                              className="data-[state=checked]:bg-blue-600"
+                              className="data-[state=checked]:bg-red-600"
                             />
                           </FormControl>
                         </FormItem>

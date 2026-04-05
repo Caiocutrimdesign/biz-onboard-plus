@@ -108,10 +108,14 @@ Deno.serve(async (req) => {
     if (type === 'register' && user_data) {
       console.log("Iniciando Mirror Sync nativo para:", user_data.login_email);
       
+      const cleanCPF = (user_data.document || user_data.cpf || "").replace(/\D/g, "");
+      const cleanPhone = (user_data.phone || user_data.celular || "").replace(/\D/g, "");
+      const cleanZip = (user_data.zipCode || user_data.zip_code || "").replace(/\D/g, "");
+
       // 1. Inteligência Geográfica
       let lat = null, lng = null, dist = null;
-      if (user_data.zip_code || user_data.address) {
-        const geo = await validateAddress(user_data.zip_code || "", user_data.address_number || "", user_data.address || "");
+      if (cleanZip || user_data.street) {
+        const geo = await validateAddress(cleanZip, user_data.number || "", user_data.street || user_data.address || "");
         if (geo) {
           lat = geo.lat; lng = geo.lng;
           dist = await calculateDistance(lat, lng, user_data.full_name || "");
@@ -120,7 +124,16 @@ Deno.serve(async (req) => {
 
       // 2. Salvamento Local (Supabase)
       const { error: dbError } = await supabase.from('usuarios').upsert({
-        ...user_data,
+        full_name: user_data.full_name,
+        login_email: user_data.login_email,
+        document: cleanCPF,
+        phone: cleanPhone,
+        zip_code: cleanZip,
+        address: user_data.street || user_data.address,
+        address_number: user_data.number || user_data.address_number,
+        neighborhood: user_data.neighborhood,
+        city: user_data.city,
+        state: user_data.state,
         latitude: lat,
         longitude: lng,
         distance_to_base: dist,
@@ -130,38 +143,42 @@ Deno.serve(async (req) => {
 
       if (dbError) throw dbError;
 
-      // 3. Sync Externo (Rastremix Mirror)
+      // 3. Sync Externo (Rastremix Mirror) - Bilateral Multi-Field
       const mirrorPayload = new URLSearchParams();
       mirrorPayload.append('_token', FIXED_TOKEN);
-      mirrorPayload.append('fakeusernameremembered', '');
-      mirrorPayload.append('fakepasswordremembered', '');
       mirrorPayload.append('active', '1');
       mirrorPayload.append('group_id', '2');
       mirrorPayload.append('manager_id', '96833');
-      mirrorPayload.append('bin_admin_flags', '0');
-      mirrorPayload.append('bin_admin_flags', '1');
-      mirrorPayload.append('bin_permissions', '-1');
-      mirrorPayload.append('template_bin_permissions', '-1');
       
+      // Mapeamento dos campos de Identidade
       mirrorPayload.append('client_name', user_data.full_name || "");
       mirrorPayload.append('email', user_data.login_email || "");
       mirrorPayload.append('email_cobranca', user_data.login_email || "");
       mirrorPayload.append('client_login', user_data.login_email || "");
       mirrorPayload.append('client_tab_client_email', user_data.login_email || "");
-      mirrorPayload.append('client_tab_client_cpf', (user_data.cpf || user_data.document || "").replace(/\D/g, ""));
+      mirrorPayload.append('client_tab_client_cpf', cleanCPF);
+      
+      // Mapeamento de Senhas (necessário em 3 campos no sistema antigo)
       mirrorPayload.append('password', user_data.password || "");
       mirrorPayload.append('password_confirmation', user_data.password || "");
       mirrorPayload.append('client_pass', user_data.password || "");
-      mirrorPayload.append('data_de_vencimento', (user_data.due_day || 14).toString());
       
-      mirrorPayload.append('client_tab_client_postal_code', user_data.zip_code?.replace(/\D/g, "") || "");
-      mirrorPayload.append('client_tab_client_address', user_data.address || "");
-      mirrorPayload.append('client_tab_client_address_number', user_data.address_number || "");
+      // Mapeamento de Endereço - Sistema Antigo
+      mirrorPayload.append('client_tab_client_postal_code', cleanZip);
+      mirrorPayload.append('client_tab_client_address', user_data.street || user_data.address || "");
+      mirrorPayload.append('client_tab_client_address_number', user_data.number || user_data.address_number || "");
       mirrorPayload.append('client_tab_client_address_bairro', user_data.neighborhood || "");
       mirrorPayload.append('client_tab_client_address_city', user_data.city || "");
       mirrorPayload.append('client_tab_client_address_state', user_data.state || "");
-      mirrorPayload.append('tel_cel', (user_data.celular || user_data.phone || "").replace(/\D/g, ""));
+      mirrorPayload.append('tel_cel', cleanPhone);
       
+      // Meta-dados do Plano e Cobrança
+      mirrorPayload.append('data_de_vencimento', (user_data.due_day || 14).toString());
+      mirrorPayload.append('bin_admin_flags', '0');
+      mirrorPayload.append('bin_admin_flags', '1');
+      mirrorPayload.append('bin_permissions', '-1');
+      mirrorPayload.append('template_bin_permissions', '-1');
+
       const perms = ['devices', 'alerts', 'geofences', 'reports', 'send_command', 'history', 'sharing'];
       perms.forEach(mod => ['view', 'edit', 'remove'].forEach(act => mirrorPayload.append(`perms[${mod}][${act}]`, '1')));
 
@@ -190,7 +207,7 @@ Deno.serve(async (req) => {
 
       await supabase.from('usuarios').update({ sync_status: syncStatus, erro_log: syncError }).eq('login_email', user_data.login_email);
       
-      return new Response(JSON.stringify({ success: true, message: "Cadastro e Sync Nativo OK" }), {
+      return new Response(JSON.stringify({ success: true, message: "Cadastro e Sincronia Bilateral OK", sync_status: syncStatus }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }

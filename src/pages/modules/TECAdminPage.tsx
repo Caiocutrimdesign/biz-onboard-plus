@@ -64,7 +64,7 @@ export default function TECAdminPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Wrench className="w-7 h-7 text-orange-500" />
+              <Wrench className="w-7 h-7 text-red-600" />
               TEC - Central de Serviços
             </h1>
             <p className="text-muted-foreground">Todos os serviços dos técnicos</p>
@@ -76,7 +76,7 @@ export default function TECAdminPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-gray-600 to-gray-700 text-white">
+          <Card className="bg-gradient-brand text-white shadow-lg shadow-red-500/20 border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -87,7 +87,7 @@ export default function TECAdminPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+          <Card className="bg-gradient-to-br from-red-500 to-orange-600 text-white border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -98,7 +98,7 @@ export default function TECAdminPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <Card className="bg-gradient-to-br from-red-600 to-red-800 text-white border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -109,7 +109,7 @@ export default function TECAdminPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <Card className="bg-gradient-to-br from-red-400 to-red-500 text-white border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -161,11 +161,11 @@ export default function TECAdminPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.03 }}
-                    className="flex items-center gap-4 p-4 rounded-xl border hover:bg-muted/50 transition-colors cursor-pointer"
+                    className="flex items-center gap-4 p-4 rounded-xl border hover:bg-red-50/50 transition-colors cursor-pointer"
                     onClick={() => setSelectedService(service)}
                   >
-                    <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
-                      <Car className="w-7 h-7 text-orange-600" />
+                    <div className="w-14 h-14 bg-red-50 rounded-xl flex items-center justify-center border border-red-100">
+                      <Car className="w-7 h-7 text-red-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -216,7 +216,7 @@ export default function TECAdminPage() {
               <>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <Wrench className="w-5 h-5 text-orange-500" />
+                    <Wrench className="w-5 h-5 text-red-600" />
                     Detalhes do Serviço
                   </DialogTitle>
                 </DialogHeader>
@@ -278,7 +278,7 @@ export default function TECAdminPage() {
                     </h3>
 
                     {['antes', 'durante', 'depois'].map(type => {
-                      const photos = getPhotosByType(selectedService.photos || [], type);
+                      const photos = getPhotosByType(selectedService.photos as any || [], type);
                       if (photos.length === 0) return null;
 
                       return (

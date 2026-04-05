@@ -216,7 +216,7 @@ export default function AgentsMonitorPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Bot className="w-7 h-7 text-primary" />
+              <Bot className="w-7 h-7 text-red-600" />
               Centro de Agentes - Monitor 24/7
             </h1>
             <p className="text-muted-foreground">Todos os agentes trabalhando continuamente</p>
@@ -229,7 +229,7 @@ export default function AgentsMonitorPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-primary to-primary/80 text-white">
+          <Card className="bg-gradient-brand text-white shadow-lg shadow-red-500/20">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -240,7 +240,7 @@ export default function AgentsMonitorPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -251,7 +251,7 @@ export default function AgentsMonitorPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <Card className="bg-gradient-to-br from-red-600 to-red-800 text-white border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -262,7 +262,7 @@ export default function AgentsMonitorPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+          <Card className="bg-gradient-to-br from-red-400 to-red-500 text-white border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>

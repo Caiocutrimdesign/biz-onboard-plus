@@ -207,13 +207,13 @@ export default function TechniciansPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Users className="w-7 h-7 text-purple-500" />
+              <Users className="w-7 h-7 text-red-600" />
               Técnicos
             </h1>
             <p className="text-muted-foreground">Gerencie técnicos e instaladores</p>
           </div>
         </div>
-        <Button onClick={openNewModal} className="bg-purple-500 hover:bg-purple-600">
+        <Button onClick={openNewModal} className="bg-red-600 hover:bg-red-700 text-white border-none shadow-lg shadow-red-500/20">
           <UserPlus className="w-4 h-4 mr-2" />
           Novo Técnico
         </Button>
@@ -248,8 +248,8 @@ export default function TechniciansPage() {
                     !tech.active ? 'opacity-60 bg-muted/30' : 'hover:bg-muted/50'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                    <Wrench className="w-6 h-6 text-purple-600" />
+                  <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                    <Wrench className="w-6 h-6 text-red-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

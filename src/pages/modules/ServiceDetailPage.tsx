@@ -330,7 +330,7 @@ export default function ServiceDetailPage({
               <Image className="w-4 h-4" />
               Fotos do Início
               {isPendente && <span className="text-red-500 text-sm">*Obrigatório para iniciar</span>}
-              {isEmAndamento && <span className="text-orange-500 text-sm">(Adicionar mais fotos)</span>}
+              {isEmAndamento && <span className="text-red-500 text-sm">(Adicionar mais fotos)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -376,12 +376,12 @@ export default function ServiceDetailPage({
 
         {/* Botão Iniciar Serviço */}
         {isPendente && (
-          <Card className="border-blue-200 bg-blue-50">
+          <Card className="border-red-200 bg-red-50">
             <CardContent className="p-4">
               <Button
                 onClick={handleStartService}
                 disabled={!canStart || saving}
-                className="w-full bg-blue-500 hover:bg-blue-600"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-12 rounded-xl"
               >
                 <Play className="w-4 h-4 mr-2" />
                 {saving ? 'Iniciando...' : 'Iniciar Serviço'}

@@ -70,14 +70,14 @@ export default function UsersPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="h-6 w-6 text-blue-600" />
+            <Users className="h-6 w-6 text-red-600" />
             Gestão de Usuários
           </h1>
           <p className="text-gray-500 text-sm">Gerencie os acessos e permissões dos seus clientes.</p>
         </div>
         <Button 
           onClick={() => setShowAddForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 px-6 py-6 rounded-2xl flex items-center gap-2 transition-all hover:scale-105"
+          className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200 px-6 py-6 rounded-2xl flex items-center gap-2 transition-all hover:scale-105"
         >
           <Plus className="h-5 w-5" />
           Adicionar Novo Usuário
@@ -91,7 +91,7 @@ export default function UsersPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Buscar por nome, email ou documento..."
-                className="pl-10 bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20"
+                className="pl-10 bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -140,7 +140,7 @@ export default function UsersPage() {
                       >
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100">
+                            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 font-bold border border-red-100">
                               {user.full_name?.charAt(0).toUpperCase() || "U"}
                             </div>
                             <div className="flex flex-col">
@@ -153,7 +153,7 @@ export default function UsersPage() {
                         </TableCell>
                         <TableCell className="text-gray-600 font-mono text-xs">{user.document || "---"}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-bold">
+                          <Badge variant="outline" className="bg-red-50 text-red-600 border-red-100 font-bold">
                             <Shield className="h-3 w-3 mr-1" />
                             {user.group_name}
                           </Badge>
@@ -175,11 +175,11 @@ export default function UsersPage() {
                                 variant="ghost" 
                                 size="icon" 
                                 onClick={() => setSelectedUserForView(user)}
-                                className="text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                                className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                              >
                                 <Eye className="h-4 w-4" />
                              </Button>
-                             <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors">
+                             <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors">
                                 <Edit className="h-4 w-4" />
                              </Button>
                              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors">
@@ -202,11 +202,11 @@ export default function UsersPage() {
         <DialogContent className="max-w-2xl bg-white border-0 shadow-2xl rounded-3xl overflow-hidden p-0">
           {selectedUserForView && (
             <div className="flex flex-col">
-              <div className="bg-blue-600 p-8 text-white relative">
+              <div className="bg-red-600 p-8 text-white relative">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <h2 className="text-2xl font-black">{selectedUserForView.full_name}</h2>
-                    <p className="text-blue-100 flex items-center gap-2 text-sm">
+                    <p className="text-red-100 flex items-center gap-2 text-sm">
                       <Mail className="h-4 w-4" /> {selectedUserForView.login_email}
                     </p>
                   </div>
@@ -221,7 +221,7 @@ export default function UsersPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                       <MapPin className="h-4 w-4 text-blue-500" />
+                       <MapPin className="h-4 w-4 text-red-500" />
                        Localização e Endereço
                     </h3>
                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-3">
@@ -250,20 +250,20 @@ export default function UsersPage() {
                     <div className="grid grid-cols-1 gap-2">
                       <Button 
                         variant="outline" 
-                        className="w-full justify-start gap-3 rounded-2xl py-6 border-gray-200 hover:bg-blue-50 hover:text-blue-600 group"
+                        className="w-full justify-start gap-3 rounded-2xl py-6 border-gray-200 hover:bg-red-50 hover:text-red-600 group"
                         onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${selectedUserForView.latitude},${selectedUserForView.longitude}`, '_blank')}
                         disabled={!selectedUserForView.latitude}
                       >
-                         <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
+                         <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-red-600" />
                          Google Maps
                       </Button>
                       <Button 
                         variant="outline" 
-                        className="w-full justify-start gap-3 rounded-2xl py-6 border-gray-200 hover:bg-blue-50 hover:text-blue-600 group"
+                        className="w-full justify-start gap-3 rounded-2xl py-6 border-gray-200 hover:bg-red-50 hover:text-red-600 group"
                         onClick={() => window.open(`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedUserForView.latitude},${selectedUserForView.longitude}`, '_blank')}
                         disabled={!selectedUserForView.latitude}
                       >
-                         <Navigation className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
+                         <Navigation className="h-5 w-5 text-gray-400 group-hover:text-red-600" />
                          Street View
                       </Button>
                     </div>

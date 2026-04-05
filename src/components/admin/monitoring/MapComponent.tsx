@@ -105,7 +105,7 @@ export function MapComponent() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-gray-400 uppercase">Velocidade</span>
-                      <span className="text-sm font-black text-blue-600">{v.velocidade} km/h</span>
+                      <span className="text-sm font-black text-red-600">{v.velocidade} km/h</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-gray-400 uppercase">Ignição</span>
@@ -122,7 +122,7 @@ export function MapComponent() {
                         href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${v.latitude},${v.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full bg-blue-50 text-blue-600 py-1.5 rounded-lg text-[8px] font-black uppercase text-center hover:bg-blue-600 hover:text-white transition-all border border-blue-100"
+                        className="w-full bg-red-50 text-red-600 py-1.5 rounded-lg text-[8px] font-black uppercase text-center hover:bg-red-600 hover:text-white transition-all border border-red-100"
                       >
                         Abrir Street View
                       </a>
@@ -142,10 +142,10 @@ export function MapComponent() {
       {/* Search Bar Overlay */}
       <div className="absolute top-6 left-6 z-[1000] w-72 md:w-80">
         <div className="relative group">
-           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-red-500 transition-colors" />
            <input 
              placeholder="Localizar veículo..." 
-             className="w-full bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl py-3 pl-11 pr-4 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all shadow-blue-900/10"
+             className="w-full bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl py-3 pl-11 pr-4 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all shadow-red-900/10"
            />
         </div>
       </div>
@@ -156,7 +156,7 @@ export function MapComponent() {
            whileHover={{ scale: 1.05 }}
            whileTap={{ scale: 0.95 }}
            onClick={() => setMapType(mapType === 'streets' ? 'satellite' : 'streets')}
-           className="w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center text-gray-600 hover:text-blue-600 transition-all border border-white/20 shadow-blue-900/10"
+           className="w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center text-gray-600 hover:text-red-600 transition-all border border-white/20 shadow-red-900/10"
            title="Mudar visualização"
          >
            <Layers className="w-5 h-5" />
@@ -168,21 +168,21 @@ export function MapComponent() {
            whileTap={{ scale: 0.95 }}
            onClick={() => syncWithLegacy()}
            disabled={isSyncing}
-           className={`w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center transition-all border border-white/20 shadow-blue-900/10 ${isSyncing ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+           className={`w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center transition-all border border-white/20 shadow-red-900/10 ${isSyncing ? 'text-red-600' : 'text-gray-600 hover:text-red-600'}`}
            title="Sincronizar agora"
          >
            <Loader2 className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
          </motion.button>
-
+ 
          <motion.button 
            whileHover={{ scale: 1.05 }}
            whileTap={{ scale: 0.95 }}
-           className="w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center text-gray-600 hover:text-blue-600 transition-all border border-white/20 shadow-blue-900/10"
+           className="w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex items-center justify-center text-gray-600 hover:text-red-600 transition-all border border-white/20 shadow-red-900/10"
          >
            <Maximize className="w-5 h-5" />
          </motion.button>
       </div>
-
+ 
       {/* Connection Status Toast */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000]">
         <AnimatePresence>
@@ -191,7 +191,7 @@ export function MapComponent() {
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
-              className="bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-blue-400/30"
+              className="bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-red-400/30"
             >
               <Loader2 className="w-4 h-4 animate-spin" />
               <p className="text-sm font-bold">Sincronizando frotas táticas...</p>
@@ -208,13 +208,13 @@ export function MapComponent() {
           )}
         </AnimatePresence>
       </div>
-
+ 
       {/* Bottom Floating Actions */}
       <div className="absolute bottom-12 right-6 z-[1000] flex flex-col gap-4">
          <motion.div 
            whileHover={{ scale: 1.1, rotate: 5 }}
            whileTap={{ scale: 0.9 }}
-           className="w-16 h-16 bg-blue-600 rounded-2xl shadow-2xl flex items-center justify-center text-white border-2 border-blue-500/50 cursor-pointer shadow-blue-600/30"
+           className="w-16 h-16 bg-red-600 rounded-2xl shadow-2xl flex items-center justify-center text-white border-2 border-red-500/50 cursor-pointer shadow-red-600/30"
          >
            <Navigation className="w-8 h-8 fill-white/20" />
          </motion.div>

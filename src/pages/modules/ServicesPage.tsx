@@ -192,10 +192,10 @@ export default function ServicesPage() {
   const tabs: { id: TabType; label: string; count: number; color: string; activeBg: string }[] = [
     { id: 'todos', label: 'Todos', count: stats.total, color: 'text-gray-500', activeBg: 'bg-gray-500' },
     { id: 'pendente', label: 'Pendente', count: stats.pendente, color: 'text-yellow-600', activeBg: 'bg-yellow-500' },
-    { id: 'designado', label: 'Designado', count: stats.designado, color: 'text-purple-600', activeBg: 'bg-purple-500' },
-    { id: 'em_andamento', label: 'Em Andamento', count: stats.emAndamento, color: 'text-blue-600', activeBg: 'bg-blue-500' },
+    { id: 'designado', label: 'Designado', count: stats.designado, color: 'text-red-600', activeBg: 'bg-red-600' },
+    { id: 'em_andamento', label: 'Em Andamento', count: stats.emAndamento, color: 'text-red-600', activeBg: 'bg-red-500' },
     { id: 'finalizado', label: 'Finalizado', count: stats.finalized, color: 'text-green-600', activeBg: 'bg-green-500' },
-    { id: 'cancelado', label: 'Cancelado', count: stats.cancelado, color: 'text-red-600', activeBg: 'bg-red-500' },
+    { id: 'cancelado', label: 'Cancelado', count: stats.cancelado, color: 'text-red-600', activeBg: 'bg-red-600' },
   ];
 
   return (
@@ -212,7 +212,7 @@ export default function ServicesPage() {
           </Button>
           <div>
             <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <Wrench className="w-5 h-5 md:w-7 md:h-7 text-orange-500" />
+              <Wrench className="w-5 h-5 md:w-7 md:h-7 text-red-600" />
               <span className="hidden sm:inline">Serviços</span>
               <span className="sm:hidden">OS</span>
             </h1>
@@ -220,7 +220,7 @@ export default function ServicesPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setShowCreate(true)} className="bg-orange-500 hover:bg-orange-600 h-9 md:h-10">
+          <Button onClick={() => setShowCreate(true)} className="bg-red-600 hover:bg-red-700 h-9 md:h-10 text-white shadow-lg shadow-red-500/20 border-none">
             <Plus className="w-4 h-4 md:mr-2" />
             <span className="hidden md:inline">Novo Serviço</span>
             <span className="md:hidden">Novo</span>
@@ -258,8 +258,8 @@ export default function ServicesPage() {
         </Card>
         <Card className="p-3 md:p-4">
           <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg md:rounded-xl flex items-center justify-center">
-              <User className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-red-50 rounded-lg md:rounded-xl flex items-center justify-center">
+              <User className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
             </div>
             <div>
               <p className="text-lg md:text-xl font-bold">{stats.designado}</p>
@@ -269,8 +269,8 @@ export default function ServicesPage() {
         </Card>
         <Card className="p-3 md:p-4">
           <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg md:rounded-xl flex items-center justify-center">
-              <ArrowRightCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-red-50 rounded-lg md:rounded-xl flex items-center justify-center">
+              <ArrowRightCircle className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
             </div>
             <div>
               <p className="text-lg md:text-xl font-bold">{stats.emAndamento}</p>
@@ -423,7 +423,7 @@ export default function ServicesPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                      className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
                       onClick={(e) => handleEditService(service, e)}
                     >
                       <Pencil className="w-4 h-4" />
@@ -529,8 +529,8 @@ export default function ServicesPage() {
 
               {/* Fotos do Início */}
               {selectedService.fotos_inicio && selectedService.fotos_inicio.length > 0 && (
-                <div className="bg-purple-50 border border-purple-200 p-3 rounded-lg">
-                  <p className="text-xs text-purple-600 font-medium mb-2 flex items-center gap-1">
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                  <p className="text-xs text-red-600 font-medium mb-2 flex items-center gap-1">
                     <Image className="w-3 h-3" />
                     Fotos do Início ({selectedService.fotos_inicio.length})
                   </p>
@@ -546,8 +546,8 @@ export default function ServicesPage() {
 
               {/* Fotos da Finalização */}
               {selectedService.fotos_final && selectedService.fotos_final.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
-                  <p className="text-xs text-blue-600 font-medium mb-2 flex items-center gap-1">
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                  <p className="text-xs text-red-600 font-medium mb-2 flex items-center gap-1">
                     <Image className="w-3 h-3" />
                     Fotos da Finalização ({selectedService.fotos_final.length})
                   </p>
@@ -563,8 +563,8 @@ export default function ServicesPage() {
 
               {/* Assinatura do Cliente */}
               {selectedService.assinatura_cliente && (
-                <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
-                  <p className="text-xs text-orange-600 font-medium mb-2 flex items-center gap-1">
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                  <p className="text-xs text-red-600 font-medium mb-2 flex items-center gap-1">
                     <FileText className="w-3 h-3" />
                     Assinatura do Cliente
                   </p>
@@ -575,8 +575,8 @@ export default function ServicesPage() {
               )}
 
               {/* Technician Assignment */}
-              <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl">
-                <p className="text-sm font-medium text-orange-800 mb-3">Técnico Responsável</p>
+              <div className="bg-red-50 border border-red-100 p-4 rounded-xl">
+                <p className="text-sm font-medium text-red-800 mb-3">Técnico Responsável</p>
                 <Select
                   value={selectedService.tecnico_id || ''}
                   onValueChange={(value) => handleAssignTech(selectedService.id, value)}
@@ -594,8 +594,8 @@ export default function ServicesPage() {
               </div>
 
               {/* Status Update */}
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
-                <p className="text-sm font-medium text-blue-800 mb-3">Status do Serviço</p>
+              <div className="bg-red-50 border border-red-100 p-4 rounded-xl">
+                <p className="text-sm font-medium text-red-800 mb-3">Status do Serviço</p>
                 <div className="flex gap-2 flex-wrap">
                   {SERVICE_STATUS_ORDER.map((status) => (
                     <Button

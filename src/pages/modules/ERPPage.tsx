@@ -39,8 +39,8 @@ export default function ERPPage() {
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Building2 className="w-7 h-7 text-green-500" />
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-red-600">
+              <Building2 className="w-7 h-7" />
               ERP - Gestão Empresarial
             </h1>
             <p className="text-muted-foreground">Visão completa do negócio</p>
@@ -48,11 +48,11 @@ export default function ERPPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="border-l-4 border-l-green-500">
+          <Card className="border-l-4 border-l-red-600 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">R$ {stats.totalRevenue.toLocaleString('pt-BR')}</p>
@@ -144,12 +144,12 @@ export default function ERPPage() {
                     className="flex items-center gap-4 p-4 rounded-xl border hover:bg-muted/50 transition-colors"
                   >
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      service.full_name ? 'bg-purple-100' : 'bg-orange-100'
+                      service.full_name ? 'bg-red-50' : 'bg-red-50/50'
                     }`}>
                       {service.full_name ? (
-                        <Package className="w-6 h-6 text-purple-600" />
+                        <Package className="w-6 h-6 text-red-600" />
                       ) : (
-                        <Truck className="w-6 h-6 text-orange-600" />
+                        <Truck className="w-6 h-6 text-red-600" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -162,8 +162,8 @@ export default function ERPPage() {
                     <Badge className={`
                       ${service.status === 'concluido' ? 'bg-green-100 text-green-800' : ''}
                       ${service.status === 'em_andamento' ? 'bg-yellow-100 text-yellow-800' : ''}
-                      ${service.status === 'pendente' ? 'bg-blue-100 text-blue-800' : ''}
-                      ${service.status === 'novo_cadastro' ? 'bg-purple-100 text-purple-800' : ''}
+                      ${service.status === 'pendente' ? 'bg-red-50 text-red-700' : ''}
+                      ${service.status === 'novo_cadastro' ? 'bg-red-100 text-red-800 font-bold shadow-sm' : ''}
                     `}>
                       {service.status === 'concluido' ? 'Concluído' : 
                        service.status === 'em_andamento' ? 'Em Andamento' :

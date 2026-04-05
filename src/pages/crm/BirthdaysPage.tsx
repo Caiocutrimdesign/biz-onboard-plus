@@ -212,7 +212,7 @@ export default function BirthdaysPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Cake className="w-7 h-7 text-pink-500" />
+              <Cake className="w-7 h-7 text-red-600" />
               Aniversariantes
             </h1>
             <p className="text-muted-foreground">Gerencie envios de mensagens de aniversario</p>
@@ -234,7 +234,7 @@ export default function BirthdaysPage() {
                     onClick={() => setSelectedMonth(mes.value)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                       selectedMonth === mes.value
-                        ? 'bg-pink-500 text-white'
+                        ? 'bg-red-600 text-white'
                         : 'bg-muted hover:bg-muted/80'
                     }`}
                   >
@@ -248,7 +248,7 @@ export default function BirthdaysPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-pink-500 to-rose-600 text-white">
+          <Card className="bg-gradient-to-br from-red-500 to-red-700 text-white">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
@@ -295,9 +295,9 @@ export default function BirthdaysPage() {
 
         {/* Today's Birthdays */}
         {todayBirthdays.length > 0 && (
-          <Card className="border-pink-500 bg-pink-50/50">
+          <Card className="border-red-500 bg-red-50/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-pink-600">
+              <CardTitle className="flex items-center gap-2 text-red-600">
                 <Star className="w-5 h-5" />
                 Aniversariantes de Hoje!
               </CardTitle>
@@ -309,12 +309,12 @@ export default function BirthdaysPage() {
                     key={person.id}
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="p-4 bg-white rounded-xl border-2 border-pink-500 shadow-lg"
+                    className="p-4 bg-white rounded-xl border-2 border-red-500 shadow-lg"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
-                          <Cake className="w-6 h-6 text-pink-500" />
+                        <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center">
+                          <Cake className="w-6 h-6 text-red-600" />
                         </div>
                         <div>
                           <p className="font-bold">{person.name}</p>
@@ -375,7 +375,7 @@ export default function BirthdaysPage() {
                     key={person.id}
                     className={`p-4 rounded-xl border flex items-center justify-between ${
                       isToday(person.birthdate)
-                        ? 'bg-pink-50 border-pink-200'
+                        ? 'bg-red-50 border-red-200'
                         : 'hover:bg-muted/30'
                     }`}
                   >
@@ -393,7 +393,7 @@ export default function BirthdaysPage() {
                         <div className="flex items-center gap-2">
                           <p className="font-semibold">{person.name}</p>
                           {isToday(person.birthdate) && (
-                            <Badge className="bg-pink-500">HOJE</Badge>
+                            <Badge className="bg-red-600">HOJE</Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">

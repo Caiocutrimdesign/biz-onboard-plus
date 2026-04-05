@@ -126,13 +126,13 @@ export default function AdminDashboard() {
       <aside className={`hidden lg:flex flex-col ${isSidebarOpen ? 'w-72' : 'w-24'} bg-white border-r border-gray-100 transition-all duration-500 ease-in-out relative z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]`}>
         <div className="flex h-24 items-center px-8 border-b border-gray-50/50">
           <div className="flex items-center gap-4">
-             <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl shadow-blue-100 transform -rotate-3 hover:rotate-0 transition-transform cursor-pointer">
+             <div className="w-12 h-12 rounded-2xl bg-red-600 flex items-center justify-center shadow-xl shadow-red-100 transform -rotate-3 hover:rotate-0 transition-transform cursor-pointer">
                 <Shield className="text-white w-6 h-6" />
               </div>
             {isSidebarOpen && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
                 <span className="font-display font-black text-2xl tracking-tighter text-gray-900 leading-none block">RASTREMIX</span>
-                <span className="block text-[10px] text-blue-500 font-black uppercase tracking-[0.3em] mt-1.5 opacity-60">Control Center v4.2</span>
+                <span className="block text-[10px] text-red-500 font-black uppercase tracking-[0.3em] mt-1.5 opacity-60">Control Center v4.2</span>
               </motion.div>
             )}
           </div>
@@ -151,14 +151,14 @@ export default function AdminDashboard() {
                   onClick={() => handleNavigate(item)}
                   className={`w-full flex items-center gap-4 rounded-2xl px-6 py-4 text-sm font-black transition-all group relative ${
                     activeModule === item.id 
-                      ? 'bg-blue-50 text-blue-600 border border-blue-100/50 shadow-sm' 
+                      ? 'bg-red-50 text-red-600 border border-red-100/50 shadow-sm' 
                       : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <item.icon className={`h-5 w-5 flex-shrink-0 transition-all ${activeModule === item.id ? 'text-blue-600' : 'text-gray-300 group-hover:text-blue-400'}`} />
+                  <item.icon className={`h-5 w-5 flex-shrink-0 transition-all ${activeModule === item.id ? 'text-red-600' : 'text-gray-300 group-hover:text-red-400'}`} />
                   {isSidebarOpen && <span>{item.label}</span>}
                   {activeModule === item.id && (
-                    <motion.div layoutId="activeNav" className="absolute left-1 w-1 h-6 bg-blue-600 rounded-full" />
+                    <motion.div layoutId="activeNav" className="absolute left-1 w-1 h-6 bg-red-600 rounded-full" />
                   )}
                 </button>
               ))}
@@ -177,14 +177,14 @@ export default function AdminDashboard() {
                   onClick={() => handleNavigate(item)}
                   className={`w-full flex items-center gap-4 rounded-2xl px-6 py-4 text-sm font-black transition-all group relative ${
                     activeModule === item.id 
-                      ? 'bg-blue-50 text-blue-600 border border-blue-100/50 shadow-sm' 
+                      ? 'bg-red-50 text-red-600 border border-red-100/50 shadow-sm' 
                       : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <item.icon className={`h-5 w-5 flex-shrink-0 transition-all ${activeModule === item.id ? 'text-blue-600' : 'text-gray-300 group-hover:text-blue-400'}`} />
+                  <item.icon className={`h-5 w-5 flex-shrink-0 transition-all ${activeModule === item.id ? 'text-red-600' : 'text-gray-300 group-hover:text-red-400'}`} />
                   {isSidebarOpen && <span>{item.label}</span>}
                   {activeModule === item.id && (
-                    <motion.div layoutId="activeNav" className="absolute left-1 w-1 h-6 bg-blue-600 rounded-full" />
+                    <motion.div layoutId="activeNav" className="absolute left-1 w-1 h-6 bg-red-600 rounded-full" />
                   )}
                 </button>
               ))}
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
         <div className="p-4 border-t border-gray-100 space-y-2">
           <button
             onClick={handleCRMNavigation}
-            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all border border-blue-500/20"
+            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all border border-red-500/20"
           >
             <Zap className="h-5 w-5 flex-shrink-0" />
             {isSidebarOpen && <span>CRM Inteligente</span>}
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
         {/* Background Gradients */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-red-500/5 rounded-full blur-[120px]" />
         </div>
 
         {/* Header Premium */}
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
             <div className="flex flex-col">
               <h1 className="text-2xl font-black capitalize tracking-tight text-gray-900 lg:text-3xl">{activeModule}</h1>
               <div className="flex items-center gap-2 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                 <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">Sistema Operacional Rastremix</p>
               </div>
             </div>
@@ -241,14 +241,14 @@ export default function AdminDashboard() {
             <div className="hidden md:flex relative group">
                 <Input 
                    placeholder="Pesquisar registros..." 
-                   className="w-80 bg-gray-50 border-gray-100 rounded-2xl focus:ring-blue-50 focus:border-blue-200 pl-12 text-sm text-gray-900 placeholder:text-gray-300 h-12 transition-all" 
+                   className="w-80 bg-gray-50 border-gray-100 rounded-2xl focus:ring-red-50 focus:border-red-200 pl-12 text-sm text-gray-900 placeholder:text-gray-300 h-12 transition-all" 
                 />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-300 group-focus-within:text-red-500 transition-colors" />
             </div>
 
-            <Button variant="ghost" size="icon" className="relative h-12 w-12 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl border border-gray-50 transition-all">
+            <Button variant="ghost" size="icon" className="relative h-12 w-12 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-2xl border border-gray-50 transition-all">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-3 right-3 h-2 w-2 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.8)]" />
+              <span className="absolute top-3 right-3 h-2 w-2 bg-red-600 rounded-full shadow-[0_0_8px_rgba(220,38,38,0.8)]" />
             </Button>
 
             <div className="flex items-center gap-4 pl-6 border-l border-gray-100 h-10">
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
                </div>
                <motion.div 
                  whileHover={{ scale: 1.05, rotate: 5 }}
-                 className="h-12 w-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black shadow-xl shadow-blue-100 border-2 border-white cursor-pointer overflow-hidden"
+                 className="h-12 w-12 rounded-2xl bg-red-600 flex items-center justify-center text-white font-black shadow-xl shadow-red-100 border-2 border-white cursor-pointer overflow-hidden"
                >
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
               </motion.div>
@@ -291,7 +291,7 @@ export default function AdminDashboard() {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
-                      { label: 'Total Clientes', value: stats.total, icon: Users, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-100', delay: 0 },
+                      { label: 'Total Clientes', value: stats.total, icon: Users, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-100', delay: 0 },
                       { label: 'Clientes Ativos', value: stats.active, icon: ShieldCheck, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', delay: 0.1 },
                       { label: 'Pendentes', value: stats.pending, icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', delay: 0.2 },
                       { label: 'Em Atendimento', value: stats.inProgress, icon: TrendingUp, color: 'text-indigo-600', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-100', delay: 0.3 },
@@ -324,7 +324,7 @@ export default function AdminDashboard() {
                              <h3 className="font-display font-bold text-lg text-gray-900">Cadastros Recentes</h3>
                              <p className="text-xs text-gray-400">Últimos 5 clientes registrados no portal</p>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={() => setActiveModule('clientes')} className="text-xs uppercase font-bold tracking-widest text-blue-600 hover:bg-blue-50">Ver Todos</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setActiveModule('clientes')} className="text-xs uppercase font-bold tracking-widest text-red-600 hover:bg-red-50">Ver Todos</Button>
                        </div>
                        <div className="p-2">
                           {allCustomers.slice(0, 5).map((c: any, idx) => (
@@ -338,7 +338,7 @@ export default function AdminDashboard() {
                                      <p className="text-xs text-gray-400 font-mono">{c.phone}</p>
                                   </div>
                                </div>
-                               <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">{c.plan || 'Standard'}</Badge>
+                               <Badge className="bg-red-50 text-red-700 hover:bg-red-100 border-red-100">{c.plan || 'Standard'}</Badge>
                             </div>
                           ))}
                           {allCustomers.length === 0 && (
@@ -377,12 +377,12 @@ export default function AdminDashboard() {
                        )}
 
                        {/* Action Cards */}
-                       <div className="bg-white rounded-3xl p-6 border border-blue-100 shadow-sm shadow-blue-100/50">
+                       <div className="bg-white rounded-3xl p-6 border border-red-100 shadow-sm shadow-red-100/50">
                           <h3 className="font-bold text-gray-900 mb-2">Ação Rápida</h3>
                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Automação e Tarefas</p>
                           <Button 
                              onClick={handleCRMNavigation}
-                             className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 h-12 rounded-xl"
+                              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200 h-12 rounded-xl"
                           >
                              <Bot className="w-4 h-4 mr-2" />
                              Automação CRM
@@ -408,23 +408,22 @@ export default function AdminDashboard() {
               {/* Usuarios View */}
               {activeModule === 'usuarios' && <UsersPage />}
 
-              {/* Other Module Placeholders */}
               {['veiculos', 'financeiro', 'agendamentos', 'config'].includes(activeModule) && (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
-                  <div className="w-28 h-28 rounded-[2.5rem] bg-blue-50 border border-blue-100 flex items-center justify-center mb-10 relative">
-                     <div className="absolute inset-0 bg-blue-400/20 rounded-[2.5rem] blur-3xl animate-pulse" />
-                    {activeModule === 'veiculos' && <Car className="h-14 w-14 text-blue-600 relative z-10" />}
-                    {activeModule === 'financeiro' && <DollarSign className="h-14 w-14 text-blue-600 relative z-10" />}
-                    {activeModule === 'agendamentos' && <CalendarCheck className="h-14 w-14 text-blue-600 relative z-10" />}
-                    {activeModule === 'config' && <Settings className="h-14 w-14 text-blue-600 relative z-10" />}
+                  <div className="w-28 h-28 rounded-[2.5rem] bg-red-50 border border-red-100 flex items-center justify-center mb-10 relative">
+                     <div className="absolute inset-0 bg-red-400/20 rounded-[2.5rem] blur-3xl animate-pulse" />
+                    {activeModule === 'veiculos' && <Car className="h-14 w-14 text-red-600 relative z-10" />}
+                    {activeModule === 'financeiro' && <DollarSign className="h-14 w-14 text-red-600 relative z-10" />}
+                    {activeModule === 'agendamentos' && <CalendarCheck className="h-14 w-14 text-red-600 relative z-10" />}
+                    {activeModule === 'config' && <Settings className="h-14 w-14 text-red-600 relative z-10" />}
                   </div>
-                  <h2 className="text-4xl font-black mb-4 capitalize tracking-tight text-gray-900">Módulo em <span className="text-blue-600">Expansão</span></h2>
+                  <h2 className="text-4xl font-black mb-4 capitalize tracking-tight text-gray-900">Módulo em <span className="text-red-600">Expansão</span></h2>
                   <p className="text-gray-500 max-w-md mb-12 leading-relaxed font-medium">
                     Estamos preparando uma experiência de alta performance para o módulo de <strong>{activeModule}</strong>. Por enquanto, utilize o CRM Inteligente para estas operações.
                   </p>
                   <Button 
                     onClick={handleCRMNavigation} 
-                    className="h-16 px-10 bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200 rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:scale-105"
+                    className="h-16 px-10 bg-red-600 text-white hover:bg-red-700 shadow-xl shadow-red-200 rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:scale-105"
                   >
                     <Zap className="w-5 h-5 mr-3 text-white animate-pulse" />
                     Abrir CRM Inteligente
@@ -454,7 +453,7 @@ export default function AdminDashboard() {
                 {/* Header Mobile */}
                 <div className="flex h-20 items-center justify-between px-6 border-b border-gray-100">
                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center">
                         <Shield className="text-white w-5 h-5" />
                       </div>
                       <span className="font-display font-bold text-xl uppercase tracking-tight text-gray-900">Rastremix</span>
@@ -474,7 +473,7 @@ export default function AdminDashboard() {
                                onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
                                className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
                                   activeModule === item.id 
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                                    ? 'bg-red-600 text-white shadow-lg shadow-red-200' 
                                     : 'text-gray-500 hover:bg-gray-50'
                                }`}
                             >
@@ -494,7 +493,7 @@ export default function AdminDashboard() {
                                onClick={() => { handleNavigate(item); setIsMobileOpen(false); }}
                                className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
                                   activeModule === item.id 
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                                    ? 'bg-red-600 text-white shadow-lg shadow-red-200' 
                                     : 'text-gray-500 hover:bg-gray-50'
                                }`}
                             >

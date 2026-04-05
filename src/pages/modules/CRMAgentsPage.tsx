@@ -93,9 +93,9 @@ export default function CRMAgentsPage() {
   };
 
   const handleToggleStatus = (agent: TECAgent) => {
-    const updatedAgents = agents.map(a => a.id === agent.id ? {
+    const updatedAgents: TECAgent[] = agents.map((a): TECAgent => a.id === agent.id ? {
       ...a,
-      status: a.status === 'ativo' ? 'inativo' : 'ativo'
+      status: (a.status === 'ativo' ? 'inativo' : 'ativo') as "ativo" | "inativo"
     } : a);
     saveToLocal(updatedAgents);
   };
@@ -128,19 +128,19 @@ export default function CRMAgentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Bot className="w-7 h-7 text-violet-500" />
+            <Bot className="w-7 h-7 text-red-600" />
             Agentes - CRM
           </h1>
           <p className="text-muted-foreground">Gerencie agentes criados pelos técnicos</p>
         </div>
-        <Button onClick={() => { setEditingAgent(null); setFormData({ name: '', description: '', technician_id: '', technician_name: '' }); setShowModal(true); }} className="bg-violet-500 hover:bg-violet-600">
+        <Button onClick={() => { setEditingAgent(null); setFormData({ name: '', description: '', technician_id: '', technician_name: '' }); setShowModal(true); }} className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20 border-none transition-all hover:scale-105">
           <Plus className="w-4 h-4 mr-2" />
           Novo Agente
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-violet-500 to-purple-600 text-white">
+        <Card className="bg-gradient-brand text-white shadow-lg shadow-red-500/20 border-none">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -204,8 +204,8 @@ export default function CRMAgentsPage() {
                     agent.status === 'inativo' ? 'opacity-60 bg-muted/30' : 'hover:bg-muted/50'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
-                    <Bot className="w-6 h-6 text-violet-600" />
+                  <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center border border-red-100">
+                    <Bot className="w-6 h-6 text-red-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

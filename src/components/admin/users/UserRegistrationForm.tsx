@@ -91,39 +91,41 @@ export const UserRegistrationForm = ({ onCancel }: { onCancel?: () => void }) =>
   const onSubmit = async (values: UserFormValues) => {
     setIsSubmitting(true)
     try {
-      console.log("Iniciando salvamento...", values)
+      console.log("🚀 Caminho Definitivo: Iniciando salvamento e sincronia bilateral...", values)
 
-      const { data, error } = await supabase.functions.invoke('sync-rastremix', {
+      const { data, error: invokeError } = await supabase.functions.invoke('sync-rastremix', {
         body: { 
           type: 'register',
           user_data: {
             ...values,
-            has_device_limit: undefined,
-            has_expiration: undefined,
-            password_confirmation: undefined,
-            vehicles: undefined,
+            password_confirmation: values.password,
+            due_day: values.due_day || 14
           }
         }
       })
 
-      if (error) throw error
+      if (invokeError) throw invokeError
 
-      if (data.success) {
-        toast.success("Usuário cadastrado com sucesso!", {
-          description: "Sincronizando dados com a Rastremix Antiga...",
-          duration: 3000,
-        })
+      if (data?.success) {
+        if (data.sync_status === 'error') {
+          toast.warning("Usuário salvo, mas a sincronia com o sistema antigo falhou. Verifique os dados (Login/Senha).")
+        } else {
+          toast.success("Usuário cadastrado e espelhado com sucesso!", {
+            description: "Os dados já estão disponíveis no sistema novo e no antigo.",
+            duration: 5000,
+          })
+        }
         
-        // Limpar e Fechar formulário imediatamente
+        // Finalizar fluxo
         if (onCancel) onCancel()
       } else {
-        throw new Error(data.error || "Erro ao salvar usuário")
+        throw new Error(data?.error || "Erro na resposta da sincronia")
       }
 
     } catch (error: any) {
-      console.error("Erro no envio:", error)
-      toast.error("Falha ao criar usuário", {
-        description: error.message || "Não foi possível salvar os dados no Supabase. Verifique sua conexão.",
+      console.error("❌ Falha crítica no cadastro:", error)
+      toast.error("Erro ao criar usuário", {
+        description: error.message || "Falha na comunicação com o servidor de sincronia.",
       })
     } finally {
       setIsSubmitting(false)
@@ -132,14 +134,14 @@ export const UserRegistrationForm = ({ onCancel }: { onCancel?: () => void }) =>
 
   return (
     <div className="w-full max-w-6xl mx-auto bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-      <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-blue-50/20">
+      <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-red-50/20">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-600 rounded-[1.25rem] shadow-xl shadow-blue-200">
+          <div className="p-3 bg-red-600 rounded-[1.25rem] shadow-xl shadow-red-200">
              <Save className="h-6 w-6 text-white" />
           </div>
           <div>
             <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-none">Matrícula de Operador</h2>
-            <p className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mt-1.5">Cadastro Central de Inteligência</p>
+            <p className="text-[10px] text-red-500 font-black uppercase tracking-[0.2em] mt-1.5">Cadastro Central de Inteligência</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={onCancel} className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all h-12 w-12">
@@ -152,10 +154,10 @@ export const UserRegistrationForm = ({ onCancel }: { onCancel?: () => void }) =>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
             <div className="px-8 py-5 bg-gray-50/30 border-b border-gray-100/50">
               <TabsList className="bg-white/80 border border-gray-100 p-1.5 rounded-[1.5rem] w-fit shadow-sm">
-                <TabsTrigger value="principal" className="px-6 h-10 rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">PRINCIPAL</TabsTrigger>
-                <TabsTrigger value="cliente" className="px-6 h-10 rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">CLIENTE</TabsTrigger>
-                <TabsTrigger value="permissoes" className="px-6 h-10 rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">PERMISSÕES</TabsTrigger>
-                <TabsTrigger value="veiculos" className="px-6 h-10 rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">VEÍCULOS</TabsTrigger>
+                <TabsTrigger value="principal" className="px-6 h-10 rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">PRINCIPAL</TabsTrigger>
+                <TabsTrigger value="cliente" className="px-6 h-10 rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">CLIENTE</TabsTrigger>
+                <TabsTrigger value="permissoes" className="px-6 h-10 rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">PERMISSÕES</TabsTrigger>
+                <TabsTrigger value="veiculos" className="px-6 h-10 rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white font-black text-[10px] tracking-widest transition-all">VEÍCULOS</TabsTrigger>
               </TabsList>
             </div>
 
@@ -197,7 +199,7 @@ export const UserRegistrationForm = ({ onCancel }: { onCancel?: () => void }) =>
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-2xl shadow-blue-200/50 px-14 h-14 rounded-[1.25rem] font-black uppercase tracking-widest text-[10px] flex items-center gap-3 transition-all hover:scale-105 active:scale-95 group"
+              className="bg-red-600 hover:bg-red-700 text-white shadow-2xl shadow-red-200/50 px-14 h-14 rounded-[1.25rem] font-black uppercase tracking-widest text-[10px] flex items-center gap-3 transition-all hover:scale-105 active:scale-95 group"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

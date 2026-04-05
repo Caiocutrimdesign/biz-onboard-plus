@@ -97,7 +97,7 @@ export default function CRMDashboard() {
           value={analytics?.totalLeads || 0}
           trend="up"
           trendValue="+12%"
-          color="bg-gradient-to-br from-blue-500 to-blue-600"
+          color="bg-gradient-brand"
         />
         <StatCard
           icon={Target}
@@ -200,11 +200,11 @@ export default function CRMDashboard() {
               <div className="space-y-4">
                 {upcomingAppointments.map((apt) => (
                   <div key={apt.id} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
-                    <div className="w-12 h-12 rounded-xl bg-blue-100 flex flex-col items-center justify-center">
-                      <span className="text-xs text-blue-600 font-medium">
+                    <div className="w-12 h-12 rounded-xl bg-red-50 flex flex-col items-center justify-center">
+                      <span className="text-xs text-red-600 font-medium">
                         {new Date(apt.startDate).toLocaleDateString('pt-BR', { month: 'short' })}
                       </span>
-                      <span className="text-lg font-bold text-blue-600">
+                      <span className="text-lg font-bold text-red-600">
                         {new Date(apt.startDate).getDate()}
                       </span>
                     </div>

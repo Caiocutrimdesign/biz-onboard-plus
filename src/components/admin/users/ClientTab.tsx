@@ -28,7 +28,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">CPF/CNPJ:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -43,7 +43,7 @@ export const ClientTab = () => {
               <FormItem className="md:col-span-2">
                 <FormLabel className="text-gray-700 font-bold">Nome/Razão Social:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -58,7 +58,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">RG:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -73,7 +73,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Data de nascimento:</FormLabel>
                 <FormControl>
-                  <Input {...field} type="date" className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} type="date" className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -92,7 +92,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">CEP:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -139,13 +139,13 @@ export const ClientTab = () => {
                         toast.error(`Falha na validação: ${err.message}`, { id: 'geo-val' });
                       }
                     }}
-                    className="text-[9px] font-black text-blue-600 uppercase hover:underline"
+                    className="text-[9px] font-black text-red-600 uppercase hover:underline"
                   >
                     Auto-Validar G-Maps
                   </button>
                 </div>
                 <FormControl>
-                  <Input {...field} placeholder="Rua, Av, etc." className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} placeholder="Rua, Av, etc." className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -160,7 +160,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Nº:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -175,7 +175,7 @@ export const ClientTab = () => {
               <FormItem className="md:col-span-2">
                 <FormLabel className="text-gray-700 font-bold">Complemento:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -190,7 +190,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Bairro:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -205,7 +205,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Cidade:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -220,7 +220,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Estado:</FormLabel>
                 <FormControl>
-                  <Input {...field} maxLength={2} placeholder="UF" className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} maxLength={2} placeholder="UF" className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -239,7 +239,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Celular:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -256,7 +256,7 @@ export const ClientTab = () => {
                 <FormControl>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
-                    <Input {...field} type="number" step="0.01" className="pl-10 bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                    <Input {...field} type="number" step="0.01" className="pl-10 bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -296,7 +296,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Email de Cobrança:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -313,7 +313,7 @@ export const ClientTab = () => {
                 <FormControl>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
-                    <Input {...field} type="number" step="0.01" className="pl-10 bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                    <Input {...field} type="number" step="0.01" className="pl-10 bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -333,7 +333,7 @@ export const ClientTab = () => {
               <FormItem>
                 <FormLabel className="text-gray-700 font-bold">Número para retorno de suporte:</FormLabel>
                 <FormControl>
-                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-blue-500/20 rounded-xl" />
+                  <Input {...field} className="bg-gray-50 border-gray-200 text-gray-900 focus:ring-red-500/20 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -93,12 +93,12 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-            <Wrench className="w-5 h-5 md:w-7 md:h-7 text-orange-500" />
+            <Wrench className="w-5 h-5 md:w-7 md:h-7 text-red-600" />
             Meus Serviços
           </h1>
           <p className="text-muted-foreground text-sm">Gerencie seus serviços</p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="bg-orange-500 hover:bg-orange-600 h-9 md:h-10">
+        <Button onClick={() => setShowCreateDialog(true)} className="bg-red-600 hover:bg-red-700 h-9 md:h-10 text-white shadow-lg shadow-red-500/20 border-none transition-all hover:scale-105">
           <Plus className="w-4 h-4 md:mr-2" />
           <span className="hidden md:inline">Novo Serviço</span>
           <span className="md:hidden">Novo</span>
@@ -109,8 +109,8 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card className="p-3 md:p-4">
           <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg md:rounded-xl flex items-center justify-center">
-              <User className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-red-50 rounded-lg md:rounded-xl flex items-center justify-center">
+              <User className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
             </div>
             <div>
               <p className="text-lg md:text-xl font-bold">{stats.designado}</p>
@@ -160,7 +160,7 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
             onClick={() => setActiveTab('designados')}
             className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-lg md:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
               activeTab === 'designados' 
-                ? 'bg-orange-500 text-white shadow-md' 
+                ? 'bg-red-600 text-white shadow-md shadow-red-500/30' 
                 : 'bg-muted/50 text-muted-foreground hover:bg-muted'
             }`}
           >
@@ -174,7 +174,7 @@ export default function TechnicianServicesPage({ tecnicoId, tecnicoName }: Techn
             onClick={() => setActiveTab('todos')}
             className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-lg md:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
               activeTab === 'todos' 
-                ? 'bg-orange-500 text-white shadow-md' 
+                ? 'bg-red-600 text-white shadow-md shadow-red-500/30' 
                 : 'bg-muted/50 text-muted-foreground hover:bg-muted'
             }`}
           >
